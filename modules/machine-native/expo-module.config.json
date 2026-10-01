@@ -1,0 +1,6 @@
+{
+  "platforms": ["android"],
+  "android": {
+    "modules": ["com.appfactory.maschinenlog.nativecore.MachineNativeModule"]
+  }
+}

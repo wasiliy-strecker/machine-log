@@ -1,0 +1,591 @@
+import { formatValue } from '../../core/domain/reading-value';
+import { View, Text } from 'react-native';
+import { router, Stack, useLocalSearchParams } from 'expo-router';
+import {
+  Body,
+  Button,
+  Busy,
+  Card,
+  Field,
+  Heading,
+  Page,
+  Title,
+  Fab,
+  IconButton,
+  Notice,
+  SelectField,
+  useTheme,
+} from '../../core/ui/components';
+import { Icon, categoryIcon } from '../../core/ui/icon';
+import { useFeedback } from '../../core/ui/feedback';
+import { useRecords, useRecordDetail } from './use-records';
+import { HistoryTile } from './history-tile';
+import { Reports } from './reports';
+import {
+  dateTime,
+  entrySummary,
+  reminderSummary,
+  sortLabels,
+  type RecordSort,
+} from './presentation-model';
+import { PAGE_SIZE, type Counter } from '../../core/domain/models';
+import type { ReminderStatus } from '../../core/native/machine-native';
+export function ReminderInfo({
+  record,
+  status,
+}: {
+  record: Counter;
+  status?: ReminderStatus;
+}) {
+  const c = useTheme();
+  const r = record.reminder;
+  const s = status?.schedules.find((s) => s.recordId === record.id);
+  if (!r) return null;
+  return (
+    <View style={{ gap: 6 }}>
+      <Body strong style={{ fontSize: 12 }}>
+        Erinnern: {reminderSummary(r)}
+      </Body>
+      <Body muted style={{ fontSize: 12 }}>
+        {s?.nextTriggerAtMillis
+          ? `Nächste Erinnerung: ${dateTime(s.nextTriggerAtMillis)} Uhr`
+          : 'Erinnerung noch nicht bestätigt'}
+        {status && !status.notifications ? ' · In Android blockiert' : ''}
+        {s?.planningState && s.planningState !== 'scheduled'
+          ? ' · Planung prüfen'
+          : ''}
+        {s?.deliveryFailed ? ' · Zustellfehler' : ''}
+      </Body>
+      <View
+        style={{
+          paddingHorizontal: 10,
+          paddingVertical: 8,
+          borderRadius: 12,
+          backgroundColor: c.soft,
+          flexDirection: 'row',
+          alignItems: 'center',
+          gap: 8,
+        }}
+      >
+        <Icon name="notifications_active_outlined" size={19} color={c.onSoft} />
+        <Body strong style={{ fontSize: 12, color: c.onSoft, flex: 1 }}>
+          Letzte Erinnerung:{' '}
+          {s?.lastTriggeredAtMillis
+            ? `${dateTime(s.lastTriggeredAtMillis)} Uhr`
+            : 'noch keine'}
+        </Body>
+      </View>
+    </View>
+  );
+}
+export function RecordsScreen() {
+  const vm = useRecords(),
+    c = useTheme(),
+    feedback = useFeedback();
+  const create = () => router.push('/record/edit');
+  return (
+    <Page
+      ready={!vm.loading}
+      fab={<Fab title="Maschine anlegen" onPress={create} />}
+    >
+      {vm.loading ? (
+        <Busy label="Maschinen werden geladen …" />
+      ) : vm.error ? (
+        <>
+          <Notice error text={vm.error} />
+          <Button title="Erneut laden" onPress={vm.retry} />
+        </>
+      ) : vm.empty ? (
+        <View
+          style={{
+            flex: 1,
+            justifyContent: 'center',
+            alignItems: 'center',
+            paddingHorizontal: 16,
+            gap: 20,
+          }}
+        >
+          <Icon name="settings_outlined" size={72} color={c.primary} />
+          <Title>Erste Maschine anlegen</Title>
+          <Body style={{ textAlign: 'center' }}>
+            Dokumentiere Produktionsstände deiner Maschinen. Erfasse
+            Stückzahlen, Zyklen, Betriebsstunden und Mengen mit Foto oder
+            manuell. Deine Daten bleiben lokal auf deinem Gerät.
+          </Body>
+        </View>
+      ) : (
+        <>
+          <Title subtitle="Zählerstände erfassen und Produktionszuwächse nachvollziehen.">
+            Deine Maschinen
+          </Title>
+          <View style={{ marginTop: 4 }}>
+            <Field
+              label="Maschinen suchen"
+              leading="search"
+              value={vm.search}
+              onChangeText={vm.setSearch}
+              trailing={vm.search ? 'close' : undefined}
+              onTrailingPress={() => vm.setSearch('')}
+              returnKeyType="search"
+            />
+          </View>
+          <View
+            style={{
+              flexDirection: 'row',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              gap: 12,
+              flexWrap: 'wrap',
+            }}
+          >
+            <Body muted>
+              {vm.items.length}{' '}
+              {vm.search
+                ? 'Treffer'
+                : vm.items.length === 1
+                  ? 'Maschine'
+                  : 'Maschinen'}
+            </Body>
+            <Button
+              secondary
+              icon="sort"
+              menu
+              title={sortLabels[vm.sort]}
+              onPress={(anchor) =>
+                void feedback
+                  .choose({
+                    title: 'Maschinen sortieren',
+                    anchor,
+                    options: (Object.keys(sortLabels) as RecordSort[]).map(
+                      (value) => ({
+                        value,
+                        label: sortLabels[value],
+                        icon: value === vm.sort ? 'check' : undefined,
+                      }),
+                    ),
+                  })
+                  .then((value) => {
+                    if (value) vm.setSort(value as RecordSort);
+                  })
+              }
+            />
+          </View>
+          {!vm.items.length && (
+            <Card>
+              <Icon name="search" size={42} color={c.primary} />
+              <Body>Keine passenden Maschinen gefunden.</Body>
+            </Card>
+          )}
+          {vm.items.map(({ record, latest, lastEdited }) => (
+            <Card
+              key={record.id}
+              onPress={() =>
+                router.push({
+                  pathname: '/record/[id]',
+                  params: { id: record.id },
+                })
+              }
+            >
+              <View
+                style={{ flexDirection: 'row', alignItems: 'center', gap: 14 }}
+              >
+                <View
+                  style={{
+                    width: 40,
+                    height: 40,
+                    borderRadius: 20,
+                    backgroundColor: c.primary + '1F',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                  }}
+                >
+                  <Icon
+                    name={categoryIcon(record.category)}
+                    color={c.primary}
+                  />
+                  {vm.status?.schedules.find((s) => s.recordId === record.id)
+                    ?.isNotificationActive && (
+                    <View
+                      style={{
+                        position: 'absolute',
+                        right: -2,
+                        top: -4,
+                        backgroundColor: c.danger,
+                        borderRadius: 10,
+                        paddingHorizontal: 5,
+                      }}
+                    >
+                      <Text style={{ color: c.background, fontSize: 11 }}>
+                        1
+                      </Text>
+                    </View>
+                  )}
+                </View>
+                <View style={{ flex: 1, gap: 4 }}>
+                  <Body strong style={{ fontSize: 16, lineHeight: 24 }}>
+                    {record.name}
+                  </Body>
+                  <Body muted>
+                    {[record.category, record.location]
+                      .filter(Boolean)
+                      .join(' · ')}
+                  </Body>
+                  <Text
+                    style={{
+                      fontFamily: 'RobotoBlack',
+                      fontSize: 22,
+                      lineHeight: 28,
+                      color: c.ink,
+                      marginTop: 2,
+                    }}
+                  >
+                    {entrySummary(latest)}
+                  </Text>
+                  <Body muted style={{ fontSize: 12, lineHeight: 16 }}>
+                    Zuletzt bearbeitet: {dateTime(lastEdited)}
+                  </Body>
+                  {vm.drafts.some((d) => d.recordId === record.id) && (
+                    <Body muted style={{ fontSize: 12 }}>
+                      Gesicherter Formularentwurf
+                    </Body>
+                  )}
+                  {record.counters.map((counter) => (
+                    <ReminderInfo
+                      key={counter.id}
+                      record={counter}
+                      status={vm.status}
+                    />
+                  ))}
+                </View>
+                <Icon name="chevron_right" />
+              </View>
+            </Card>
+          ))}
+        </>
+      )}
+    </Page>
+  );
+}
+export function Pager({
+  offset,
+  total,
+  onChange,
+}: {
+  offset: number;
+  total: number;
+  onChange(n: number): void;
+}) {
+  return total > PAGE_SIZE ? (
+    <View
+      style={{
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        gap: 8,
+      }}
+    >
+      <IconButton
+        icon="chevron_left"
+        label="Vorherige Seite"
+        disabled={offset === 0}
+        onPress={() => onChange(Math.max(0, offset - PAGE_SIZE))}
+      />
+      <Body>
+        Seite {Math.floor(offset / PAGE_SIZE) + 1} von{' '}
+        {Math.ceil(total / PAGE_SIZE)}
+      </Body>
+      <IconButton
+        icon="chevron_right"
+        label="Nächste Seite"
+        disabled={offset + PAGE_SIZE >= total}
+        onPress={() => onChange(offset + PAGE_SIZE)}
+      />
+    </View>
+  ) : null;
+}
+export function RecordDetailScreen() {
+  const { id, counterId } = useLocalSearchParams<{
+    id: string;
+    counterId?: string;
+  }>();
+  const vm = useRecordDetail(id, false, counterId),
+    c = useTheme(),
+    feedback = useFeedback();
+  const r = vm.record;
+  const edit = () => router.push({ pathname: '/record/edit', params: { id } });
+  const capture = () =>
+    router.push({
+      pathname: '/entry/edit',
+      params: { recordId: id, counterId: vm.counterId },
+    });
+  if (!r)
+    return (
+      <Page ready={!vm.loading}>
+        <Notice error text={vm.error} />
+        {vm.loading ? <Busy /> : <Body>Maschine nicht gefunden.</Body>}
+      </Page>
+    );
+  return (
+    <Page
+      ready={!vm.loading}
+      fab={
+        <Fab
+          title="Eintrag erfassen"
+          icon="add_a_photo_outlined"
+          onPress={capture}
+        />
+      }
+    >
+      <Stack.Screen options={{ title: r.name }} />
+      {r.counters.length > 1 && (
+        <SelectField
+          label="Produktionszähler"
+          value={vm.counterId}
+          options={r.counters.map((counter) => ({
+            value: counter.id,
+            label: counter.name,
+          }))}
+          onChange={vm.setCounterId}
+        />
+      )}
+      <Card onPress={edit} style={{ margin: 4, padding: 17, gap: 0 }}>
+        <View style={{ flexDirection: 'row', gap: 12, alignItems: 'center' }}>
+          <View
+            style={{
+              width: 40,
+              height: 40,
+              borderRadius: 20,
+              backgroundColor: c.primary + '1F',
+              alignItems: 'center',
+              justifyContent: 'center',
+            }}
+          >
+            <Icon name={categoryIcon(r.category)} color={c.primary} />
+          </View>
+          <Body
+            strong
+            style={{
+              flex: 1,
+              fontSize: 16,
+              lineHeight: 24,
+              letterSpacing: 0.15,
+            }}
+          >
+            {r.category || 'Maschine'}
+          </Body>
+          <Icon name="chevron_right" color={c.muted} />
+        </View>
+        <Body
+          style={{
+            marginTop: 14,
+            fontFamily: 'RobotoBlack',
+            fontSize: 28,
+            lineHeight: 36,
+            letterSpacing: 0,
+          }}
+        >
+          {entrySummary(vm.entries[0] ?? null)}
+        </Body>
+        {!!vm.entries[0] && (
+          <Body>Zuletzt am {dateTime(vm.entries[0].occurredAt)}</Body>
+        )}
+        <View style={{ marginTop: 10 }}>
+          {!!r.location && <Body>Produktionsbereich: {r.location}</Body>}
+          {!!(r.manufacturer || r.model) && (
+            <Body>
+              Hersteller / Modell:{' '}
+              {[r.manufacturer, r.model].filter(Boolean).join(' · ')}
+            </Body>
+          )}
+          {!!r.number && <Body>Maschinennummer: {r.number}</Body>}
+          {!!r.serial && <Body>Seriennummer: {r.serial}</Body>}
+          {!!r.installedOn && (
+            <Body>
+              Inbetriebnahme:{' '}
+              {new Date(r.installedOn).toLocaleDateString('de-DE', {
+                day: '2-digit',
+                month: '2-digit',
+                year: 'numeric',
+              })}
+            </Body>
+          )}
+          {!!r.note && <Body>{r.note}</Body>}
+          {vm.counter && (
+            <ReminderInfo record={vm.counter} status={vm.status} />
+          )}
+        </View>
+      </Card>
+      <View style={{ gap: 12 }}>
+        <Button
+          secondary
+          icon="edit_outlined"
+          title="Maschine & Zähler bearbeiten"
+          onPress={edit}
+        />
+        <Button
+          secondary
+          danger
+          icon="delete_outline"
+          title="Maschine löschen"
+          disabled={vm.busy}
+          onPress={() =>
+            void feedback
+              .confirm(
+                'Maschine löschen?',
+                'Die Maschine, ihre Einträge und gespeicherten Protokolle werden gelöscht. Exportierte Dateien bleiben erhalten.',
+              )
+              .then((ok) => {
+                if (ok) void vm.remove();
+              })
+          }
+        />
+      </View>
+      <Notice error text={vm.error} />
+      {vm.totals.map((total) => (
+        <Card key={total.unit}>
+          <Body strong>Dokumentierter Zuwachs</Body>
+          <Body>
+            {formatValue(total.value)} {total.unit}
+          </Body>
+          {total.incomplete && (
+            <Notice text="Unvollständig. Mindestens ein Übergang ist nicht berechenbar." />
+          )}
+        </Card>
+      ))}
+      {vm.total > 0 && (
+        <Reports
+          recordId={id}
+          counterId={vm.counterId}
+          hasAttachments={vm.hasAttachments}
+          summary={r.name}
+        />
+      )}
+      <View style={{ marginTop: vm.total > 0 ? 6 : 18, gap: 8 }}>
+        <Heading>Zählerverlauf</Heading>
+        {vm.total > 0 && (
+          <Body style={{ fontFamily: 'RobotoMedium', letterSpacing: 0.1 }}>
+            {vm.total === 1
+              ? '1 Eintrag'
+              : `${vm.entries.length} von ${vm.total} Einträgen`}
+          </Body>
+        )}
+        {!vm.total && (
+          <Card
+            onPress={capture}
+            style={{ margin: 4, padding: 23, gap: 0, alignItems: 'center' }}
+          >
+            <Icon name="add_a_photo_outlined" size={44} color={c.primary} />
+            <Body style={{ marginTop: 10, textAlign: 'center' }}>
+              Noch kein Eintrag für diesen Zähler. Erfasse den ersten Stand mit
+              Foto oder manuell.
+            </Body>
+            <View
+              style={{
+                marginTop: 14,
+                flexDirection: 'row',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: 4,
+              }}
+            >
+              <Body
+                strong
+                style={{ color: c.primary, textAlign: 'center', flexShrink: 1 }}
+              >
+                Ersten Eintrag erfassen
+              </Body>
+              <Icon name="chevron_right" color={c.primary} />
+            </View>
+          </Card>
+        )}
+        <View style={{ gap: 10 }}>
+          {vm.historyItems.map((item) => (
+            <HistoryTile key={item.entry.id} item={item} />
+          ))}
+        </View>
+      </View>
+      {vm.total > PAGE_SIZE && (
+        <Button
+          secondary
+          icon="manage_search_outlined"
+          title="Alle Einträge anzeigen"
+          onPress={() =>
+            router.push({
+              pathname: '/record/history',
+              params: { id, counterId: vm.counterId },
+            })
+          }
+        />
+      )}
+    </Page>
+  );
+}
+export function RecordHistoryScreen() {
+  const { id, counterId } = useLocalSearchParams<{
+    id: string;
+    counterId?: string;
+  }>();
+  const vm = useRecordDetail(id, true, counterId),
+    c = useTheme();
+  return (
+    <Page
+      ready={!vm.loading}
+      top={
+        <View
+          style={{
+            paddingHorizontal: 16,
+            paddingTop: 8,
+            paddingBottom: 12,
+            gap: 12,
+            backgroundColor: c.background,
+          }}
+        >
+          <Body
+            style={{
+              fontFamily: 'RobotoMedium',
+              fontSize: 16,
+              lineHeight: 24,
+              letterSpacing: 0.15,
+            }}
+          >
+            {vm.record?.name ?? ''}
+          </Body>
+          <Field
+            label="Einträge suchen"
+            leading="search"
+            value={vm.search}
+            onChangeText={vm.setSearch}
+            trailing={vm.search ? 'close' : undefined}
+            onTrailingPress={() => vm.setSearch('')}
+          />
+        </View>
+      }
+      bottom={
+        <Pager offset={vm.offset} total={vm.total} onChange={vm.setOffset} />
+      }
+    >
+      <Stack.Screen options={{ title: 'Zählerverlauf' }} />
+      <Notice error text={vm.error} />
+      {vm.loading ? (
+        <Busy />
+      ) : (
+        <View style={{ gap: 8 }}>
+          <Body style={{ fontFamily: 'RobotoMedium', letterSpacing: 0.1 }}>
+            {vm.total === 0
+              ? 'Keine Einträge gefunden'
+              : vm.total === 1
+                ? vm.search.trim()
+                  ? '1 Treffer'
+                  : '1 Eintrag'
+                : `${vm.offset + 1}–${Math.min(vm.offset + PAGE_SIZE, vm.total)} von ${vm.total} ${vm.search.trim() ? 'Treffern' : 'Einträgen'}`}
+          </Body>
+          <View style={{ gap: 10 }}>
+            {vm.historyItems.map((item) => (
+              <HistoryTile key={item.entry.id} item={item} />
+            ))}
+          </View>
+        </View>
+      )}
+    </Page>
+  );
+}

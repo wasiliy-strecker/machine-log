@@ -1,0 +1,27 @@
+# MaschinenLog
+
+Eigenständige Android-App mit React Native, TypeScript strict und Expo.
+Die Root-Regeln gelten mit der ausdrücklich beauftragten React-Native-Ausnahme.
+Hausakte und alle anderen Nachbarprojekte bleiben unverändert. Keine gemeinsamen Runtime-Pakete.
+
+## Entwicklung
+
+`npm ci`, `npm run check` und bei nativen Änderungen `npm run check:native`.
+Schlanke Expo-Routen, View-Model-Hooks, Fachservices und austauschbare Ports.
+Werte bleiben exakte Dezimalzahlen. Korrekturen behalten Originale, Gründe und frühere Anhänge.
+Datenbanktransaktionen gehen der referenzgeprüften Dateibereinigung voraus.
+Keine Server-KI und keine eigene Telemetrie.
+
+Die normale Smartphone-Version ist `npm run build:preview` mit eingebettetem JavaScript.
+`npm run install:preview -- DEVICE` prüft Paket und Signatur und installiert datenbewahrend.
+Dev: `com.appfactory.maschinenlog.dev`, Name `MaschinenLog Dev`.
+Store: `com.appfactory.maschinenlog`. Store-Debug ist deaktiviert, Release bleibt unsigniert.
+Kein Store-Build oder Push ohne neuen Auftrag. Keine fremden Schlüssel kopieren.
+Optionales Fast Refresh verwendet Dev-Debug und Metro auf Port 8084.
+Ein Wechsel des installierten Dev-Modus wird ausdrücklich benannt.
+
+`android/` ist versioniert. Generierte Konfiguration auch in `plugins/with-machine-android.js` pflegen.
+Gezielte Tests für Berechnung, OCR, Revisionen, SQLite, PDFs und Backups genügen.
+Keine aufwendigen visuellen Testreihen. Tatsächliche Gerätegrenzen in README dokumentieren.
+Changelog unter Workspace `CODEX/changelog/` mit Kopie unter `docs/changelog/`.
+Nach erfolgreichen Prüfungen nur dieses Projekt lokal committen. Nicht pushen.
