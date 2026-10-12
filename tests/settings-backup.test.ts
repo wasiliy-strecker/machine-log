@@ -12,6 +12,7 @@ import { fixture, record } from './support';
 const ports = vi.hoisted(() => ({
   dismissKeyboard: vi.fn(),
   refresh: vi.fn(),
+  openLink: vi.fn(),
   media: {
     prepareBackup: vi.fn(),
     saveBackup: vi.fn(),
@@ -58,7 +59,7 @@ vi.mock('../src/core/composition', () => ({
     backup: active.backup,
     media: ports.media,
     refresh: ports.refresh,
-    links: { open: vi.fn() },
+    links: { open: ports.openLink },
   }),
 }));
 Object.assign(globalThis, { IS_REACT_ACT_ENVIRONMENT: true });
@@ -123,12 +124,48 @@ beforeEach(async () => {
   ports.media.pickBackup.mockImplementation(async () => saved);
   ports.feedback.choose.mockResolvedValue('done');
   ports.feedback.confirm.mockResolvedValue(true);
+  ports.openLink.mockResolvedValue(undefined);
   await mount();
 });
 afterEach(async () => {
   if (renderer) await act(async () => renderer!.unmount());
   renderer = undefined;
   for (const f of fixtures.splice(0)) await f.close();
+});
+
+it('opens the privacy policy and GitHub README through the external link port', async () => {
+  await act(async () =>
+    root()
+      .findByProps({ title: 'Datenschutzerklärung öffnen' })
+      .props.onPress(),
+  );
+  expect(ports.openLink).toHaveBeenLastCalledWith(
+    'https://wasiliy-strecker.github.io/machine-log/datenschutz/',
+  );
+  await press('Quellcode auf GitHub');
+  expect(ports.openLink).toHaveBeenLastCalledWith(
+    'https://github.com/wasiliy-strecker/machine-log#readme',
+  );
+});
+
+it('reports a browser failure and allows retrying without blocking backup actions', async () => {
+  ports.openLink.mockRejectedValueOnce(new Error('No browser available'));
+  await act(async () =>
+    root()
+      .findByProps({ title: 'Datenschutzerklärung öffnen' })
+      .props.onPress(),
+  );
+  expect(root().find(host('Notice')).props.text).toBe(
+    'Die Datenschutzerklärung konnte nicht geöffnet werden. Bitte versuche es erneut.',
+  );
+  expect(button('Verschlüsseltes Backup erstellen').props.disabled).toBe(false);
+  await act(async () =>
+    root()
+      .findByProps({ title: 'Datenschutzerklärung öffnen' })
+      .props.onPress(),
+  );
+  expect(ports.openLink).toHaveBeenCalledTimes(2);
+  expect(root().findAll(host('Notice'))).toHaveLength(0);
 });
 
 it('keeps password errors outside the scroller and accepts corrected input through the keyboard action', async () => {

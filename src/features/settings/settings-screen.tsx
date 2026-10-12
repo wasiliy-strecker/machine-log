@@ -224,8 +224,9 @@ export function SettingsScreen() {
         </View>
         <Card style={{ padding: 18, gap: 0 }}>
           <Body>
-            Fotos, Einträge und PDFs werden lokal auf deinem Gerät verarbeitet.
-            Die App überträgt deine Maschinendaten nicht an einen Server.
+            Maschinendaten, Fotos, Zählerstände, OCR und PDFs werden lokal auf
+            deinem Gerät verarbeitet. Die App überträgt deine Maschinendaten
+            nicht an einen Server.
           </Body>
           <Body style={{ marginTop: 10 }}>
             Deine Daten bleiben lokal auf deinem Gerät gespeichert, bis du sie
@@ -257,6 +258,26 @@ export function SettingsScreen() {
               Formularentwürfe gehören nicht zum Backup.
             </Body>
           </View>
+          <View style={{ height: 1, backgroundColor: c.border }} />
+          <Pressable
+            accessibilityRole="button"
+            disabled={vm.busy}
+            onPress={() => void vm.openSourceCode()}
+            style={{
+              paddingHorizontal: 16,
+              paddingVertical: 14,
+              flexDirection: 'row',
+              gap: 16,
+              alignItems: 'center',
+            }}
+          >
+            <Icon name="code" />
+            <View style={{ flex: 1, gap: 4 }}>
+              <Body style={{ fontSize: 16 }}>Quellcode auf GitHub</Body>
+              <Body muted>README und Projektinformationen</Body>
+            </View>
+            <Icon name="open_in_new" />
+          </Pressable>
         </Card>
       </Page>
       <BusyOverlay visible={!!vm.phase} label={vm.phase} />

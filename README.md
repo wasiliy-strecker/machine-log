@@ -59,7 +59,40 @@ Backups sind auf 128 MiB begrenzt, einzelne Dateien auf 50 MiB.
 Die vorhandene Flutter-App unter `production_counter_log` und Hausakte bleiben
 unverändert. Es gibt keine gemeinsame Runtime-Bibliothek, keine Datenmigration,
 kein Konto, keine Cloud und keine eigene Telemetrie. Android-Systembackups sind
-deaktiviert. Details stehen in [PRIVACY.md](PRIVACY.md) und direkt in der App.
+deaktiviert. Die Einstellungen öffnen die vollständige Datenschutzerklärung
+im Browser und verlinken die [GitHub-README](https://github.com/wasiliy-strecker/machine-log#readme).
+
+## Datenschutz
+
+Die vollständige [Datenschutzerklärung](https://wasiliy-strecker.github.io/machine-log/datenschutz/)
+und ihre [englische Fassung](https://wasiliy-strecker.github.io/machine-log/privacy/)
+werden wie bei ZählerstandLog über GitHub Pages bereitgestellt.
+
+- Maschinen, Zählerstände, Fotos, OCR, Korrekturhistorien, PDFs und Backups werden
+  lokal im privaten App-Speicher auf Ihrem Gerät verarbeitet.
+- Es gibt kein Konto, keine Cloud-Synchronisation, keine Server-KI, keine Werbung
+  und keine eigene Analyse des Nutzungsverhaltens.
+- Die Zahlen-OCR verwendet ein mitgeliefertes ML-Kit-Modell. Der optionale
+  Dokumentenscanner kann Komponenten über Google Play-Dienste laden.
+  Google-Bibliotheken verarbeiten technische Leistungs- und Nutzungsmetriken.
+  Bilder, erkannte Texte und Dokumenteninhalte werden dadurch nicht an Google
+  übertragen. Details stehen in den [ML-Kit-Datenschutzhinweisen](https://developers.google.com/ml-kit/terms).
+- Android-Systembackups sind deaktiviert. Manuelle Backups sind verschlüsselt.
+- PDFs und verschlüsselte Backups verlassen die private App-Ablage nur durch
+  eine bewusste Speicher- oder Teilen-Aktion. Speicherort und Empfänger bestimmen Sie.
+
+### Veröffentlichung der Datenschutzerklärung
+
+Die statischen Datenschutzseiten liegen unter `docs/`. GitHub Pages veröffentlicht
+den Ordner `/docs` aus `main` über „Deploy from a branch“. `.nojekyll` deaktiviert
+die Jekyll-Verarbeitung. HTML und CSS benötigen keine externen Assets, Skripte
+oder Build-Abhängigkeiten. App-Daten werden dort nicht abgelegt.
+
+Die App öffnet die deutsche URL. Für einen späteren Store-Release in der
+Play Console dieselbe URL als Datenschutzerklärung hinterlegen.
+Änderungen künftig in beiden Sprachfassungen pflegen und das
+Aktualisierungsdatum anpassen. [PRIVACY.md](PRIVACY.md) verweist ebenfalls auf
+die vollständigen Erklärungen.
 
 ## Entwicklung
 

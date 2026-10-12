@@ -1,40 +1,20 @@
 # Datenschutz für MaschinenLog
 
-Stand: 1. Oktober 2026
+Stand: 12. Oktober 2026
 
-Verantwortlicher Entwickler: Wasiliy Strecker, AppFabrik AI.
+Die vollständige Datenschutzerklärung ist wie bei ZählerstandLog in deutscher
+und englischer Sprache auf GitHub Pages veröffentlicht.
 
-MaschinenLog verarbeitet Maschinenangaben, Zählerstände, Notizen, Fotos,
-OCR-Ergebnisse, Korrekturen und PDFs lokal im privaten Speicher des Geräts.
-Es gibt kein Konto, keine Cloud-Synchronisation, keine Werbung und keine eigene
-Telemetrie. Die App sendet diese Inhalte nicht an einen Server.
+[Datenschutzerklärung](https://wasiliy-strecker.github.io/machine-log/datenschutz/)
 
-Die Kamera wird nur auf ausdrücklichen Aufruf verwendet. Die Galerie- und
-Dokumentenauswahl läuft über Android. Fotos werden ohne übernommene EXIF-Daten
-als JPEG neu gespeichert. Das Modell zur lateinischen Zahlen- und Texterkennung
-ist Bestandteil der App. Ein Modelldownload ist dafür nicht erforderlich.
+[Privacy Policy](https://wasiliy-strecker.github.io/machine-log/privacy/)
 
-Der optionale Google-Dokumentenscanner kann Komponenten über Google Play-Dienste
-nachladen. Die Bildverarbeitung erfolgt lokal. Google-Bibliotheken können technische
-Geräte-, Leistungs- und Nutzungsmetriken verarbeiten. Die Hinweise von Google zu
-ML Kit gelten ergänzend. Eine eigene Analyse des Nutzungsverhaltens erfolgt nicht.
+Die versionierten Seiten stehen unter [docs/datenschutz/index.html](docs/datenschutz/index.html)
+und [docs/privacy/index.html](docs/privacy/index.html). Beide Seiten und die App
+verlinken die [GitHub-README](https://github.com/wasiliy-strecker/machine-log#readme).
 
-Erinnerungen werden lokal geplant. Android-Berechtigungen für Benachrichtigungen
-und genaue Alarme bestimmen die Zustellung. Sie werden nur für aktivierte
-Erinnerungen benötigt. Der optionale Entwicklungsmodus benötigt eine lokale
-Verbindung zu Metro. Die eigenständige Dev-Testversion braucht diesen Dienst nicht.
+Verantwortlicher und Datenschutzkontakt: Wasiliy Strecker, AppFabrik AI,
+Ludwigstrasse 23, 86152 Augsburg, Deutschland.
 
-Korrekturen behalten die ursprünglichen Werte, Änderungsgründe und frühere
-Fotoversionen. Ein ausdrücklich gelöschter Eintrag entfernt auch seine Korrekturen
-und Einzelprotokolle. Gesamtprotokolle bleiben als gespeicherte Dokumente erhalten.
-Das Löschen einer Maschine entfernt ihre lokalen Einträge und Protokolle.
-Eine Deinstallation oder das Löschen von App-Daten entfernt den privaten Speicher.
-
-PDFs und verschlüsselte Backups verlassen die private App-Ablage nur über eine
-bewusste Speicher- oder Teilen-Aktion. Speicherort und Empfänger bestimmt der Nutzer.
-Extern gespeicherte Kopien müssen separat gelöscht werden. Backups enthalten
-keine ungespeicherten Formularentwürfe. Android-Systembackups sind deaktiviert.
-
-Backups sind mit einem selbst gewählten Passwort verschlüsselt. Ohne dieses
-Passwort gibt es keine Wiederherstellung. Dateien in externen Speicherzielen
-unterliegen zusätzlich den Regeln des gewählten Anbieters.
+Datenschutz- und Rechtskontakt: contact@appfabrik-ai.de.
+Nutzer-Support: support@appfabrik-ai.de.
