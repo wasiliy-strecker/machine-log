@@ -125,6 +125,11 @@ Kamera-/Galerie-OCR, Berechtigungsdialoge, Dokumentenscan, Reminder-Zustellung u
 der sichtbare App-Start noch auf einem Gerät abzunehmen. Es wurden keine
 aufwendigen visuellen Testreihen durchgeführt.
 
+Am 12. Oktober 2026 wurde die eigenständige Dev-Version auf einem HONOR BVL-N49
+mit Android 16 installiert und per Launcher gestartet. Die JavaScript-Laufzeit
+startete erfolgreich, ohne JavaScript-Fehler oder Android-Absturzmeldungen.
+Die oben genannten Funktionsabläufe bleiben zur manuellen Geräteabnahme offen.
+
 Kurzer manueller Ablauf nach Installation: Maschine mit Stück- und Stundenzähler
 anlegen, einen Stand manuell und einen per Foto bestätigen, einen Nachtrag und
 eine Rücksetzung erfassen, eine Ablesung mit Grund korrigieren, Produktions-PDF
@@ -135,3 +140,5 @@ Aktueller geprüfter Stand: `npm run check` mit 19 Tests, 41 native JVM-Tests un
 Modul-Lint erfolgreich. Dev-APK `1.0.0` mit Code `1`, eigener Dev-Signatur,
 gebündeltem OCR-Modell und eingebettetem JavaScript erstellt. Die benannte
 Auslieferung liegt unter `build/dev/maschinenlog-1.0.0-dev.apk`.
+Die am 12. Oktober 2026 neu gebaute und installierte Auslieferung liegt zusätzlich
+unter `build/dev/maschinenlog-1.0.0-dev-2026-10-12.apk`.
