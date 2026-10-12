@@ -58,6 +58,38 @@ Getrennt weiterentwickelte Korrekturketten werden vor der Datenübernahme abgewi
 Die eigene Formatkennung verhindert die Übernahme fremder App-Backups.
 Backups sind auf 128 MiB begrenzt, einzelne Dateien auf 50 MiB.
 
+## Ableseerinnerungen
+
+Formular und Statusanzeigen folgen ZählerstandLog. Erinnerungen sind optional
+und bleiben lokal. Stündlich, täglich, wöchentlich, monatlich und jährlich werden
+unterstützt. Beim stündlichen Intervall lassen sich Startdatum und Startzeit
+getrennt wählen. Eine Vorschau zeigt den nächsten Termin ab diesem Start.
+
+Neue Erinnerungen verwenden den aktuellen Tag bis maximal 28, den aktuellen
+Monat, 09:00 Uhr und für stündliche Termine die nächste volle Stunde.
+Gespeicherte Tage 29–31 bleiben gültig. Änderungen von Intervall, Datum und
+Uhrzeit bleiben beim Aus- und Einschalten im selben Formular erhalten.
+
+„Normale Erinnerung“ berücksichtigt „Nicht stören“ und kann verzögert erscheinen.
+„Pünktlich mit Ton“ führt bei fehlender Freigabe zu „Alarme & Erinnerungen“.
+Eine abgelehnte Freigabe verändert die Auswahl nicht. Appweite Blockierung,
+gesperrte Erinnerungsart und „Nicht stören“ erhalten eigene Hinweise und passende
+Einstellungslinks. Nach Rückkehr werden die Android-Zustände erneut gelesen.
+Die bestehenden Kanal-IDs bleiben unverändert. Die Kategorien heißen passend
+zum Formular „Normale Erinnerung“ und „Pünktlich mit Ton“.
+
+„Erinnerung jetzt testen“ verwendet die Bezeichnung und letzte Ablesung des
+gewählten Zählers. Antippen öffnet diesen Zähler. Bei einem noch ungespeicherten
+Zähler öffnet die Testmeldung die App. Die Testmeldung läuft nach einer Minute ab.
+Erfolg, gesperrte Zustellung und technische Fehler werden getrennt erklärt.
+Die Erfolgsmeldung bleibt acht Sekunden lesbar.
+
+Unbestätigte Planung, fehlende Alarmfreigabe, Zustellfehler und fehlgeschlagenes
+Ausschalten werden in Übersicht und Details angezeigt. „Erinnerung bearbeiten“
+führt zum betroffenen Zähler. „Erinnerung erneut speichern“ ist bei einem
+Planungsproblem auch ohne Feldänderung verfügbar. Gespeicherte Zählerdaten und
+Fehler bei der Erinnerungsplanung werden getrennt gemeldet.
+
 ## Unabhängige App
 
 | Variante | Paketkennung                      | Verwendung                                           |
@@ -194,3 +226,8 @@ Die benannte APK liegt unter
 `build/dev/maschinenlog-1.0.0-dev-counter-flow-2026-10-12-final.apk`.
 Der Bildschirm war nach dem Update gesperrt. Die sichtbare Oberfläche und echte
 Kamera-/OCR-Abläufe bleiben zur kurzen Nutzerabnahme offen.
+
+Die an ZählerstandLog angeglichene Ableseerinnerung ist mit 32 Anwendungstests,
+45 nativen JVM-Tests und Android-Lint geprüft. Die eigene Dev-APK liegt unter
+`build/dev/maschinenlog-1.0.0-dev-reminders-2026-10-12.apk`.
+Die Geräteinstallation wartet auf einen sicher festgestellten Eingabezustand.

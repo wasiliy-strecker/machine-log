@@ -87,8 +87,8 @@ class MachineNativeModule : Module() {
                 if (ReminderNotifier.availability(context, reminder.isPunctual) != ReminderAvailability.AVAILABLE) warnings.add("${reminder.label}: Benachrichtigungen sind nicht freigegeben.")
                 if (reminder.isPunctual && !ReminderScheduler.canScheduleExact(context)) warnings.add("${reminder.label}: Ohne Freigabe für genaue Alarme erinnert Android möglicherweise später.")
             }
-            ReminderStore.all(context).filter { !ids.contains(it.recordId) }.forEach {
-                if (!ReminderScheduler.cancel(context, it.recordId)) warnings.add("Eine alte Erinnerung konnte nicht vollständig entfernt werden.")
+            ReminderStore.statusIds(context).filter { !ids.contains(it) }.forEach {
+                if (!ReminderScheduler.cancel(context, it)) warnings.add("Eine alte Erinnerung konnte nicht vollständig entfernt werden.")
             }
             warnings
         }
@@ -96,14 +96,18 @@ class MachineNativeModule : Module() {
             mapOf("notifications" to ReminderNotifier.notificationsEnabled(context),
                 "exact" to ReminderScheduler.canScheduleExact(context),
                 "doNotDisturb" to ReminderNotifier.doNotDisturbEnabled(context),
-                "schedules" to ReminderStore.all(context).map { ReminderScheduler.status(context, it.recordId) })
+                "availability" to mapOf("normal" to ReminderNotifier.availability(context, false).wireValue,
+                    "punctualWithSound" to ReminderNotifier.availability(context, true).wireValue),
+                "schedules" to ReminderStore.statusIds(context).map { ReminderScheduler.status(context, it) })
         }
         AsyncFunction("acknowledge") { id: String -> ReminderNotifier.acknowledge(context, id) }
-        AsyncFunction("testReminder") { punctual: Boolean ->
-            ReminderNotifier.showTest(context, null, "MaschinenLog", "machine", "Test", null, null, punctual)
+        AsyncFunction("testReminder") { request: Map<String, String?> ->
+            val mode = requireNotNull(request["deliveryMode"])
+            require(mode == "normal" || mode == "punctualWithSound")
+            ReminderNotifier.showTest(context, request["counterId"], request["label"].orEmpty(), "machine", "Produktionszähler", request["latestValue"], request["latestUnit"], mode == "punctualWithSound")
         }
-        AsyncFunction("openReminderSettings") { exact: Boolean ->
-            context.startActivity(reminderSettingsIntent(context, exact))
+        AsyncFunction("openReminderSettings") { target: String, mode: String? ->
+            openReminderSettings(context, target, mode)
         }.runOnQueue(Queues.MAIN)
         OnActivityEntersForeground { ReminderScheduler.rescheduleAll(context) }
     }

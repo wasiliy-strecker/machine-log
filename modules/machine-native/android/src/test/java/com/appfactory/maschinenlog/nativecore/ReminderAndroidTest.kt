@@ -54,6 +54,17 @@ class ReminderAndroidTest {
         id, "Test", "other", "Test", null, null, "daily", 1, null, 9, 0,
         if (punctual) "punctualWithSound" else "normal")
 
+    @Test fun contextualTestOpensTheSelectedCounterAndKeepsTheLastReadingUnit() {
+        assertEquals("posted", ReminderNotifier.showTest(context, "counter-a", "Presse 1", "machine", "Produktionszähler", "12,5", "h", false))
+        val notification = shadowOf(notifications).allNotifications.single()
+        assertEquals("Letzter Eintrag: 12,5 h", notification.extras.getCharSequence("android.text").toString())
+        assertTrue(notification.extras.getCharSequence("android.bigText").toString().contains("Tippen öffnet den Zähler"))
+        assertEquals("counter-a", shadowOf(notification.contentIntent).savedIntent.data?.lastPathSegment)
+        if (Build.VERSION.SDK_INT >= 26) {
+            assertEquals("Normale Erinnerung", notifications.getNotificationChannel(notification.channelId).name.toString())
+        }
+    }
+
     @Test fun careWithoutHeightAppearsInRealAndTestNotifications() {
         val care = reminder().copy(label = "Testmaschine", latestValue = "Wartung", latestUnit = "")
         ReminderNotifier.showRecord(context, care)
@@ -165,11 +176,13 @@ class ReminderAndroidTest {
         assertFalse(ReminderScheduler.cancel(context, saved.recordId))
         assertEquals("cancelFailed", ReminderScheduler.status(context, saved.recordId)["planningState"])
         assertNull(ReminderStore.find(context, saved.recordId))
+        assertTrue(ReminderStore.statusIds(context).contains(saved.recordId))
         MachineReminderReceiver().onReceive(context, Intent().putExtra("record_id", saved.recordId))
         assertTrue(shadowOf(notifications).allNotifications.isEmpty())
         FailingCancellation.fail = false
-        assertTrue(ReminderScheduler.cancel(context, saved.recordId))
+        ReminderScheduler.rescheduleAll(context)
         assertEquals("none", ReminderScheduler.status(context, saved.recordId)["planningState"])
+        assertFalse(ReminderStore.statusIds(context).contains(saved.recordId))
     }
 
     @Implements(AlarmManager::class)

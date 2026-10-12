@@ -43,18 +43,26 @@ export function RecordEditorScreen() {
               Stand fotografieren oder ohne Foto erfassen.
             </Body>
           )}
+          {vm.reminderNeedsRepair && (
+            <Body>
+              Die Erinnerung ist nicht bestätigt. Mit Speichern wird sie erneut
+              eingerichtet.
+            </Body>
+          )}
           <Button
             icon={id && !vm.dirty ? 'check_circle_outline' : 'save_outlined'}
             title={
               vm.busy
                 ? 'Wird gespeichert …'
-                : id && !vm.dirty
+                : id && !vm.dirty && !vm.reminderNeedsRepair
                   ? 'Alles gespeichert'
-                  : id
-                    ? 'Änderungen speichern'
-                    : 'Zähler speichern'
+                  : vm.reminderNeedsRepair && !vm.dirty
+                    ? 'Erinnerung erneut speichern'
+                    : id
+                      ? 'Änderungen speichern'
+                      : 'Zähler speichern'
             }
-            disabled={vm.busy || !vm.dirty}
+            disabled={vm.busy || (!vm.dirty && !vm.reminderNeedsRepair)}
             onPress={() => void vm.save()}
           />
         </>
@@ -112,6 +120,10 @@ export function RecordEditorScreen() {
           reminder={form.reminder}
           busy={vm.busy}
           onChange={(value) => vm.change('reminder', value)}
+          counterId={id ? vm.counterId : null}
+          label={form.name || counterTypes[form.type]}
+          status={vm.reminderStatus}
+          refreshStatus={vm.refreshReminderStatus}
         />
       </View>
     </Page>

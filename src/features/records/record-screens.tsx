@@ -22,6 +22,7 @@ import {
 } from '../../core/domain/production-counter';
 import { useFeedback } from '../../core/ui/feedback';
 import { useRecords, useRecordDetail } from './use-records';
+import { ReminderScheduleStatus } from './reminder-status';
 import { HistoryTile } from './history-tile';
 import { Reports } from './reports';
 import {
@@ -40,29 +41,29 @@ import type { ReminderStatus } from '../../core/native/machine-native';
 export function ReminderInfo({
   record,
   status,
+  onEdit,
 }: {
   record: Counter;
   status?: ReminderStatus;
+  onEdit(): void;
 }) {
   const c = useTheme();
   const r = record.reminder;
   const s = status?.schedules.find((s) => s.recordId === record.id);
-  if (!r) return null;
+  if (!r && s?.planningState !== 'cancelFailed') return null;
   return (
     <View style={{ gap: 6 }}>
-      <Body strong style={{ fontSize: 12 }}>
-        Erinnern: {reminderSummary(r)}
-      </Body>
-      <Body muted style={{ fontSize: 12 }}>
-        {s?.nextTriggerAtMillis
-          ? `Nächste Erinnerung: ${dateTime(s.nextTriggerAtMillis)} Uhr`
-          : 'Erinnerung noch nicht bestätigt'}
-        {status && !status.notifications ? ' · In Android blockiert' : ''}
-        {s?.planningState && s.planningState !== 'scheduled'
-          ? ' · Planung prüfen'
-          : ''}
-        {s?.deliveryFailed ? ' · Zustellfehler' : ''}
-      </Body>
+      {r && (
+        <Body strong style={{ fontSize: 12 }}>
+          Erinnern: {reminderSummary(r)}
+        </Body>
+      )}
+      <ReminderScheduleStatus
+        reminder={r}
+        status={status}
+        counterId={record.id}
+        onEdit={onEdit}
+      />
       <View
         style={{
           paddingHorizontal: 10,
@@ -254,7 +255,16 @@ export function RecordsScreen() {
                       Gesicherter Formularentwurf
                     </Body>
                   )}
-                  <ReminderInfo record={counter} status={vm.status} />
+                  <ReminderInfo
+                    record={counter}
+                    status={vm.status}
+                    onEdit={() =>
+                      router.push({
+                        pathname: '/record/edit',
+                        params: { id: record.id, counterId: counter.id },
+                      })
+                    }
+                  />
                 </View>
                 <Icon name="chevron_right" />
               </View>
@@ -411,7 +421,11 @@ export function RecordDetailScreen() {
           )}
           {!!r.note && <Body>{r.note}</Body>}
           {vm.counter && (
-            <ReminderInfo record={vm.counter} status={vm.status} />
+            <ReminderInfo
+              record={vm.counter}
+              status={vm.status}
+              onEdit={edit}
+            />
           )}
         </View>
       </Card>

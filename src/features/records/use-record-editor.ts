@@ -12,9 +12,16 @@ import { useTask } from '../../core/ui/use-task';
 import { errorText } from '../../core/ui/components';
 import { useFeedback } from '../../core/ui/feedback';
 import { useLeaveGuard } from '../../core/ui/use-leave-guard';
+import { useReminderStatusSnapshot } from './use-reminder-status';
+import {
+  needsReminderRepair,
+  reminderSchedule,
+  reminderSaveWarning,
+} from './reminder-model';
 
 export function useRecordEditor(id?: string, counterId?: string) {
-  const { machine, refresh } = useServices();
+  const { machine, refresh, native } = useServices();
+  const reminderState = useReminderStatusSnapshot();
   const feedback = useFeedback();
   const [record, setRecord] = useState<Machine | undefined>(() => {
     if (id) return;
@@ -80,6 +87,16 @@ export function useRecordEditor(id?: string, counterId?: string) {
     };
   }, [machine, id, counterId, setError]);
   const dirty = !!form && JSON.stringify(form) !== initial;
+  const storedReminder =
+    record?.counters.find((counter) => counter.id === selectedId)?.reminder ??
+    null;
+  const reminderNeedsRepair =
+    !!id &&
+    reminderState.loaded &&
+    needsReminderRepair(
+      storedReminder,
+      reminderSchedule(reminderState.status, selectedId),
+    );
   const leave = useLeaveGuard({
     dirty,
     busy: task.busy,
@@ -96,6 +113,10 @@ export function useRecordEditor(id?: string, counterId?: string) {
     form,
     dirty,
     change,
+    counterId: selectedId,
+    reminderStatus: reminderState.status,
+    refreshReminderStatus: reminderState.refresh,
+    reminderNeedsRepair,
     ...task,
     save: () =>
       task.run(async () => {
@@ -114,6 +135,30 @@ export function useRecordEditor(id?: string, counterId?: string) {
               recordWithCounterDetails(record, selectedId, form),
             );
         refresh();
+        let reminderWarning: string | null;
+        try {
+          reminderWarning = reminderSaveWarning(
+            form.reminder,
+            await native.reminderStatus(),
+            selectedId,
+          );
+        } catch {
+          reminderWarning = reminderSaveWarning(
+            form.reminder,
+            undefined,
+            selectedId,
+          );
+        }
+        if (
+          !reminderWarning &&
+          warnings.some((warning) =>
+            warning.startsWith(
+              'Gespeichert. Erinnerungen konnten nicht aktualisiert',
+            ),
+          )
+        )
+          reminderWarning =
+            'Daten gespeichert. Die Erinnerung konnte nicht bestätigt werden. Öffne die Erinnerung und speichere erneut.';
         leave(() => {
           const target = {
             pathname: '/record/[id]' as const,
@@ -123,7 +168,7 @@ export function useRecordEditor(id?: string, counterId?: string) {
           else router.replace(target);
         });
         feedback.notify(
-          warnings.join('\n') ||
+          reminderWarning ||
             (id
               ? 'Änderungen gespeichert.'
               : 'Zähler gespeichert. Als Nächstes kannst du den ersten Stand erfassen.'),

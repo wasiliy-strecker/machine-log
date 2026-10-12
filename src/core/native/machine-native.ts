@@ -1,18 +1,34 @@
 import type { OcrText } from '../ocr/candidate-extractor';
+import type { Reminder } from '../domain/models';
 import { requireNativeModule } from 'expo';
+export type ReminderAvailability =
+  'available' | 'appBlocked' | 'channelBlocked' | 'unknown';
+export type ReminderSettingsTarget =
+  'notifications' | 'channel' | 'exact' | 'doNotDisturb';
+export type ReminderTestResult =
+  'posted' | 'appBlocked' | 'channelBlocked' | 'failed' | 'unknown';
+export type ReminderTestRequest = {
+  counterId: string | null;
+  label: string;
+  latestValue: string | null;
+  latestUnit: string | null;
+  deliveryMode: Reminder['deliveryMode'];
+};
+export type ReminderScheduleStatus = {
+  recordId: string;
+  nextTriggerAtMillis: number | null;
+  planningState: string;
+  isExact: boolean | null;
+  deliveryFailed: boolean;
+  isNotificationActive: boolean;
+  lastTriggeredAtMillis: number | null;
+};
 export type ReminderStatus = {
   notifications: boolean;
   exact: boolean;
   doNotDisturb: boolean | null;
-  schedules: {
-    recordId: string;
-    nextTriggerAtMillis: number | null;
-    planningState: string;
-    isExact: boolean | null;
-    deliveryFailed: boolean;
-    isNotificationActive: boolean;
-    lastTriggeredAtMillis: number | null;
-  }[];
+  availability: Record<Reminder['deliveryMode'], ReminderAvailability>;
+  schedules: ReminderScheduleStatus[];
 };
 export type PdfSession = {
   session: string;
@@ -39,8 +55,11 @@ export interface MachineNative {
   syncReminders(json: string): Promise<string[]>;
   reminderStatus(): Promise<ReminderStatus>;
   acknowledge(id: string): Promise<void>;
-  testReminder(punctual: boolean): Promise<string>;
-  openReminderSettings(exact: boolean): Promise<void>;
+  testReminder(request: ReminderTestRequest): Promise<ReminderTestResult>;
+  openReminderSettings(
+    target: ReminderSettingsTarget,
+    deliveryMode: Reminder['deliveryMode'] | null,
+  ): Promise<boolean>;
 }
 export const machineNative =
   requireNativeModule<MachineNative>('MachineNative');

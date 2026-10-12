@@ -3,7 +3,6 @@ import {
   Body,
   Button,
   Card,
-  DateField,
   MaterialSwitch,
   Notice,
   SelectField,
@@ -12,81 +11,53 @@ import {
 import { Icon } from '../../core/ui/icon';
 import { useMaterialDateTime } from '../../core/ui/material-date-time';
 import type { Reminder } from '../../core/domain/models';
-import { useServices } from '../../core/composition';
-import { useFeedback } from '../../core/ui/feedback';
-import { useReminderStatus } from './use-records';
-const intervals = {
-  hourly: 'Stündlich',
-  daily: 'Täglich',
-  weekly: 'Wöchentlich',
-  monthly: 'Monatlich',
-  yearly: 'Jährlich',
-};
-const weekdays = [
-  'Montag',
-  'Dienstag',
-  'Mittwoch',
-  'Donnerstag',
-  'Freitag',
-  'Samstag',
-  'Sonntag',
-];
-export function ReminderEditor({
-  reminder,
-  busy,
-  onChange,
-}: {
+import type { ReminderStatus } from '../../core/native/machine-native';
+import { useReminderEditor } from './use-reminder-editor';
+import {
+  reminderIntervals,
+  weekdays,
+  reminderModes,
+  reminderAvailability,
+  nextHourlyTrigger,
+  testReminderHint,
+} from './reminder-model';
+import { dateTime } from './presentation-model';
+
+export function ReminderEditor(props: {
   reminder: Reminder | null;
   busy: boolean;
   onChange(value: Reminder | null): void;
+  status?: ReminderStatus;
+  refreshStatus(): Promise<ReminderStatus | undefined>;
+  counterId: string | null;
+  label: string;
 }) {
+  const { reminder, status } = props;
   const c = useTheme(),
     picker = useMaterialDateTime(),
-    status = useReminderStatus();
-  const { native } = useServices();
-  const feedback = useFeedback();
-  const patch = (value: Partial<Reminder>) => {
-    if (reminder) onChange({ ...reminder, ...value });
-  };
-  const toggle = (enabled: boolean) =>
-    onChange(
-      enabled
-        ? {
-            interval: 'monthly',
-            day: 1,
-            month: 1,
-            hour: 9,
-            minute: 0,
-            deliveryMode: 'normal',
-            startsAtMillis: Date.now() + 3600000,
-          }
-        : null,
-    );
-  const time = reminder
-    ? `${String(reminder.hour).padStart(2, '0')}:${String(reminder.minute).padStart(2, '0')} Uhr`
-    : '';
+    vm = useReminderEditor(props);
+  const availability = reminder
+    ? reminderAvailability(status, reminder.deliveryMode)
+    : 'unknown';
+  const start = new Date(reminder?.startsAtMillis ?? 0);
+  const timeText = (date: Date) =>
+    date.toLocaleTimeString('de-DE', {
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: false,
+    });
+  async function pickDate() {
+    const date = await picker.date(start);
+    if (date) vm.setHourlyStart(date, start);
+  }
   async function pickTime() {
-    const date = new Date();
-    date.setHours(reminder!.hour, reminder!.minute);
-    const value = await picker.time(date);
-    if (value) patch({ hour: value.getHours(), minute: value.getMinutes() });
-  }
-  async function test(punctual: boolean) {
-    try {
-      feedback.notify(
-        (await native.testReminder(punctual)) === 'posted'
-          ? 'Test-Erinnerung gesendet.'
-          : 'Benachrichtigungen sind in Android blockiert.',
-      );
-    } catch {
-      feedback.notify('Die Test-Erinnerung konnte nicht gesendet werden.');
-    }
-  }
-  async function openSettings(exact: boolean) {
-    try {
-      await native.openReminderSettings(exact);
-    } catch {
-      feedback.notify('Android-Einstellungen konnten nicht geöffnet werden.');
+    const current = reminder!.interval === 'hourly' ? start : new Date();
+    if (reminder!.interval !== 'hourly')
+      current.setHours(reminder!.hour, reminder!.minute, 0, 0);
+    const time = await picker.time(current);
+    if (time) {
+      if (reminder!.interval === 'hourly') vm.setHourlyStart(start, time);
+      else vm.patch({ hour: time.getHours(), minute: time.getMinutes() });
     }
   }
   return (
@@ -101,52 +72,41 @@ export function ReminderEditor({
           <MaterialSwitch
             label="Erinnerung aktivieren"
             value={!!reminder}
-            disabled={busy}
-            onValueChange={toggle}
+            disabled={vm.disabled}
+            onValueChange={vm.toggle}
           />
         </View>
         {reminder && (
           <View style={{ gap: 16 }}>
+            <View style={{ height: 1, backgroundColor: c.border }} />
             <SelectField
               label="Intervall"
               value={reminder.interval}
-              options={Object.entries(intervals).map(([value, label]) => ({
-                value,
-                label,
-              }))}
-              disabled={busy}
-              onChange={(value) =>
-                patch({
-                  interval: value as Reminder['interval'],
-                  day:
-                    value === 'weekly'
-                      ? Math.min(reminder.day, 7)
-                      : reminder.day,
-                })
-              }
+              disabled={vm.disabled}
+              options={Object.entries(reminderIntervals).map(
+                ([value, label]) => ({ value, label }),
+              )}
+              onChange={(value) => vm.interval(value as Reminder['interval'])}
             />
             {reminder.interval === 'yearly' && (
               <SelectField
                 label="Monat"
                 value={String(reminder.month)}
-                options={Array.from({ length: 12 }, (_, i) => ({
-                  value: String(i + 1),
-                  label: new Date(2026, i, 1).toLocaleString('de-DE', {
-                    month: 'long',
-                  }),
-                }))}
-                onChange={(v) => patch({ month: Number(v) })}
+                disabled={vm.disabled}
+                options={Array.from({ length: 12 }, (_, i) => String(i + 1))}
+                onChange={(value) => vm.patch({ month: Number(value) })}
               />
             )}
             {reminder.interval === 'weekly' && (
               <SelectField
                 label="Wochentag"
                 value={String(reminder.day)}
+                disabled={vm.disabled}
                 options={weekdays.map((label, i) => ({
                   label,
                   value: String(i + 1),
                 }))}
-                onChange={(v) => patch({ day: Number(v) })}
+                onChange={(value) => vm.patch({ day: Number(value) })}
               />
             )}
             {(reminder.interval === 'monthly' ||
@@ -154,34 +114,70 @@ export function ReminderEditor({
               <SelectField
                 label="Tag"
                 value={String(reminder.day)}
-                options={Array.from({ length: 31 }, (_, i) => String(i + 1))}
-                onChange={(v) => patch({ day: Number(v) })}
+                disabled={vm.disabled}
+                options={[
+                  ...Array.from({ length: 28 }, (_, i) => i + 1),
+                  ...(reminder.day > 28 ? [reminder.day] : []),
+                ].map((day) => ({ value: String(day), label: day + '.' }))}
+                onChange={(value) => vm.patch({ day: Number(value) })}
               />
             )}
             {reminder.interval === 'hourly' ? (
-              <DateField
-                label="Erster Termin"
-                time
-                value={new Date(reminder.startsAtMillis).toISOString()}
-                onChange={(v) =>
-                  patch({ startsAtMillis: new Date(v).getTime() })
-                }
-              />
-            ) : (
-              <View style={{ gap: 8 }}>
-                <Body>Uhrzeit: {time}</Body>
+              <>
+                <View style={{ gap: 4 }}>
+                  <Body strong>Startdatum</Body>
+                  <Body>{start.toLocaleDateString('de-DE')}</Body>
+                </View>
+                <Button
+                  secondary
+                  icon="calendar_month_outlined"
+                  title="Datum ändern"
+                  disabled={vm.disabled}
+                  onPress={() => void pickDate()}
+                />
+                <View style={{ gap: 4 }}>
+                  <Body strong>Startzeit</Body>
+                  <Body>{timeText(start)}</Body>
+                </View>
                 <Button
                   secondary
                   icon="schedule"
                   title="Uhrzeit ändern"
+                  disabled={vm.disabled}
                   onPress={() => void pickTime()}
                 />
-              </View>
+                <Body muted>
+                  {'Ab dem gewählten Start alle 60 Minuten. Nächste Erinnerung: ' +
+                    dateTime(nextHourlyTrigger(reminder.startsAtMillis)) +
+                    ' Uhr.'}
+                </Body>
+              </>
+            ) : (
+              <>
+                <View style={{ gap: 4 }}>
+                  <Body strong>Uhrzeit</Body>
+                  <Body>
+                    {String(reminder.hour).padStart(2, '0') +
+                      ':' +
+                      String(reminder.minute).padStart(2, '0')}
+                  </Body>
+                </View>
+                <Button
+                  secondary
+                  icon="schedule"
+                  title="Uhrzeit ändern"
+                  disabled={vm.disabled}
+                  onPress={() => void pickTime()}
+                />
+              </>
             )}
+            <Body strong>Art der Erinnerung</Body>
             {(['normal', 'punctualWithSound'] as const).map((mode) => (
               <Card
                 key={mode}
-                onPress={() => patch({ deliveryMode: mode })}
+                onPress={
+                  vm.disabled ? undefined : () => void vm.selectMode(mode)
+                }
                 style={{
                   borderColor:
                     reminder.deliveryMode === mode ? c.primary : c.border,
@@ -190,67 +186,106 @@ export function ReminderEditor({
                 <View
                   style={{
                     flexDirection: 'row',
-                    gap: 10,
+                    gap: 12,
                     alignItems: 'center',
                   }}
                 >
+                  <Icon name={reminderModes[mode].icon} color={c.primary} />
+                  <View style={{ flex: 1, gap: 4 }}>
+                    <Body strong>{reminderModes[mode].title}</Body>
+                    <Body muted>{reminderModes[mode].description}</Body>
+                  </View>
                   <Icon
                     name={
                       reminder.deliveryMode === mode
                         ? 'check_circle_outline'
-                        : 'notifications_active_outlined'
+                        : 'radio_button_unchecked'
                     }
-                    color={c.primary}
+                    color={reminder.deliveryMode === mode ? c.primary : c.muted}
                   />
-                  <View style={{ flex: 1, gap: 4 }}>
-                    <Body strong>
-                      {mode === 'normal'
-                        ? 'Normale Erinnerung'
-                        : 'Pünktlich mit Ton'}
-                    </Body>
-                    <Body muted>
-                      {mode === 'normal'
-                        ? 'Android kann die Erinnerung etwas später anzeigen.'
-                        : 'Benötigt die Freigabe für genaue Alarme. Android-Einstellungen können den Ton beeinflussen.'}
-                    </Body>
-                  </View>
                 </View>
               </Card>
             ))}
-            {status && !status.notifications && (
-              <>
-                <Notice
-                  error
-                  text="Benachrichtigungen sind in Android blockiert."
-                />
-                <Button
-                  secondary
-                  title="Benachrichtigungen erlauben"
-                  onPress={() => void openSettings(false)}
-                />
-              </>
-            )}
             {reminder.deliveryMode === 'punctualWithSound' &&
-              status &&
-              !status.exact && (
-                <>
-                  <Notice text="Ohne Freigabe für genaue Alarme erinnert Android möglicherweise später." />
+              status?.exact === false && (
+                <Card style={{ backgroundColor: c.errorContainer }}>
+                  <Body>
+                    Für pünktliche Erinnerungen muss Android „Alarme &
+                    Erinnerungen“ erlauben. Aktiviere die Freigabe, damit die
+                    Erinnerung zuverlässig zur gewählten Zeit mit Ton erscheint.
+                  </Body>
                   <Button
                     secondary
+                    icon="settings_outlined"
                     title="Alarme & Erinnerungen erlauben"
-                    onPress={() => void openSettings(true)}
+                    disabled={vm.disabled}
+                    onPress={() => void vm.selectMode('punctualWithSound')}
                   />
-                </>
+                </Card>
               )}
+            {availability === 'appBlocked' ||
+            availability === 'channelBlocked' ? (
+              <Card style={{ backgroundColor: c.errorContainer }}>
+                <Body strong>
+                  {availability === 'appBlocked'
+                    ? 'Benachrichtigungen sind ausgeschaltet'
+                    : 'Diese Erinnerungsart ist ausgeschaltet'}
+                </Body>
+                <Body>
+                  {availability === 'appBlocked'
+                    ? 'Erlaube Benachrichtigungen für MaschinenLog in den Android-Einstellungen, damit Erinnerungen angezeigt werden können.'
+                    : 'Aktiviere die Benachrichtigungskategorie für „' +
+                      reminderModes[reminder.deliveryMode].title +
+                      '“ in den Android-Einstellungen.'}
+                </Body>
+                <Button
+                  secondary
+                  icon="settings_outlined"
+                  title="Einstellungen öffnen"
+                  disabled={vm.disabled}
+                  onPress={() =>
+                    void vm.open(
+                      availability === 'appBlocked'
+                        ? 'notifications'
+                        : 'channel',
+                    )
+                  }
+                />
+              </Card>
+            ) : (
+              status?.doNotDisturb === true && (
+                <Card>
+                  <Body strong>„Nicht stören“ ist aktiv</Body>
+                  <Body>
+                    {reminder.deliveryMode === 'normal'
+                      ? 'Normale Erinnerungen können ohne Ton oder eingeblendetes Banner erscheinen.'
+                      : 'Ob ein Alarmton oder Banner erscheint, hängt von deinen „Nicht stören“-Einstellungen und der Alarmlautstärke ab.'}
+                  </Body>
+                  <Button
+                    secondary
+                    icon="settings_outlined"
+                    title="Einstellungen öffnen"
+                    disabled={vm.disabled}
+                    onPress={() => void vm.open('doNotDisturb')}
+                  />
+                </Card>
+              )
+            )}
+            {availability === 'unknown' && (
+              <Notice text="Der Erinnerungsstatus konnte nicht bestätigt werden. Du kannst die Daten trotzdem speichern." />
+            )}
             <Button
               secondary
               icon="notifications_active_outlined"
-              title="Erinnerung testen"
-              disabled={busy}
-              onPress={() =>
-                void test(reminder.deliveryMode === 'punctualWithSound')
+              title={
+                vm.action === 'test'
+                  ? 'Test-Erinnerung wird gesendet …'
+                  : 'Erinnerung jetzt testen'
               }
+              disabled={vm.disabled}
+              onPress={() => void vm.test()}
             />
+            <Body>{testReminderHint}</Body>
           </View>
         )}
       </Card>

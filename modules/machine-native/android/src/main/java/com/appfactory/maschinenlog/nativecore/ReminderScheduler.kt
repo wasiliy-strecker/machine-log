@@ -97,6 +97,8 @@ internal object ReminderScheduler {
     )
 
     fun rescheduleAll(context: Context, clockChanged: Boolean = false) {
+        ReminderStore.statusIds(context).filter { ReminderStore.planningState(context, it) == "cancelFailed" }
+            .forEach { cancel(context, it) }
         ReminderStore.all(context).forEach { reminder ->
             if (clockChanged) {
                 scheduleNext(context, reminder)
@@ -292,7 +294,7 @@ internal object ReminderNotifier {
         } else {
             "Noch kein Eintrag"
         }
-        val target = if (recordId.isNullOrBlank()) "die App" else "die Maschine"
+        val target = if (recordId.isNullOrBlank()) "die App" else "den Zähler"
         val notification = NotificationCompat.Builder(
             context,
             channelId(punctual),
@@ -387,10 +389,10 @@ internal object ReminderNotifier {
         val manager = context.getSystemService(NotificationManager::class.java)
         val normal = NotificationChannel(
             normalChannelId,
-            "MaschinenLog-Erinnerungen",
+            "Normale Erinnerung",
             NotificationManager.IMPORTANCE_HIGH,
         ).apply {
-            description = "Optionale Erinnerungen für regelmäßige Einträge."
+            description = "Optionale Erinnerungen für regelmäßige Zählerablesungen."
             enableVibration(true)
             setSound(
                 RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION),
@@ -404,10 +406,10 @@ internal object ReminderNotifier {
             ?: RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION)
         val alarm = NotificationChannel(
             alarmChannelId,
-            "Pünktliche MaschinenLog-Erinnerungen",
+            "Pünktlich mit Ton",
             NotificationManager.IMPORTANCE_HIGH,
         ).apply {
-            description = "Pünktliche MaschinenLog-Erinnerungen mit Alarmton."
+            description = "Pünktliche Ableseerinnerungen mit Alarmton."
             enableVibration(true)
             setSound(
                 alarmSound,
