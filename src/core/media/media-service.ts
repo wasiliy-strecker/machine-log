@@ -3,21 +3,18 @@ import * as DocumentPicker from 'expo-document-picker';
 import { ImageManipulator, SaveFormat } from 'expo-image-manipulator';
 import { File, Directory, Paths } from 'expo-file-system';
 import * as Sharing from 'expo-sharing';
-import type { Attachment, EntryDraft } from '../domain/models';
+import type { Attachment } from '../domain/models';
 import type { MachineService } from '../../features/entries/entry-service';
 import { machineNative } from '../native/machine-native';
-import { MAX_FILE_BYTES } from '../pdf/pdf-service';
 import { verifiedFile } from '../files/integrity';
 import { MAX_BACKUP_BYTES } from '../backup/backup-service';
 
 export type PreparedBackup = { uri: string; name: string };
 export type PickResult = { attachments: Attachment[]; failures: string[] };
+export type PhotoSource = 'camera' | 'gallery';
 type ShareItem = { file: string; sha256: string; name?: string };
 export interface MediaPort {
-  pick(
-    source: NonNullable<EntryDraft['external']>,
-    multiple?: boolean,
-  ): Promise<PickResult>;
+  pick(source: PhotoSource): Promise<PickResult>;
   recoverPhotos(): Promise<PickResult>;
   open(item: { file: string; sha256: string }): Promise<void>;
   share(item: ShareItem): Promise<void>;
@@ -68,7 +65,7 @@ export class ExpoMedia implements MediaPort {
       return output;
     }
     if (result.canceled) return output;
-    for (const asset of result.assets) {
+    for (const asset of result.assets.slice(0, 1)) {
       try {
         output.attachments.push(await this.importPhoto(asset));
       } catch {
@@ -79,10 +76,7 @@ export class ExpoMedia implements MediaPort {
     }
     return output;
   }
-  async pick(
-    source: NonNullable<EntryDraft['external']>,
-    multiple = true,
-  ): Promise<PickResult> {
+  async pick(source: PhotoSource): Promise<PickResult> {
     if (source === 'camera') {
       if (!(await ImagePicker.requestCameraPermissionsAsync()).granted)
         throw new Error(
@@ -100,55 +94,12 @@ export class ExpoMedia implements MediaPort {
       return this.photos(
         await ImagePicker.launchImageLibraryAsync({
           mediaTypes: ['images'],
-          allowsMultipleSelection: multiple,
+          allowsMultipleSelection: false,
           quality: 1,
           exif: false,
         }),
       );
-    const output: PickResult = { attachments: [], failures: [] };
-    const assets: { uri: string; name: string }[] = [];
-    if (source === 'scanner') {
-      const uri = await machineNative.scan();
-      if (uri)
-        assets.push({
-          uri,
-          name: `Scan ${new Date().toLocaleDateString('de-DE')}.pdf`,
-        });
-    } else {
-      const result = await DocumentPicker.getDocumentAsync({
-        type: 'application/pdf',
-        multiple,
-        copyToCacheDirectory: true,
-      });
-      if (!result.canceled) assets.push(...result.assets);
-    }
-    for (const asset of assets) {
-      try {
-        const file = new File(asset.uri);
-        if (file.size > MAX_FILE_BYTES)
-          throw new Error('PDF größer als 50 MB.');
-        const bytes = await file.bytes();
-        // Structural JS check and Android's independent PDF engine must agree.
-        const { inspectPdf } = await import('../pdf/pdf-service');
-        const pdf = await inspectPdf(bytes);
-        const nativePages = await machineNative.validatePdf(asset.uri);
-        if (nativePages !== pdf.getPageCount())
-          throw new Error('Die PDF-Seiten sind inkonsistent.');
-        output.attachments.push(
-          await this.machine.importAttachment(
-            bytes,
-            'pdf',
-            asset.name,
-            source === 'scanner' ? 'scanned' : 'imported',
-          ),
-        );
-      } catch (error) {
-        output.failures.push(
-          `${asset.name}: ${error instanceof Error ? error.message : 'Die PDF ist beschädigt, geschützt oder nicht lesbar.'}`,
-        );
-      }
-    }
-    return output;
+    throw new Error('Bitte Kamera oder Galerie für das Zählerfoto wählen.');
   }
   async recoverPhotos() {
     return this.photos(await ImagePicker.getPendingResultAsync());

@@ -63,7 +63,7 @@ export function useEntryDetail(id: string) {
         refresh();
         router.dismissTo({
           pathname: '/record/[id]',
-          params: { id: entry.recordId },
+          params: { id: entry.recordId, counterId: entry.counterId },
         });
         feedback.notify(warnings.join('\n') || 'Eintrag gelöscht.');
       });

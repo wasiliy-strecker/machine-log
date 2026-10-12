@@ -2,13 +2,18 @@ import { useEffect, useState } from 'react';
 import { router } from 'expo-router';
 import { PermissionsAndroid, Platform } from 'react-native';
 import { useServices } from '../../core/composition';
-import type { Machine, Counter } from '../../core/domain/models';
+import type { Machine } from '../../core/domain/models';
+import {
+  counterDetails,
+  recordWithCounterDetails,
+  type CounterDetails,
+} from '../../core/domain/production-counter';
 import { useTask } from '../../core/ui/use-task';
 import { errorText } from '../../core/ui/components';
 import { useFeedback } from '../../core/ui/feedback';
 import { useLeaveGuard } from '../../core/ui/use-leave-guard';
-import { categorySuggestions } from './presentation-model';
-export function useRecordEditor(id?: string) {
+
+export function useRecordEditor(id?: string, counterId?: string) {
   const { machine, refresh } = useServices();
   const feedback = useFeedback();
   const [record, setRecord] = useState<Machine | undefined>(() => {
@@ -17,7 +22,7 @@ export function useRecordEditor(id?: string) {
     return {
       id: machine.env.id(),
       name: '',
-      category: 'Fertigung',
+      category: '',
       number: '',
       location: '',
       manufacturer: '',
@@ -25,106 +30,104 @@ export function useRecordEditor(id?: string) {
       serial: '',
       installedOn: '',
       note: '',
-      counters: [newCounter(machine.env.id())],
+      counters: [
+        {
+          id: machine.env.id(),
+          name: '',
+          type: 'pieces',
+          unit: 'Stück',
+          number: '',
+          reminder: null,
+        },
+      ],
       createdAt: now,
       updatedAt: now,
     };
   });
-  const [initial, setInitial] = useState(() => JSON.stringify(record));
-  const [initialReady, setReady] = useState(!id);
-  const [suggestions, setSuggestions] = useState(() => categorySuggestions([]));
-  const [technicalExpanded, setTechnicalExpanded] = useState(false);
+  const [selectedId, setSelectedId] = useState(
+    counterId ?? record?.counters[0]?.id ?? '',
+  );
+  const [form, setForm] = useState<CounterDetails | undefined>(() =>
+    record ? counterDetails(record, record.counters[0]!) : undefined,
+  );
+  const [initial, setInitial] = useState(() => JSON.stringify(form));
   const task = useTask();
   const { setError } = task;
   useEffect(() => {
+    if (!id) return;
     let active = true;
     machine.repository
       .records()
       .then((records) => {
         if (!active) return;
-        setSuggestions(categorySuggestions(records));
-        if (id) {
-          const found = records.find((r) => r.id === id);
-          if (!found) throw new Error('Die Maschine wurde nicht gefunden.');
-          setRecord(found);
-          setInitial(JSON.stringify(found));
-          setReady(true);
-          setTechnicalExpanded(
-            !!(found.manufacturer || found.model || found.serial),
-          );
-        }
+        const found = records.find((r) => r.id === id);
+        const counter = counterId
+          ? found?.counters.find((c) => c.id === counterId)
+          : found?.counters[0];
+        if (!found || !counter)
+          throw new Error('Der Zähler wurde nicht gefunden.');
+        const details = counterDetails(found, counter);
+        setRecord(found);
+        setSelectedId(counter.id);
+        setForm(details);
+        setInitial(JSON.stringify(details));
       })
-      .catch((e) => {
-        if (active) setError(errorText(e));
+      .catch((error) => {
+        if (active) setError(errorText(error));
       });
     return () => {
       active = false;
     };
-  }, [machine, id, setError]);
-  const dirty = initialReady && JSON.stringify(record) !== initial;
+  }, [machine, id, counterId, setError]);
+  const dirty = !!form && JSON.stringify(form) !== initial;
   const leave = useLeaveGuard({
     dirty,
     busy: task.busy,
     discard: async () => {},
     title: id ? 'Änderungen verwerfen?' : 'Eingaben verwerfen?',
   });
-  function change<K extends keyof Machine>(key: K, value: Machine[K]) {
-    setRecord((current) => current && { ...current, [key]: value });
+  function change<K extends keyof CounterDetails>(
+    key: K,
+    value: CounterDetails[K],
+  ) {
+    setForm((current) => current && { ...current, [key]: value });
   }
   return {
-    record,
+    form,
     dirty,
     change,
-    categorySuggestions: suggestions,
-    technicalExpanded,
-    toggleTechnical: () => setTechnicalExpanded((expanded) => !expanded),
     ...task,
-    addCounter: () => {
-      if (record)
-        change('counters', [...record.counters, newCounter(machine.env.id())]);
-    },
     save: () =>
       task.run(async () => {
-        if (!record) return;
+        if (!record || !form) return;
         if (
-          record.counters.some((c) => c.reminder) &&
+          form.reminder &&
           Platform.OS === 'android' &&
           Number(Platform.Version) >= 33
         )
           await PermissionsAndroid.request(
             PermissionsAndroid.PERMISSIONS.POST_NOTIFICATIONS,
           );
-        const warnings = await machine.saveRecord(record);
+        const warnings = id
+          ? await machine.saveCounter(record.id, selectedId, form)
+          : await machine.saveRecord(
+              recordWithCounterDetails(record, selectedId, form),
+            );
         refresh();
         leave(() => {
-          if (id)
-            router.dismissTo({
-              pathname: '/record/[id]',
-              params: { id: record.id },
-            });
-          else
-            router.replace({
-              pathname: '/record/[id]',
-              params: { id: record.id },
-            });
+          const target = {
+            pathname: '/record/[id]' as const,
+            params: { id: record.id, counterId: selectedId },
+          };
+          if (id) router.dismissTo(target);
+          else router.replace(target);
         });
         feedback.notify(
           warnings.join('\n') ||
             (id
-              ? 'Änderungen an der Maschine gespeichert.'
-              : 'Maschine gespeichert. Als Nächstes kannst du den ersten Eintrag erfassen.'),
+              ? 'Änderungen gespeichert.'
+              : 'Zähler gespeichert. Als Nächstes kannst du den ersten Stand erfassen.'),
         );
       }),
-  };
-}
-
-function newCounter(id: string): Counter {
-  return {
-    id,
-    name: 'Produktionszähler',
-    type: 'pieces',
-    unit: 'Stück',
-    number: '',
-    reminder: null,
   };
 }

@@ -75,33 +75,33 @@
         <h2>Auf Ihrem Gerät in der App verarbeitete Daten</h2>
         <ul class="list">
           <li>
-            Maschinenbezeichnung, Maschinennummer, Kategorie, Standort,
-            Hersteller, Modell, Seriennummer, Inbetriebnahmedatum und Notizen.
-          </li>
-          <li>
-            Zählerbezeichnung, Zählerart, Einheit und Zählernummer. Eine
-            Maschine kann mehrere Zähler für Stückzahlen, Zyklen,
-            Betriebsstunden oder Mengen besitzen.
+            Zählerbezeichnung, Zählerart, Einheit, Maschinen-/Zählernummer und
+            Produktionsbereich.
           </li>
           <li>
             Zählerstände, Ablesezeitpunkte, Zeitzonenangaben, Rücksetzungen,
-            Zählerwechsel, ursprüngliche Angaben, Änderungsgründe und
+            Zählerwechsel, Notizen, ursprüngliche Angaben, Änderungsgründe und
             Korrekturverläufe.
           </li>
           <li>
-            Fotos, PDF-Anhänge, Dokumentenscans, lokal ermittelte OCR-Ergebnisse
-            und technische Prüfwerte.
+            Aufgenommene oder ausgewählte Zählerfotos, lokal ermittelte
+            OCR-Ergebnisse und technische Prüfwerte.
           </li>
           <li>
             Erinnerungseinstellungen, Formularentwürfe, Produktionsprotokolle
             als PDF und Exportinformationen.
           </li>
           <li>Vom Nutzer erstellte verschlüsselte Sicherungsdateien.</li>
+          <li>
+            Zusatzangaben zu Maschinen, Mehrfachfotos und PDF-Anhänge aus
+            älteren App-Versionen. Diese vorhandenen Daten bleiben erhalten und
+            werden nicht durch die Vereinfachung gelöscht.
+          </li>
         </ul>
 
         <h2>Verarbeitung auf Ihrem Gerät und Zwecke</h2>
         <p>
-          MaschinenLog verarbeitet Maschinenangaben, Zählerstände, Fotos,
+          MaschinenLog verarbeitet Zählerangaben, Ablesungen, Fotos,
           Texterkennung, Korrekturen, Erinnerungen, Produktionsprotokolle und
           Backups lokal auf Ihrem Gerät. Es gibt kein Nutzerkonto, keine
           Cloud-Synchronisation, keine Server-KI, keine Werbung und keine eigene
@@ -109,12 +109,14 @@
           AI oder einen eigenen Server übertragen.
         </p>
         <p>
-          Die Daten werden verwendet, um Maschinen mit mehreren Zählern zu
-          verwalten, bestätigte Ablesungen und Produktionszuwächse zu
+          Jeder Listeneintrag steht für einen Produktionszähler. Die Daten
+          werden verwendet, um bestätigte Ablesungen und Produktionszuwächse zu
           dokumentieren, Nachträge, Rücksetzungen und Zählerwechsel zu
           berücksichtigen, Korrekturen nachvollziehbar aufzubewahren sowie
           lokale Erinnerungen, PDF-Protokolle und verschlüsselte Backups zu
-          erstellen.
+          erstellen. Vorhandene Maschinen mit mehreren Zählern werden als
+          einzelne Zählereinträge angezeigt. Ihre gespeicherten Historien und
+          gemeinsamen Altprotokolle bleiben erhalten.
         </p>
         <p>
           Die Android-App enthält eine Internetberechtigung für die verwendeten
@@ -127,8 +129,9 @@
         <h2>Kamera, Fotos und Texterkennung</h2>
         <p>
           Die Kamera wird nur nach einer entsprechenden Nutzeraktion geöffnet.
-          Galerieinhalte und PDF-Dateien werden über die systemeigene Auswahl
-          gewählt. Die App erhält Zugriff auf die ausgewählten Dateien. Die
+          Galerieinhalte werden über die systemeigene Fotoauswahl gewählt. Die
+          App erhält Zugriff auf die ausgewählte Datei. Neue Ablesungen können
+          ohne Foto oder mit einem aktuellen Zählerfoto erfasst werden. Die
           Zahlen- und Texterkennung erfolgt direkt auf Ihrem Gerät mit einem
           mitgelieferten lateinischen ML-Kit-Modell. Ein Modelldownload ist
           dafür nicht erforderlich. Erkannte Werte müssen vom Nutzer bestätigt
@@ -140,17 +143,16 @@
           und der Qualitätsstufe 88. Aufnahme- und Standortmetadaten werden
           nicht übernommen. Die Quelldatei selbst wird nicht verändert, aber
           auch nicht als unverändertes Kameraoriginal in MaschinenLog
-          archiviert.
+          archiviert. Wird ein Foto im Rahmen einer Korrektur ersetzt, bleibt
+          die frühere Fotoversion in der Korrekturhistorie erhalten.
         </p>
         <p>
-          Der optionale Google-Dokumentenscanner verarbeitet Dokumente ebenfalls
-          auf Ihrem Gerät. Seine Oberfläche, Modelle und weiteren Komponenten
-          werden bei Bedarf über Google Play-Dienste heruntergeladen. Die
-          Google-ML-Kit-Bibliotheken können Google-Server für Aktualisierungen
-          und Kompatibilitätsinformationen kontaktieren und senden technische
-          Leistungs- und Nutzungsmetriken an Google. Eingabebilder, Texte und
-          Erkennungsergebnisse werden durch ML Kit nicht an Google-Server
-          gesendet. Weitere Informationen finden Sie in den
+          Die Google-ML-Kit-Bibliotheken können Google-Server für
+          Aktualisierungen und Kompatibilitätsinformationen kontaktieren und
+          senden technische Leistungs- und Nutzungsmetriken an Google.
+          Eingabebilder, Texte und Erkennungsergebnisse werden durch ML Kit
+          nicht an Google-Server gesendet. Weitere Informationen finden Sie in
+          den
           <a href="https://developers.google.com/ml-kit/terms"
             >ML-Kit-Datenschutzhinweisen</a
           >
@@ -168,12 +170,12 @@
 
         <h2>Gerätefunktionen und Berechtigungen</h2>
         <p>
-          Je nach Nutzung greift die App auf Kamera, Fotoauswahl,
-          Dokumentenauswahl und den optionalen Dokumentenscanner zu.
-          Benachrichtigungen, Alarme und der Systemstart werden ausschließlich
-          verwendet, um vom Nutzer eingerichtete Ableseerinnerungen auf Ihrem
-          Gerät zu planen und nach einem Neustart wiederherzustellen.
-          Android-Berechtigungen bestimmen, ob diese Funktionen verfügbar sind.
+          Je nach Nutzung greift die App auf Kamera, Fotoauswahl und
+          Dateiauswahl für Backups zu. Benachrichtigungen, Alarme und der
+          Systemstart werden ausschließlich verwendet, um vom Nutzer
+          eingerichtete Ableseerinnerungen auf Ihrem Gerät zu planen und nach
+          einem Neustart wiederherzustellen. Android-Berechtigungen bestimmen,
+          ob diese Funktionen verfügbar sind.
         </p>
         <p>
           Die Kamera-, Speicherort- und Teilen-Aktionen werden vom Nutzer
@@ -235,26 +237,23 @@
         <h2>Löschung</h2>
         <ul class="list">
           <li>
-            Beim Löschen eines Eintrags entfernt die App dessen Daten,
+            Beim Löschen einer Ablesung entfernt die App deren Daten,
             Korrekturverlauf und innerhalb der App gespeicherte
-            Einzelprotokolle. Fotos und Anhänge werden entfernt, sobald kein
+            Einzelprotokolle. Fotos und Altanhänge werden entfernt, sobald kein
             gespeicherter Eintrag oder Entwurf mehr auf sie verweist. Das
             Löschen kann abgelehnt werden, wenn dadurch eine widersprüchliche
             Zählerfolge entsteht.
           </li>
           <li>
-            Bereits erzeugte Zähler- und Maschinenprotokolle bleiben als
-            eigenständige Dokumente bestehen und können separat gelöscht werden.
+            Bereits erzeugte Verlaufsprotokolle bleiben als eigenständige
+            Dokumente bestehen und können separat gelöscht werden.
           </li>
           <li>
-            Ein Zähler kann erst entfernt werden, wenn keine zugehörigen
-            Einträge, Entwürfe oder Protokolle mehr vorhanden sind.
-          </li>
-          <li>
-            Beim Löschen einer Maschine entfernt die App ihre lokal
-            gespeicherten Einträge, Entwürfe und Protokolle sowie ihre
-            Erinnerungen. Nicht mehr benötigte Fotos und Anhänge werden
-            ebenfalls entfernt.
+            Beim Löschen eines Zählers entfernt die App dessen Ablesungen,
+            Entwürfe, eigene Protokolle und Erinnerungen. Andere Zähler
+            desselben Altbestands bleiben erhalten. Frühere gemeinsame
+            Maschinenprotokolle bleiben erhalten, solange noch ein zugehöriger
+            Zähler vorhanden ist.
           </li>
           <li>
             Beim Löschen eines Produktionsprotokolls wird die innerhalb der App

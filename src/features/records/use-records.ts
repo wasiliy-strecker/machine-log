@@ -19,6 +19,7 @@ import { useTask } from '../../core/ui/use-task';
 import { useFeedback } from '../../core/ui/feedback';
 import {
   visibleRecords,
+  visibleReports,
   historyComparison,
   type DashboardItem,
   type HistoryItem,
@@ -125,9 +126,11 @@ export function useRecordDetail(
         const records = await machine.repository.records();
         const found = records.find((r) => r.id === id);
         const selected =
-          found?.counters.find(
-            (c) => c.id === (initialCounterId ?? counterId),
-          ) ?? found?.counters[0];
+          (initialCounterId ?? counterId)
+            ? found?.counters.find(
+                (c) => c.id === (initialCounterId ?? counterId),
+              )
+            : found?.counters[0];
         if (!found || !selected)
           throw new Error('Maschine oder Zähler nicht gefunden.');
         const [page, timeline] = await Promise.all([
@@ -227,7 +230,7 @@ export function useRecordDetail(
     ...task,
     remove: () =>
       task.run(async () => {
-        await machine.delete('record', id);
+        await machine.deleteCounter(id, counterId);
         refresh();
         router.replace('/');
       }),
@@ -264,7 +267,7 @@ export function useReports(
       ])
         .then(([rows, files]) => {
           if (active) {
-            const filtered = rows.filter((r) => r.entryId === entryId);
+            const filtered = visibleReports(rows, entryId, counterId);
             setReports(filtered);
             setAvailableFiles(files ? new Set(files) : null);
             setOffset((old) =>
@@ -288,7 +291,7 @@ export function useReports(
       };
       // Revision/retry tokens intentionally reload persisted data on focus.
       // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [machine, recordId, entryId, revision, expanded, attempt]),
+    }, [machine, recordId, entryId, counterId, revision, expanded, attempt]),
   );
   return {
     ...task,
@@ -305,29 +308,7 @@ export function useReports(
     setOffset,
     create: async () => {
       try {
-        let selectedCounterId = counterId;
-        if (!entryId && counterId) {
-          const record = (await machine.repository.records()).find(
-            (r) => r.id === recordId,
-          );
-          if (record && record.counters.length > 1) {
-            const scope = await feedback.choose({
-              title: 'Umfang des Protokolls',
-              message: 'Welche Zähler sollen enthalten sein?',
-              options: [
-                {
-                  value: 'counter',
-                  label:
-                    record.counters.find((c) => c.id === counterId)?.name ??
-                    'Aktueller Zähler',
-                },
-                { value: 'machine', label: 'Alle Zähler dieser Maschine' },
-              ],
-            });
-            if (scope === null) return;
-            if (scope === 'machine') selectedCounterId = null;
-          }
-        }
+        const selectedCounterId = counterId;
         const anyAttachments =
           !selectedCounterId && !entryId
             ? (await machine.repository.entries(recordId, '', 0, 1))
@@ -347,12 +328,12 @@ export function useReports(
             },
             {
               value: 'full',
-              label: 'Mit Fotos und PDFs',
+              label: 'Mit Fotos',
               description: anyAttachments
                 ? entryId
-                  ? 'Enthält aktuelle und frühere Fotos sowie alle Seiten der PDF-Dokumente.'
-                  : 'Enthält pro Eintrag aktuelle und frühere Fotos sowie PDF-Dokumente.'
-                : 'Keine aktuellen Fotos oder PDFs vorhanden.',
+                  ? 'Enthält das aktuelle Foto und frühere Fotoversionen. Vorhandene Altanhänge bleiben enthalten.'
+                  : 'Enthält aktuelle und frühere Fotos der Ablesungen. Vorhandene Altanhänge bleiben enthalten.'
+                : 'Keine Fotos vorhanden.',
               icon: 'photo_outlined',
               disabled: !anyAttachments,
             },

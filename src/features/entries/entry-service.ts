@@ -1,6 +1,10 @@
 import { parseValue } from '../../core/domain/reading-value';
 import { validateTimeline } from '../../core/domain/counter-timeline';
 import {
+  recordWithCounterDetails,
+  type CounterDetails,
+} from '../../core/domain/production-counter';
+import {
   entrySchema,
   recordSchema,
   snapshotFiles,
@@ -65,9 +69,52 @@ export class MachineService {
   }
   saveRecord(record: Machine) {
     return this.queue.run(async () => {
+      const existing = (await this.repository.records()).find(
+        (r) => r.id === record.id,
+      );
+      if (!existing && record.counters.length !== 1)
+        throw new Error(
+          'Ein neuer Eintrag besitzt genau einen Produktionszähler.',
+        );
+      if (
+        existing &&
+        (record.counters.length !== existing.counters.length ||
+          record.counters.some(
+            (c) => !existing.counters.some((old) => old.id === c.id),
+          ))
+      )
+        throw new Error(
+          'Bestehende Zähler können hier nicht entfernt, ersetzt oder ergänzt werden.',
+        );
       await this.repository.saveRecord(
         recordSchema.parse({ ...record, updatedAt: this.env.now() }),
       );
+      return this.syncReminders();
+    });
+  }
+  saveCounter(recordId: string, counterId: string, details: CounterDetails) {
+    return this.queue.run(async () => {
+      const existing = (await this.repository.records()).find(
+        (r) => r.id === recordId,
+      );
+      if (!existing) throw new Error('Der Zähler wurde nicht gefunden.');
+      const updated = recordWithCounterDetails(existing, counterId, details);
+      await this.repository.saveRecord(
+        recordSchema.parse({ ...updated, updatedAt: this.env.now() }),
+      );
+      return this.syncReminders();
+    });
+  }
+  deleteCounter(recordId: string, counterId: string) {
+    return this.queue.run(async () => {
+      const candidates = snapshotFiles(await this.repository.snapshot());
+      candidates.push(
+        ...(await this.repository.drafts()).flatMap((draft) =>
+          draft.form.attachments.map((attachment) => attachment.file),
+        ),
+      );
+      await this.repository.deleteCounter(recordId, counterId);
+      await this.cleanup(candidates);
       return this.syncReminders();
     });
   }

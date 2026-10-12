@@ -6,17 +6,26 @@ Ablesungen, nachvollziehbaren Korrekturen und Produktionsprotokollen als PDF.
 
 ## Funktionen
 
-Maschinen besitzen einen oder mehrere Zähler für Stückzahlen, Zyklen,
-Betriebsstunden oder Mengen. Zähler haben eigene Einheiten und optionale lokale
-Erinnerungen. Betriebsstunden werden dezimal erfasst. Maschinendaten, Kategorien,
-Standorte und Zählerbezeichnungen sind frei bearbeitbar.
+Jeder Listeneintrag steht für genau einen Produktionszähler für Stückzahlen,
+Zyklen, Betriebsstunden oder Mengen. Das Stammdatenformular enthält Zählerart,
+Bezeichnung, Maschinen-/Zählernummer, Produktionsbereich, Einheit und Erinnerung.
+Betriebsstunden werden dezimal erfasst.
 
-Kamera, Galerie, Dokumentenscan, PDF-Anhänge, Fotoansicht mit Zoom und Sortierung
-folgen Hausakte. Zahlen werden mit dem gebündelten lateinischen ML-Kit-Modell lokal
-erkannt. Mehrere Vorschläge lassen sich auswählen oder überschreiben. Erst
+Die Erfassung folgt ZählerstandLog: Zähler fotografieren, ein Foto aus der Galerie
+wählen oder ohne Foto erfassen. Neue Ablesungen besitzen höchstens ein aktuelles
+Foto. Zahlen werden mit dem gebündelten lateinischen ML-Kit-Modell lokal erkannt.
+Mehrere Zahlenvorschläge lassen sich auswählen oder überschreiben. Erst
 „Bestätigen und speichern“ legt die Ablesung an. Bei OCR-Fehlern bleibt die manuelle
 Eingabe mit Foto möglich. Fotos werden auf höchstens 1920 Pixel optimiert und als
 JPEG ohne übernommene Aufnahme- und Standortmetadaten gespeichert.
+
+Vorhandene Maschinen mit mehreren Zählern erscheinen als einzelne Listeneinträge.
+Ihre IDs, Ablesungen, Erinnerungen und Korrekturhistorien bleiben erhalten.
+Bereichsänderungen eines solchen Zählers werden separat gespeichert und verändern
+keinen Nachbarzähler. Zusätzliche Maschinendaten aus Altbeständen bleiben gespeichert.
+PDF-Anhänge und Mehrfachfotos älterer Versionen bleiben lesbar und Bestandteil der
+Backups. PDF-Import und Dokumentenscan sind aus der Erfassung und dem nativen Modul
+entfernt. Beim Ersetzen eines Fotos bleiben frühere Fotoversionen nachvollziehbar.
 
 Zahlen bleiben als Ziffernfolge und Dezimalskala erhalten. Berechnungen verwenden
 BigInt. Nachträge werden nach ihrem Ablesezeitpunkt einsortiert. Pro Zähler ist ein
@@ -36,9 +45,9 @@ Zählerfolge entsteht. Ein Zähler mit Einträgen, Entwürfen oder eigenen Proto
 kann nicht aus der Maschine entfernt werden. Das Löschen der gesamten Maschine
 entfernt ihre lokalen Einträge, Entwürfe und Protokolle.
 
-Einzel-, Zähler- und Maschinenprotokolle enthalten Werte, Zuwächse, Übergänge,
+Einzel- und Zählerprotokolle enthalten Werte, Zuwächse, Übergänge,
 Berechnungslücken und Korrekturen. Fotos und Original-PDF-Seiten sind optional.
-Maschinenprotokolle gruppieren nach Zähler. Bereits erzeugte PDFs bleiben nach
+Frühere gemeinsame Maschinenprotokolle bleiben als Altprotokolle zugänglich. Bereits erzeugte PDFs bleiben nach
 Korrekturen unverändert. Protokolle dienen der Dokumentation und sind keine
 amtliche Bestätigung. Zeitangaben stammen vom Gerät.
 
@@ -72,8 +81,7 @@ werden wie bei ZählerstandLog über GitHub Pages bereitgestellt.
   lokal im privaten App-Speicher auf Ihrem Gerät verarbeitet.
 - Es gibt kein Konto, keine Cloud-Synchronisation, keine Server-KI, keine Werbung
   und keine eigene Analyse des Nutzungsverhaltens.
-- Die Zahlen-OCR verwendet ein mitgeliefertes ML-Kit-Modell. Der optionale
-  Dokumentenscanner kann Komponenten über Google Play-Dienste laden.
+- Die Zahlen-OCR verwendet ein mitgeliefertes ML-Kit-Modell.
   Google-Bibliotheken verarbeiten technische Leistungs- und Nutzungsmetriken.
   Bilder, erkannte Texte und Dokumenteninhalte werden dadurch nicht an Google
   übertragen. Details stehen in den [ML-Kit-Datenschutzhinweisen](https://developers.google.com/ml-kit/terms).
@@ -135,7 +143,9 @@ Erinnerungen, OCR und PDF-Vorschau sind über Ports angebunden. Das app-lokale
 Expo-Modul `machine-native` übernimmt Android-Funktionen und ML-Kit-OCR.
 
 Das neue SQLite-Schema 1 verwendet Fremdschlüssel, WAL und Transaktionen.
-Maschinen speichern ihre typisierten Zähler gemeinsam. Ereignisse besitzen eine
+Das bestehende Speicher- und Backupformat bleibt kompatibel. Neue Datensätze
+enthalten einen Zähler. Altbestände speichern ihre typisierten Zähler weiterhin
+gemeinsam und werden in der Oberfläche getrennt dargestellt. Ereignisse besitzen eine
 indizierte Zählerzuordnung und einen eindeutigen Zeitpunkt. Originalzustand und
 Korrekturkette werden atomar mit dem aktuellen Stand gespeichert. Dateibereinigung
 berücksichtigt aktuelle Einträge, Revisionen und persistierte Entwürfe.
@@ -146,7 +156,7 @@ Rollenziffern anhand ihrer Positionen. Siehe [NOTICE.md](NOTICE.md).
 
 ## Prüfung und Geräteabnahme
 
-Die kurze automatisierte Suite prüft exakte Zahlen, OCR-Kandidaten, mehrere Zähler,
+Die kurze automatisierte Suite prüft exakte Zahlen, OCR-Kandidaten, getrennte Altzähler,
 Nachträge, Rücksetzungen, Wechsel, Korrekturen, SQLite-Neuöffnung und einen vollständigen
 PDF-/Backup-Ablauf. Die Entschlüsselung wird unabhängig mit Node Crypto geprüft.
 Übernommene Galerie- und Backup-Dialogtests sichern weiterhin ihre Kernabläufe ab.
@@ -154,7 +164,7 @@ Native JVM-Tests und Lint prüfen das eigene Android-Modul. Wie bei Hausakte wer
 zwei bekannte, abstürzende Lint-Analysetasks der SDK-57-Abhängigkeiten ausgenommen.
 
 Bei der Erstumsetzung war kein Android-Gerät verbunden. Deshalb sind echte
-Kamera-/Galerie-OCR, Berechtigungsdialoge, Dokumentenscan, Reminder-Zustellung und
+Kamera-/Galerie-OCR, Berechtigungsdialoge, Reminder-Zustellung und
 der sichtbare App-Start noch auf einem Gerät abzunehmen. Es wurden keine
 aufwendigen visuellen Testreihen durchgeführt.
 
@@ -163,15 +173,24 @@ mit Android 16 installiert und per Launcher gestartet. Die JavaScript-Laufzeit
 startete erfolgreich, ohne JavaScript-Fehler oder Android-Absturzmeldungen.
 Die oben genannten Funktionsabläufe bleiben zur manuellen Geräteabnahme offen.
 
-Kurzer manueller Ablauf nach Installation: Maschine mit Stück- und Stundenzähler
-anlegen, einen Stand manuell und einen per Foto bestätigen, einen Nachtrag und
+Kurzer manueller Ablauf nach Installation: Zwei getrennte Zähler für Stückzahl und
+Betriebsstunden anlegen, einen Stand manuell und einen per Foto bestätigen, einen Nachtrag und
 eine Rücksetzung erfassen, eine Ablesung mit Grund korrigieren, Produktions-PDF
 öffnen und ein Backup speichern sowie wiederherstellen. Frühere Werte und Fotos
 müssen in Historie und PDF erhalten bleiben.
 
-Aktueller geprüfter Stand: `npm run check` mit 19 Tests, 41 native JVM-Tests und
+Prüfung der Erstumsetzung: `npm run check` mit 19 Tests, 41 native JVM-Tests und
 Modul-Lint erfolgreich. Dev-APK `1.0.0` mit Code `1`, eigener Dev-Signatur,
 gebündeltem OCR-Modell und eingebettetem JavaScript erstellt. Die benannte
 Auslieferung liegt unter `build/dev/maschinenlog-1.0.0-dev.apk`.
 Die am 12. Oktober 2026 neu gebaute und installierte Auslieferung liegt zusätzlich
 unter `build/dev/maschinenlog-1.0.0-dev-2026-10-12.apk`.
+
+Aktueller vereinfachter Ablauf geprüft mit 26 Anwendungstests und 39 nativen
+JVM-Tests. Formatierung, ESLint, TypeScript und Android-Lint erfolgreich.
+Scanner aus dem nativen Modul und der APK entfernt. Die aktualisierte
+Dev-Version 1.0.0 mit Code 1 auf dem HONOR BVL-N49 datenbewahrend installiert.
+Die benannte APK liegt unter
+`build/dev/maschinenlog-1.0.0-dev-counter-flow-2026-10-12-final.apk`.
+Der Bildschirm war nach dem Update gesperrt. Die sichtbare Oberfläche und echte
+Kamera-/OCR-Abläufe bleiben zur kurzen Nutzerabnahme offen.

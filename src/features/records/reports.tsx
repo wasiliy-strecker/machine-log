@@ -59,7 +59,7 @@ function ReportCard({
             ? 'Einzelner Eintrag'
             : report.counterId
               ? 'Zählerverlauf'
-              : 'Alle Zähler'}
+              : 'Früheres Maschinenprotokoll'}
           {report.partIndex
             ? ` · Teil ${report.partIndex} von ${report.partCount}`
             : ''}
@@ -70,7 +70,9 @@ function ReportCard({
         <Body strong style={{ color: c.onSecondaryContainer, marginTop: 4 }}>
           {report.name || summary}
           {'\n'}
-          {report.full ? 'Mit Fotos und PDFs' : 'Kompakt ohne Anhänge'}
+          {report.full
+            ? 'Mit Fotos und gegebenenfalls Altanhängen'
+            : 'Kompakt ohne Anhänge'}
         </Body>
         <View style={[s.status, { backgroundColor }]}>
           <Icon
@@ -191,8 +193,8 @@ export function Reports({
             </Body>
             <Body style={{ color: c.onSecondaryContainer }}>
               {entryId
-                ? 'Du wählst vor dem Erstellen: kompakt ohne Anhänge oder mit aktuellen Fotos und PDFs. Eintrag, Zeitpunkt und Notizen sind in beiden Varianten enthalten – zum Speichern, Drucken oder Teilen.'
-                : 'Die PDF bündelt Zählerstände, Zuwächse und Korrekturen. Bei mehreren Zählern wählst du den Umfang. Du wählst: kompakt ohne Anhänge oder mit aktuellen Fotos und PDFs jedes Eintrags – zum Speichern, Drucken oder Teilen.'}
+                ? 'Erstelle die PDF kompakt oder mit dem aktuellen Foto und früheren Fotoversionen. Stand, Zeitpunkt und Notizen sind enthalten – zum Speichern, Drucken oder Teilen.'
+                : 'Die PDF bündelt die Ablesungen, Zuwächse und Korrekturen dieses Zählers. Erstelle sie kompakt oder mit Fotos – zum Speichern, Drucken oder Teilen.'}
             </Body>
           </View>
         </View>

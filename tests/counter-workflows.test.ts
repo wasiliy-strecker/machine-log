@@ -53,7 +53,7 @@ it('isolates two counters, recalculates late readings and persists across reopen
     type: 'hours',
     unit: 'h',
   });
-  await f.machine.saveRecord(r);
+  await f.repo.saveRecord(r); // Existing multi-counter data from the previous version.
   const baseline = await reading(f, r, 0, '100');
   expect(counterTotals([baseline])).toEqual([]);
   const last = await reading(f, r, 30, '150');
@@ -191,7 +191,7 @@ it('exports grouped production PDFs and restores encrypted evidence including hi
     unit: 'Zyklen',
     type: 'cycles',
   });
-  await f.machine.saveRecord(r);
+  await f.repo.saveRecord(r); // Existing multi-counter data from the previous version.
   const image = await f.machine.importAttachment(
     await photo(),
     'photo',

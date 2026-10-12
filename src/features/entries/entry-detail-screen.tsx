@@ -15,6 +15,7 @@ import {
   allAttachments,
 } from '../../core/domain/models';
 import { formatValue } from '../../core/domain/reading-value';
+import { counterTitle } from '../../core/domain/production-counter';
 import { dateTime, entrySummary } from '../records/presentation-model';
 import { Reports } from '../records/reports';
 import { PhotoGallery, Documents } from '../media/attachments';
@@ -38,7 +39,9 @@ export function EntryDetailScreen() {
       {!!photos.length && (
         <View style={{ gap: 8 }}>
           <Body strong style={{ fontSize: 16 }}>
-            Aktuelle Fotos ({photos.length})
+            {photos.length === 1
+              ? 'Aktuelles Foto'
+              : `Fotos aus dem Altbestand (${photos.length})`}
           </Body>
           <PhotoGallery photos={photos} />
         </View>
@@ -54,7 +57,12 @@ export function EntryDetailScreen() {
         {entrySummary(e)}
       </Text>
       <Body>
-        {vm.record?.category} · {vm.record?.name}
+        {vm.record
+          ? counterTitle(
+              vm.record,
+              vm.record.counters.find((counter) => counter.id === e.counterId)!,
+            )
+          : e.counterName}
       </Body>
       <View style={{ gap: 12, marginTop: 4, marginBottom: 6 }}>
         <Button

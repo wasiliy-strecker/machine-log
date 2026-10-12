@@ -1,12 +1,11 @@
 package com.appfactory.maschinenlog.nativecore
 
-import expo.modules.kotlin.Promise
 import org.junit.Assert.*
 import org.junit.Test
 import java.time.Instant
 import java.time.ZoneId
 
-class CalendarAndScannerTest {
+class CalendarAndBackupTest {
     @Test fun nativePasswordDerivationMatchesOpenSslWithUnicode() {
         assertEquals("f2301eb4e771957c77bf0b24519cd0624017347b00adb74addc2a426db8883a4",
             PasswordKey.derive("Synthetisches Passwort ä🔑", "00112233445566778899aabbccddeeff", 600000))
@@ -34,27 +33,5 @@ class CalendarAndScannerTest {
     }
     @Test fun weeklySchedulesTheChosenWeekday() {
         assertEquals("2026-09-21T07:30:00Z", Instant.ofEpochMilli(reminder("weekly", 1).nextTriggerAfter(Instant.parse("2026-09-20T00:00:00Z").toEpochMilli(), berlin)).toString())
-    }
-    private class Result : Promise {
-        var resolved = 0
-        var rejected = 0
-        override fun resolve(value: Any?) { resolved++ }
-        override fun reject(code: String?, message: String?, cause: Throwable?) { rejected++ }
-    }
-    @Test fun scannerIgnoresOrphanAndDuplicateResults() {
-        val completion = ScanCompletion(); val caller = Result()
-        completion.finish("orphan", null)
-        assertTrue(completion.begin("one", caller)); assertFalse(completion.begin("two", Result()))
-        completion.finish("wrong-token", "file://wrong")
-        assertEquals(0, caller.resolved)
-        completion.finish("one", null); completion.finish("one", "file://late")
-        assertEquals(1, caller.resolved); assertFalse(completion.owns("one"))
-    }
-    @Test fun lostProcessAndStartFailureCanBeRetried() {
-        val completion = ScanCompletion(); val old = Result()
-        completion.begin("one", old); completion.abandon(); completion.finish("one", "file://orphan")
-        assertEquals(0, old.resolved)
-        val next = Result(); assertTrue(completion.begin("two", next)); completion.finish("two", null, "unavailable")
-        assertEquals(1, next.rejected); assertTrue(completion.begin("three", Result()))
     }
 }

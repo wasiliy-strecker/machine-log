@@ -143,7 +143,7 @@ function reportHeading(
   );
   layout.gap(6);
   layout.text(
-    `PDF erstellt am ${dateTime(options.createdAt)} · ${full ? 'Mit Fotos und PDFs' : 'Kompakt ohne Anhänge'}`,
+    `PDF erstellt am ${dateTime(options.createdAt)} · ${full ? 'Mit Fotos' : 'Kompakt ohne Anhänge'}`,
     { size: 9, color: REPORT_GREY },
   );
   layout.gap(18);

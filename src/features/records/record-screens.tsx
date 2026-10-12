@@ -13,10 +13,13 @@ import {
   Fab,
   IconButton,
   Notice,
-  SelectField,
   useTheme,
 } from '../../core/ui/components';
 import { Icon, categoryIcon } from '../../core/ui/icon';
+import {
+  counterTitle,
+  counterLocation,
+} from '../../core/domain/production-counter';
 import { useFeedback } from '../../core/ui/feedback';
 import { useRecords, useRecordDetail } from './use-records';
 import { HistoryTile } from './history-tile';
@@ -28,7 +31,11 @@ import {
   sortLabels,
   type RecordSort,
 } from './presentation-model';
-import { PAGE_SIZE, type Counter } from '../../core/domain/models';
+import {
+  PAGE_SIZE,
+  counterTypes,
+  type Counter,
+} from '../../core/domain/models';
 import type { ReminderStatus } from '../../core/native/machine-native';
 export function ReminderInfo({
   record,
@@ -86,10 +93,10 @@ export function RecordsScreen() {
   return (
     <Page
       ready={!vm.loading}
-      fab={<Fab title="Maschine anlegen" onPress={create} />}
+      fab={<Fab title="Zähler anlegen" onPress={create} />}
     >
       {vm.loading ? (
-        <Busy label="Maschinen werden geladen …" />
+        <Busy label="Produktionszähler werden geladen …" />
       ) : vm.error ? (
         <>
           <Notice error text={vm.error} />
@@ -106,7 +113,7 @@ export function RecordsScreen() {
           }}
         >
           <Icon name="settings_outlined" size={72} color={c.primary} />
-          <Title>Erste Maschine anlegen</Title>
+          <Title>Ersten Produktionszähler anlegen</Title>
           <Body style={{ textAlign: 'center' }}>
             Dokumentiere Produktionsstände deiner Maschinen. Erfasse
             Stückzahlen, Zyklen, Betriebsstunden und Mengen mit Foto oder
@@ -116,11 +123,11 @@ export function RecordsScreen() {
       ) : (
         <>
           <Title subtitle="Zählerstände erfassen und Produktionszuwächse nachvollziehen.">
-            Deine Maschinen
+            Deine Produktionszähler
           </Title>
           <View style={{ marginTop: 4 }}>
             <Field
-              label="Maschinen suchen"
+              label="Zähler suchen"
               leading="search"
               value={vm.search}
               onChangeText={vm.setSearch}
@@ -139,12 +146,7 @@ export function RecordsScreen() {
             }}
           >
             <Body muted>
-              {vm.items.length}{' '}
-              {vm.search
-                ? 'Treffer'
-                : vm.items.length === 1
-                  ? 'Maschine'
-                  : 'Maschinen'}
+              {vm.items.length} {vm.search ? 'Treffer' : 'Zähler'}
             </Body>
             <Button
               secondary
@@ -154,7 +156,7 @@ export function RecordsScreen() {
               onPress={(anchor) =>
                 void feedback
                   .choose({
-                    title: 'Maschinen sortieren',
+                    title: 'Zähler sortieren',
                     anchor,
                     options: (Object.keys(sortLabels) as RecordSort[]).map(
                       (value) => ({
@@ -173,16 +175,16 @@ export function RecordsScreen() {
           {!vm.items.length && (
             <Card>
               <Icon name="search" size={42} color={c.primary} />
-              <Body>Keine passenden Maschinen gefunden.</Body>
+              <Body>Keine passenden Zähler gefunden.</Body>
             </Card>
           )}
-          {vm.items.map(({ record, latest, lastEdited }) => (
+          {vm.items.map(({ record, counter, latest, lastEdited }) => (
             <Card
-              key={record.id}
+              key={counter.id}
               onPress={() =>
                 router.push({
                   pathname: '/record/[id]',
-                  params: { id: record.id },
+                  params: { id: record.id, counterId: counter.id },
                 })
               }
             >
@@ -203,7 +205,7 @@ export function RecordsScreen() {
                     name={categoryIcon(record.category)}
                     color={c.primary}
                   />
-                  {vm.status?.schedules.find((s) => s.recordId === record.id)
+                  {vm.status?.schedules.find((s) => s.recordId === counter.id)
                     ?.isNotificationActive && (
                     <View
                       style={{
@@ -223,10 +225,13 @@ export function RecordsScreen() {
                 </View>
                 <View style={{ flex: 1, gap: 4 }}>
                   <Body strong style={{ fontSize: 16, lineHeight: 24 }}>
-                    {record.name}
+                    {counterTitle(record, counter)}
                   </Body>
                   <Body muted>
-                    {[record.category, record.location]
+                    {[
+                      counterTypes[counter.type],
+                      counterLocation(record, counter),
+                    ]
                       .filter(Boolean)
                       .join(' · ')}
                   </Body>
@@ -244,18 +249,12 @@ export function RecordsScreen() {
                   <Body muted style={{ fontSize: 12, lineHeight: 16 }}>
                     Zuletzt bearbeitet: {dateTime(lastEdited)}
                   </Body>
-                  {vm.drafts.some((d) => d.recordId === record.id) && (
+                  {vm.drafts.some((d) => d.counterId === counter.id) && (
                     <Body muted style={{ fontSize: 12 }}>
                       Gesicherter Formularentwurf
                     </Body>
                   )}
-                  {record.counters.map((counter) => (
-                    <ReminderInfo
-                      key={counter.id}
-                      record={counter}
-                      status={vm.status}
-                    />
-                  ))}
+                  <ReminderInfo record={counter} status={vm.status} />
                 </View>
                 <Icon name="chevron_right" />
               </View>
@@ -312,7 +311,11 @@ export function RecordDetailScreen() {
     c = useTheme(),
     feedback = useFeedback();
   const r = vm.record;
-  const edit = () => router.push({ pathname: '/record/edit', params: { id } });
+  const edit = () =>
+    router.push({
+      pathname: '/record/edit',
+      params: { id, counterId: vm.counterId },
+    });
   const capture = () =>
     router.push({
       pathname: '/entry/edit',
@@ -322,7 +325,7 @@ export function RecordDetailScreen() {
     return (
       <Page ready={!vm.loading}>
         <Notice error text={vm.error} />
-        {vm.loading ? <Busy /> : <Body>Maschine nicht gefunden.</Body>}
+        {vm.loading ? <Busy /> : <Body>Zähler nicht gefunden.</Body>}
       </Page>
     );
   return (
@@ -330,24 +333,15 @@ export function RecordDetailScreen() {
       ready={!vm.loading}
       fab={
         <Fab
-          title="Eintrag erfassen"
+          title="Ablesen / Fotografieren"
           icon="add_a_photo_outlined"
           onPress={capture}
         />
       }
     >
-      <Stack.Screen options={{ title: r.name }} />
-      {r.counters.length > 1 && (
-        <SelectField
-          label="Produktionszähler"
-          value={vm.counterId}
-          options={r.counters.map((counter) => ({
-            value: counter.id,
-            label: counter.name,
-          }))}
-          onChange={vm.setCounterId}
-        />
-      )}
+      <Stack.Screen
+        options={{ title: vm.counter ? counterTitle(r, vm.counter) : r.name }}
+      />
       <Card onPress={edit} style={{ margin: 4, padding: 17, gap: 0 }}>
         <View style={{ flexDirection: 'row', gap: 12, alignItems: 'center' }}>
           <View
@@ -371,7 +365,7 @@ export function RecordDetailScreen() {
               letterSpacing: 0.15,
             }}
           >
-            {r.category || 'Maschine'}
+            {vm.counter ? counterTypes[vm.counter.type] : 'Produktionszähler'}
           </Body>
           <Icon name="chevron_right" color={c.muted} />
         </View>
@@ -390,14 +384,20 @@ export function RecordDetailScreen() {
           <Body>Zuletzt am {dateTime(vm.entries[0].occurredAt)}</Body>
         )}
         <View style={{ marginTop: 10 }}>
-          {!!r.location && <Body>Produktionsbereich: {r.location}</Body>}
+          {vm.counter && !!counterLocation(r, vm.counter) && (
+            <Body>Produktionsbereich: {counterLocation(r, vm.counter)}</Body>
+          )}
           {!!(r.manufacturer || r.model) && (
             <Body>
               Hersteller / Modell:{' '}
               {[r.manufacturer, r.model].filter(Boolean).join(' · ')}
             </Body>
           )}
-          {!!r.number && <Body>Maschinennummer: {r.number}</Body>}
+          {!!(vm.counter?.number || r.number) && (
+            <Body>
+              Maschinen-/Zählernummer: {vm.counter?.number || r.number}
+            </Body>
+          )}
           {!!r.serial && <Body>Seriennummer: {r.serial}</Body>}
           {!!r.installedOn && (
             <Body>
@@ -419,20 +419,20 @@ export function RecordDetailScreen() {
         <Button
           secondary
           icon="edit_outlined"
-          title="Maschine & Zähler bearbeiten"
+          title="Zähler bearbeiten"
           onPress={edit}
         />
         <Button
           secondary
           danger
           icon="delete_outline"
-          title="Maschine löschen"
+          title="Zähler löschen"
           disabled={vm.busy}
           onPress={() =>
             void feedback
               .confirm(
-                'Maschine löschen?',
-                'Die Maschine, ihre Einträge und gespeicherten Protokolle werden gelöscht. Exportierte Dateien bleiben erhalten.',
+                'Zähler löschen?',
+                'Dieser Zähler, seine Ablesungen und seine Protokolle werden gelöscht. Andere Zähler und frühere gemeinsame Maschinenprotokolle bleiben erhalten. Exportierte Dateien bleiben bestehen.',
               )
               .then((ok) => {
                 if (ok) void vm.remove();
@@ -452,14 +452,12 @@ export function RecordDetailScreen() {
           )}
         </Card>
       ))}
-      {vm.total > 0 && (
-        <Reports
-          recordId={id}
-          counterId={vm.counterId}
-          hasAttachments={vm.hasAttachments}
-          summary={r.name}
-        />
-      )}
+      <Reports
+        recordId={id}
+        counterId={vm.counterId}
+        hasAttachments={vm.hasAttachments}
+        summary={vm.counter ? counterTitle(r, vm.counter) : r.name}
+      />
       <View style={{ marginTop: vm.total > 0 ? 6 : 18, gap: 8 }}>
         <Heading>Zählerverlauf</Heading>
         {vm.total > 0 && (
@@ -548,7 +546,7 @@ export function RecordHistoryScreen() {
               letterSpacing: 0.15,
             }}
           >
-            {vm.record?.name ?? ''}
+            {vm.record && vm.counter ? counterTitle(vm.record, vm.counter) : ''}
           </Body>
           <Field
             label="Einträge suchen"

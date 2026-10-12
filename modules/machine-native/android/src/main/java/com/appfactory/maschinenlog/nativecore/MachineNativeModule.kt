@@ -52,18 +52,7 @@ class MachineNativeModule : Module() {
         AsyncFunction("deriveBackupKey") { password: String, salt: String, iterations: Int ->
             PasswordKey.derive(password, salt, iterations)
         }
-        AsyncFunction("scan") { promise: Promise ->
-            val token = UUID.randomUUID().toString()
-            if (!ScanActivity.completion.begin(token, promise)) {
-                promise.reject("SCAN_BUSY", "Ein Scan ist bereits geöffnet.", null)
-            } else {
-                try {
-                    requireNotNull(appContext.currentActivity).startActivity(
-                        Intent(context, ScanActivity::class.java).putExtra("scan_token", token))
-                } catch (error: Exception) { ScanActivity.completion.finish(token, null, "Scanner konnte nicht geöffnet werden. PDF-Import bleibt möglich.") }
-            }
-        }.runOnQueue(Queues.MAIN)
-        OnDestroy { ScanActivity.completion.abandon(); previews?.closeAll() }
+        OnDestroy { previews?.closeAll() }
         AsyncFunction("validatePdf") { uri: String ->
             val file = File(requireNotNull(Uri.parse(uri).path))
             ParcelFileDescriptor.open(file, ParcelFileDescriptor.MODE_READ_ONLY).use { descriptor ->

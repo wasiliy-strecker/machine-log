@@ -1,8 +1,10 @@
 import { formatValue } from '../domain/reading-value';
+import { counterTitle } from '../domain/production-counter';
 import { SerialQueue, type Repository, type SqlConnection } from '../ports';
 import {
   type CounterEvent,
   type Machine,
+  type Counter,
   type SavedReport,
   type Snapshot,
   type EntryDraft,
@@ -92,15 +94,17 @@ export class SqlRepository implements Repository {
     return this.queue.run(async () => {
       const rows = await this.db.all<{
         body: string;
+        counter: string;
         latest: string | null;
         lastEdited: string;
       }>(`
-        SELECT r.body,
-          (SELECT e.body FROM entries e WHERE e.record_id=r.id ORDER BY e.occurred_at DESC,e.id DESC LIMIT 1) latest,
-          max(json_extract(r.body,'$.updatedAt'),coalesce((SELECT max(json_extract(e.body,'$.updatedAt')) FROM entries e WHERE e.record_id=r.id),json_extract(r.body,'$.updatedAt'))) lastEdited
-        FROM records r ORDER BY lastEdited DESC,r.id ASC`);
+        SELECT r.body, c.value counter,
+          (SELECT e.body FROM entries e WHERE e.record_id=r.id AND e.counter_id=json_extract(c.value,'$.id') ORDER BY e.occurred_at DESC,e.id DESC LIMIT 1) latest,
+          max(json_extract(r.body,'$.updatedAt'),coalesce((SELECT max(json_extract(e.body,'$.updatedAt')) FROM entries e WHERE e.record_id=r.id AND e.counter_id=json_extract(c.value,'$.id')),json_extract(r.body,'$.updatedAt'))) lastEdited
+        FROM records r, json_each(r.body,'$.counters') c ORDER BY lastEdited DESC,r.id ASC,c.key ASC`);
       return rows.map((row) => ({
         record: JSON.parse(row.body) as Machine,
+        counter: JSON.parse(row.counter) as Counter,
         latest: row.latest ? (JSON.parse(row.latest) as CounterEvent) : null,
         lastEdited: row.lastEdited,
       }));
@@ -297,6 +301,44 @@ export class SqlRepository implements Repository {
   }
   deleteRecord(id: string) {
     return this.write(() => this.db.run('DELETE FROM records WHERE id=?', id));
+  }
+  deleteCounter(recordId: string, counterId: string) {
+    return this.write(async () => {
+      const record = (
+        await this.bodies<Machine>('records', 'WHERE id=?', [recordId])
+      )[0];
+      if (!record?.counters.some((counter) => counter.id === counterId))
+        throw new Error('Der Zähler wurde nicht gefunden.');
+      if (record.counters.length === 1) {
+        await this.db.run('DELETE FROM records WHERE id=?', recordId);
+        return;
+      }
+      await this.db.run(
+        "DELETE FROM drafts WHERE record_id=? AND json_extract(body,'$.counterId')=?",
+        recordId,
+        counterId,
+      );
+      await this.db.run(
+        "DELETE FROM reports WHERE record_id=? AND json_extract(body,'$.counterId')=?",
+        recordId,
+        counterId,
+      );
+      await this.db.run(
+        'DELETE FROM entries WHERE record_id=? AND counter_id=?',
+        recordId,
+        counterId,
+      );
+      const remaining = record.counters.filter(
+        (counter) => counter.id !== counterId,
+      );
+      await this.putRecord({
+        ...record,
+        ...(remaining.length === 1
+          ? { name: counterTitle(record, remaining[0]!) }
+          : {}),
+        counters: remaining,
+      });
+    });
   }
   deleteEntry(id: string) {
     return this.write(async () => {

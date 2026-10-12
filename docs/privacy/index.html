@@ -73,33 +73,33 @@
         <h2>Data handled by the app on your device</h2>
         <ul class="list">
           <li>
-            Machine name, machine number, category, location, manufacturer,
-            model, serial number, commissioning date and notes.
-          </li>
-          <li>
-            Counter label, counter type, unit and counter number. A machine can
-            have multiple counters for pieces, cycles, operating hours or
-            quantities.
+            Counter label, counter type, unit, machine/counter number and
+            production area.
           </li>
           <li>
             Counter readings, reading dates and times, time zone information,
-            resets and counter replacements, original values, reasons for
+            resets and counter replacements, notes, original values, reasons for
             changes and correction history.
           </li>
           <li>
-            Photos, PDF attachments, document scans, locally generated OCR
-            results and technical integrity hashes.
+            Captured or selected counter photos, locally generated OCR results
+            and technical integrity hashes.
           </li>
           <li>
             Reminder settings, form drafts, production reports as PDFs and
             export information.
           </li>
           <li>Encrypted backup files created by the user.</li>
+          <li>
+            Additional machine details, multiple photos and PDF attachments from
+            earlier app versions. This existing data is retained and is not
+            deleted by the simplified workflow.
+          </li>
         </ul>
 
         <h2>Processing on your device and purposes</h2>
         <p>
-          Machine Log processes machine details, counter readings, photos, text
+          Machine Log processes counter details, readings, photos, text
           recognition, corrections, reminders, production reports and backups
           locally on your device. There is no user account, cloud
           synchronization, server AI, advertising or analytics operated by the
@@ -107,11 +107,13 @@
           AI server.
         </p>
         <p>
-          The data is used to manage machines with multiple counters, document
-          confirmed readings and production increments, account for backdated
-          readings, resets and counter replacements, retain an auditable
-          correction history, and create local reminders, PDF reports and
-          encrypted backups.
+          Each list item represents one production counter. The data is used to
+          document confirmed readings and production increments, account for
+          backdated readings, resets and counter replacements, retain an
+          auditable correction history, and create local reminders, PDF reports
+          and encrypted backups. Existing machines with multiple counters are
+          displayed as separate counter items. Their saved histories and common
+          legacy reports are retained.
         </p>
         <p>
           The Android app includes an internet permission for its platform and
@@ -124,8 +126,9 @@
         <h2>Camera, photos and text recognition</h2>
         <p>
           The camera opens only after a corresponding user action. Gallery
-          content and PDF files are selected through the system picker. The app
-          receives access to the selected files. Number and text recognition
+          content is selected through the system photo picker. The app receives
+          access to the selected file. New readings may be entered without a
+          photo or with one current counter photo. Number and text recognition
           uses a bundled Latin ML Kit model that runs directly on your device. A
           model download is not required for this recognition. The user must
           confirm recognized values.
@@ -135,16 +138,16 @@
           app storage with a longest edge of no more than 1920 pixels and
           quality level 88. Capture and location metadata are not retained. The
           source file itself is not modified, but it is not archived as an
-          unchanged camera original inside Machine Log.
+          unchanged camera original inside Machine Log. When a photo is replaced
+          during a correction, the earlier photo remains in the correction
+          history.
         </p>
         <p>
-          The optional Google document scanner also processes documents on your
-          device. Its interface, models and other components are downloaded
-          through Google Play services when needed. The Google ML Kit libraries
-          may contact Google servers for updates and compatibility information
-          and send technical performance and utilization metrics to Google. ML
-          Kit does not send input images, text or recognition results to Google
-          servers. Further information is available in the
+          The Google ML Kit libraries may contact Google servers for updates and
+          compatibility information and send technical performance and
+          utilization metrics to Google. ML Kit does not send input images, text
+          or recognition results to Google servers. Further information is
+          available in the
           <a href="https://developers.google.com/ml-kit/terms"
             >ML Kit privacy information</a
           >
@@ -161,11 +164,10 @@
         <h2>Device features and permissions</h2>
         <p>
           Depending on the features used, the app accesses the camera, photo
-          picker, document picker or optional document scanner. Notifications,
-          alarms and system-start events are used only to schedule reading
-          reminders selected by the user and restore them after the device
-          restarts. Android permissions determine whether these features are
-          available.
+          picker or file picker for backups. Notifications, alarms and
+          system-start events are used only to schedule reading reminders
+          selected by the user and restore them after the device restarts.
+          Android permissions determine whether these features are available.
         </p>
         <p>
           Camera, save-location and sharing actions are initiated by the user.
@@ -223,24 +225,21 @@
         <h2>Deletion</h2>
         <ul class="list">
           <li>
-            Deleting an entry removes its data, correction history and
-            single-entry reports stored inside the app. Photos and attachments
-            are removed when no saved entry or draft still references them.
-            Deletion may be rejected if it would make the counter timeline
-            inconsistent.
+            Deleting a reading removes its data, correction history and
+            single-entry reports stored inside the app. Photos and legacy
+            attachments are removed when no saved entry or draft still
+            references them. Deletion may be rejected if it would make the
+            counter timeline inconsistent.
           </li>
           <li>
-            Existing counter and machine reports remain separate documents and
-            can be deleted separately.
+            Existing history reports remain separate documents and can be
+            deleted separately.
           </li>
           <li>
-            A counter can be removed only when there are no associated entries,
-            drafts or reports.
-          </li>
-          <li>
-            Deleting a machine removes its locally stored entries, drafts and
-            reports, along with its reminders. Photos and attachments that are
-            no longer needed are also removed.
+            Deleting a counter removes its readings, drafts, own reports and
+            reminders. Other counters in the same legacy machine are retained.
+            Common legacy machine reports are retained while at least one
+            associated counter remains.
           </li>
           <li>
             Deleting a production report removes the PDF file stored inside the

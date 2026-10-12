@@ -73,13 +73,6 @@ export function EntryEditorScreen() {
             </Body>
           </Card>
           <Button
-            icon="edit_note_outlined"
-            title="Ohne Foto erfassen"
-            disabled={vm.busy}
-            onPress={() => void vm.chooseManual()}
-          />
-          <Button
-            secondary
             icon="photo_camera_outlined"
             title="Zähler fotografieren"
             disabled={vm.busy}
@@ -88,9 +81,16 @@ export function EntryEditorScreen() {
           <Button
             secondary
             icon="photo_library_outlined"
-            title="Fotos aus Galerie"
+            title="Foto aus Galerie"
             disabled={vm.busy}
             onPress={() => void vm.pick('gallery')}
+          />
+          <Button
+            secondary
+            icon="edit_note_outlined"
+            title="Ohne Foto erfassen"
+            disabled={vm.busy}
+            onPress={() => void vm.chooseManual()}
           />
         </>
       ) : (
@@ -221,7 +221,7 @@ export function EntryEditorScreen() {
             onChangeText={(v) => vm.change('note', v)}
             editable={!vm.busy}
           />
-          <Documents documents={documents} actions={actions} />
+          <Documents documents={documents} />
           {entryId && (
             <Card>
               <Body strong>Nachvollziehbare Korrektur</Body>

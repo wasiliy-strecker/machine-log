@@ -34,7 +34,6 @@ export interface MachineNative {
     salt: string,
     iterations: number,
   ): Promise<string>;
-  scan(): Promise<string | null>;
   validatePdf(uri: string): Promise<number>;
   openPdf(uri: string): Promise<void>;
   syncReminders(json: string): Promise<string[]>;

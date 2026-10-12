@@ -17,6 +17,8 @@ import { errorText } from '../../core/ui/components';
 import { useFeedback } from '../../core/ui/feedback';
 import { useLeaveGuard } from '../../core/ui/use-leave-guard';
 import { capturePhase } from '../records/presentation-model';
+import type { PhotoSource } from '../../core/media/media-service';
+import { replaceReadingPhoto } from '../../core/media/reading-photo';
 export function useEntryEditor(
   recordId: string,
   entryId?: string,
@@ -72,10 +74,13 @@ export function useEntryEditor(
         setInitialForm(initial.current);
         current.current = saved;
         setDraft(saved);
-        if (saved.external === 'scanner')
+        if (saved.external === 'scanner' || saved.external === 'pdf') {
+          saved.external = null;
+          await machine.persistDraft(saved);
           setNotice(
-            'Dein Entwurf wurde wiederhergestellt. Den unterbrochenen Scan bitte erneut starten.',
+            'Dein Entwurf wurde wiederhergestellt. Neue Ablesungen verwenden Fotos oder manuelle Eingaben. Vorhandene Anhänge bleiben erhalten.',
           );
+        }
       }
     })().catch((e) => setError(errorText(e)));
     return () => {
@@ -194,22 +199,20 @@ export function useEntryEditor(
         };
         await apply(next);
       }),
-    pick: (source: NonNullable<EntryDraft['external']>, replaceId?: string) =>
+    pick: (source: PhotoSource, replaceId?: string) =>
       task.run(async () => {
         if (!current.current) return;
         await apply({ ...current.current, external: source });
-        const result = await media.pick(source, !replaceId);
+        const result = await media.pick(source);
         if (source === 'camera' || source === 'gallery')
           result.attachments.forEach((a) => {
             a.source = source;
           });
         const before = current.current.form.attachments;
-        let attachments = [...before];
-        if (replaceId && result.attachments[0])
-          attachments = before.map((a) =>
-            a.id === replaceId ? result.attachments[0]! : a,
-          );
-        else attachments.push(...result.attachments);
+        const pickedPhoto = result.attachments[0];
+        const attachments = pickedPhoto
+          ? replaceReadingPhoto(before, pickedPhoto, replaceId)
+          : before;
         try {
           await apply({
             ...current.current,

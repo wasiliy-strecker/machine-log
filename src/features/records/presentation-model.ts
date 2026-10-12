@@ -3,10 +3,20 @@ import { formatValue } from '../../core/domain/reading-value';
 import type {
   CounterEvent,
   Machine,
+  Counter,
   Reminder,
   EntryDraft,
+  SavedReport,
 } from '../../core/domain/models';
-import { categories, eventLabels } from '../../core/domain/models';
+import {
+  categories,
+  counterTypes,
+  eventLabels,
+} from '../../core/domain/models';
+import {
+  counterTitle,
+  counterLocation,
+} from '../../core/domain/production-counter';
 
 export type HistoryItem = {
   entry: CounterEvent;
@@ -36,14 +46,26 @@ export function categorySuggestions(records: Machine[]): string[] {
 }
 export type DashboardItem = {
   record: Machine;
+  counter: Counter;
   latest: CounterEvent | null;
   lastEdited: string;
 };
-export type RecordSort = 'lastEdited' | 'name' | 'category';
+export function visibleReports(
+  reports: SavedReport[],
+  entryId: string | null,
+  counterId: string | null,
+) {
+  return reports.filter(
+    (report) =>
+      report.entryId === entryId &&
+      (!counterId || !report.counterId || report.counterId === counterId),
+  );
+}
+export type RecordSort = 'lastEdited' | 'name' | 'type';
 export const sortLabels: Record<RecordSort, string> = {
   lastEdited: 'Zuletzt bearbeitet',
   name: 'Name',
-  category: 'Kategorie',
+  type: 'Zählerart',
 };
 export const dateTime = (value: string | number) =>
   new Date(value).toLocaleString('de-DE', {
@@ -65,13 +87,16 @@ export function visibleRecords(
 ) {
   const q = search.trim().toLocaleLowerCase('de-DE');
   return items
-    .filter(({ record: r, latest }) =>
+    .filter(({ record: r, counter, latest }) =>
       [
         r.name,
         r.number,
-        ...r.counters.map((c) => c.name),
+        counter.name,
+        counter.number,
+        counterTypes[counter.type],
+        counter.unit,
         r.category,
-        r.location,
+        counterLocation(r, counter),
         r.manufacturer,
         r.model,
         r.serial,
@@ -84,10 +109,19 @@ export function visibleRecords(
         (sort === 'lastEdited'
           ? b.lastEdited.localeCompare(a.lastEdited)
           : sort === 'name'
-            ? a.record.name.localeCompare(b.record.name, 'de-DE')
-            : a.record.category.localeCompare(b.record.category, 'de-DE')) ||
-        a.record.name.localeCompare(b.record.name, 'de-DE') ||
-        a.record.id.localeCompare(b.record.id),
+            ? counterTitle(a.record, a.counter).localeCompare(
+                counterTitle(b.record, b.counter),
+                'de-DE',
+              )
+            : counterTypes[a.counter.type].localeCompare(
+                counterTypes[b.counter.type],
+                'de-DE',
+              )) ||
+        counterTitle(a.record, a.counter).localeCompare(
+          counterTitle(b.record, b.counter),
+          'de-DE',
+        ) ||
+        a.counter.id.localeCompare(b.counter.id),
     );
 }
 export function reminderSummary(r: Reminder) {

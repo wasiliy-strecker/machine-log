@@ -1,5 +1,6 @@
 import type {
   Machine,
+  Counter,
   CounterEvent,
   SavedReport,
   Snapshot,
@@ -16,7 +17,12 @@ export interface Repository {
   records(): Promise<Machine[]>;
   entry(id: string): Promise<CounterEvent | null>;
   dashboard(): Promise<
-    { record: Machine; latest: CounterEvent | null; lastEdited: string }[]
+    {
+      record: Machine;
+      counter: Counter;
+      latest: CounterEvent | null;
+      lastEdited: string;
+    }[]
   >;
   entries(
     recordId: string,
@@ -36,6 +42,7 @@ export interface Repository {
   saveReport(report: SavedReport): Promise<void>;
   saveReports(reports: SavedReport[]): Promise<void>;
   deleteRecord(id: string): Promise<void>;
+  deleteCounter(recordId: string, counterId: string): Promise<void>;
   deleteEntry(id: string): Promise<void>;
   deleteReport(id: string): Promise<void>;
   replace(data: Snapshot): Promise<void>;

@@ -13,8 +13,8 @@ import { Icon } from '../../core/ui/icon';
 import { Sortable } from '../../core/ui/sortable';
 import { useServices } from '../../core/composition';
 import { useFeedback, type MenuAnchor } from '../../core/ui/feedback';
-import type { Attachment, EntryDraft } from '../../core/domain/models';
-type Source = NonNullable<EntryDraft['external']>;
+import type { Attachment } from '../../core/domain/models';
+type Source = 'camera' | 'gallery';
 export type AttachmentActions = {
   busy: boolean;
   pick: (source: Source, replaceId?: string) => Promise<unknown>;
@@ -185,187 +185,73 @@ export function PhotoEditor({
   actions: AttachmentActions;
 }) {
   return (
-    <Card style={{ margin: 4, padding: 13, gap: 0, overflow: 'visible' }}>
-      <Body
-        strong
-        style={{ fontSize: 16, lineHeight: 24, letterSpacing: 0.15 }}
-      >
-        Aktuelle Fotos ({photos.length})
+    <Card style={{ margin: 4, padding: 13 }}>
+      <Body strong>
+        {photos.length > 1 ? 'Fotos aus dem Altbestand' : 'Foto (optional)'}
       </Body>
       {photos.length > 1 && (
-        <Body style={{ marginTop: 6 }}>
-          Zum Sortieren ein Foto länger gedrückt halten und verschieben.
+        <Body muted>
+          Diese Fotos bleiben erhalten. Ein neues Foto ersetzt das erste Foto.
         </Body>
       )}
-      <View style={{ marginTop: 10 }}>
-        <PhotoGallery photos={photos} actions={actions} />
-      </View>
-      <View style={{ marginTop: 12, gap: 8 }}>
+      <PhotoGallery photos={photos} />
+      <Button
+        secondary
+        icon="photo_camera_outlined"
+        title={photos.length ? 'Neues Foto aufnehmen' : 'Zähler fotografieren'}
+        disabled={actions.busy}
+        onPress={() => void actions.pick('camera', photos[0]?.id)}
+      />
+      <Button
+        secondary
+        icon="photo_library_outlined"
+        title="Foto aus Galerie"
+        disabled={actions.busy}
+        onPress={() => void actions.pick('gallery', photos[0]?.id)}
+      />
+      {photos.length === 1 && (
         <Button
           secondary
-          icon="add_a_photo_outlined"
-          title={photos.length ? 'Weiteres Foto aufnehmen' : 'Foto aufnehmen'}
+          icon="delete_outline"
+          title="Foto entfernen"
           disabled={actions.busy}
-          onPress={() => void actions.pick('camera')}
+          onPress={() => actions.remove(photos[0]!.id)}
         />
-        <Button
-          secondary
-          icon="photo_library_outlined"
-          title="Fotos aus Galerie hinzufügen"
-          disabled={actions.busy}
-          onPress={() => void actions.pick('gallery')}
-        />
-      </View>
+      )}
     </Card>
   );
 }
-export function Documents({
-  documents,
-  actions,
-}: {
-  documents: Attachment[];
-  actions?: AttachmentActions;
-}) {
-  const c = useTheme(),
-    feedback = useFeedback();
-  async function add(replaceId?: string) {
-    const source = await feedback.choose({
-      title: replaceId ? 'Dokument ersetzen' : 'PDF hinzufügen',
-      optionStyle: 'cards',
-      options: [
-        {
-          value: 'pdf',
-          label: 'PDF auswählen',
-          icon: 'upload_file_outlined',
-          description: replaceId
-            ? undefined
-            : 'Mehrere PDFs: Erste Datei länger gedrückt halten, dann weitere auswählen.',
-        },
-        {
-          value: 'scanner',
-          label: 'Dokument scannen',
-          icon: 'document_scanner_outlined',
-          description: 'Mehrere Seiten als eine PDF erfassen',
-        },
-      ],
-    });
-    if (source) await actions?.pick(source as Source, replaceId);
-  }
-  async function menu(a: Attachment, index: number, anchor?: MenuAnchor) {
-    const action = await feedback.choose({
-      title: 'Dokument bearbeiten',
-      anchor,
-      optionStyle: 'plain',
-      options: [
-        ...(documents.length > 1
-          ? [
-              { value: 'earlier', label: 'Nach vorne', disabled: index === 0 },
-              {
-                value: 'later',
-                label: 'Nach hinten',
-                disabled: index + 1 === documents.length,
-              },
-            ]
-          : []),
-        { value: 'replace', label: 'Dokument ersetzen' },
-        { value: 'remove', label: 'Dokument entfernen' },
-      ],
-    });
-    if (action === 'earlier') actions?.move(a.id, -1);
-    if (action === 'later') actions?.move(a.id, 1);
-    if (action === 'remove') actions?.remove(a.id);
-    if (action === 'replace') await add(a.id);
-  }
+export function Documents({ documents }: { documents: Attachment[] }) {
+  const c = useTheme();
+  if (!documents.length) return null;
   return (
-    <Card style={{ margin: 4, padding: 13, gap: 0, overflow: 'visible' }}>
-      <Body
-        strong
-        style={{ fontSize: 16, lineHeight: 24, letterSpacing: 0.15 }}
-      >
-        Aktuelle PDFs ({documents.length})
-      </Body>
-      <Body style={{ marginTop: 6 }}>
-        {documents.reduce((n, a) => n + (a.pages ?? 0), 0)} PDF-Seiten ·{' '}
-        {(documents.reduce((n, a) => n + a.size, 0) / 1000000).toFixed(1)} MB
-      </Body>
-      {actions && <Body>Maximal 50 MB je PDF</Body>}
-      {documents.length > 1 && actions && (
-        <Body style={{ marginTop: 6 }}>
-          Zum Sortieren eine PDF länger gedrückt halten und verschieben.
-        </Body>
-      )}
-      <View style={{ marginTop: 10 }}>
-        {!documents.length ? (
-          <Body>Keine aktuellen PDFs</Body>
-        ) : (
-          <Sortable
-            items={documents}
-            onReorder={actions?.reorder}
-            disabled={actions?.busy}
-            render={(a, index, canTap) => (
-              <View
-                style={{
-                  flexDirection: 'row',
-                  alignItems: 'center',
-                  gap: 12,
-                  minHeight: 64,
-                }}
-              >
-                <Pressable
-                  accessibilityRole="button"
-                  accessibilityLabel={`PDF ${a.name} öffnen`}
-                  disabled={actions?.busy}
-                  onPress={() => {
-                    if (canTap())
-                      router.push({
-                        pathname: '/pdf/[id]',
-                        params: { id: a.id },
-                      });
-                  }}
-                  style={{
-                    flex: 1,
-                    flexDirection: 'row',
-                    alignItems: 'center',
-                    gap: 12,
-                    paddingVertical: 8,
-                  }}
-                >
-                  <Icon name="description_outlined" color={c.primary} />
-                  <View style={{ flex: 1, gap: 4 }}>
-                    <Body style={{ fontSize: 16 }}>{a.name}</Body>
-                    <Body muted>
-                      {a.pages} {a.pages === 1 ? 'Seite' : 'Seiten'}
-                      {a.source
-                        ? ` · ${a.source === 'scanned' ? 'Gescannt' : 'Importiert'}`
-                        : ''}
-                    </Body>
-                  </View>
-                </Pressable>
-                {actions && (
-                  <IconButton
-                    icon="more_vert"
-                    menu
-                    label={`Dokument ${index + 1} bearbeiten`}
-                    disabled={actions.busy}
-                    onPress={(anchor) => void menu(a, index, anchor)}
-                  />
-                )}
-              </View>
-            )}
-          />
-        )}
-      </View>
-      {actions && (
-        <View style={{ marginTop: 12 }}>
-          <Button
-            secondary
-            icon="upload_file_outlined"
-            title="PDF hinzufügen oder scannen"
-            disabled={actions.busy}
-            onPress={() => void add()}
-          />
-        </View>
-      )}
+    <Card style={{ margin: 4, padding: 13 }}>
+      <Body strong>PDF-Anhänge aus dem Altbestand</Body>
+      {documents.map((document) => (
+        <Pressable
+          key={document.id}
+          accessibilityRole="button"
+          accessibilityLabel={'PDF ' + document.name + ' öffnen'}
+          onPress={() =>
+            router.push({ pathname: '/pdf/[id]', params: { id: document.id } })
+          }
+          style={{
+            flexDirection: 'row',
+            alignItems: 'center',
+            gap: 12,
+            paddingVertical: 8,
+          }}
+        >
+          <Icon name="description_outlined" color={c.primary} />
+          <View style={{ flex: 1, gap: 4 }}>
+            <Body>{document.name}</Body>
+            <Body muted>
+              {document.pages} {document.pages === 1 ? 'Seite' : 'Seiten'}
+            </Body>
+          </View>
+          <Icon name="chevron_right" />
+        </Pressable>
+      ))}
     </Card>
   );
 }

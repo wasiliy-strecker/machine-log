@@ -45,12 +45,13 @@ export const counterSchema = z
     unit: z.string().trim().min(1, 'Bitte eine Einheit eingeben.').max(20),
     number: short,
     reminder: reminderSchema.nullable(),
+    location: short.optional(),
   })
   .strict();
 export const recordSchema = z
   .object({
     id,
-    name: short.trim().min(1, 'Bitte einen Maschinennamen eingeben.'),
+    name: short.trim().min(1, 'Bitte eine Bezeichnung eingeben.'),
     number: short,
     category: short,
     location: short,

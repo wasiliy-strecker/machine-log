@@ -1,5 +1,7 @@
 import type { OcrPort } from './ocr/candidate-extractor';
 import { formatValue } from './domain/reading-value';
+import { counterTitle } from './domain/production-counter';
+import { replaceReadingPhoto } from './media/reading-photo';
 import { StartupError, StartupPending } from './startup/startup';
 import { PdfViewerService } from './pdf/viewer-service';
 import { androidPasswordKey } from './backup/password-key';
@@ -83,7 +85,7 @@ async function createServices(): Promise<Services> {
                 return {
                   ...c.reminder,
                   recordId: c.id,
-                  label: `${r.name} · ${c.name}`,
+                  label: counterTitle(r, c),
                   category: 'machine',
                   categoryLabel: 'Produktionszähler',
                   latestValue: latest
@@ -106,18 +108,20 @@ async function createServices(): Promise<Services> {
   if (interrupted) {
     const recovered = await media.recoverPhotos();
     const source = interrupted.external === 'camera' ? 'camera' : 'gallery';
-    interrupted.form.source = source;
-    interrupted.captureStage = 'form';
-    interrupted.captureSource = 'photo';
     recovered.attachments.forEach((a) => {
       a.source = source;
     });
-    interrupted.form.attachments.push(
-      ...recovered.attachments.filter(
-        (a) =>
-          !interrupted.form.attachments.some((old) => old.sha256 === a.sha256),
-      ),
-    );
+    const photo = recovered.attachments[0];
+    if (photo) {
+      interrupted.form.attachments = replaceReadingPhoto(
+        interrupted.form.attachments,
+        photo,
+      );
+      interrupted.form.ocr = null;
+      interrupted.form.source = source;
+      interrupted.captureStage = 'form';
+      interrupted.captureSource = 'photo';
+    }
     interrupted.external = null;
     await repository.saveDraft(interrupted);
   }

@@ -7,7 +7,11 @@ import {
   type ReactTestInstance,
 } from 'react-test-renderer';
 import type { Attachment } from '../src/core/domain/models';
-import { PhotoGallery } from '../src/features/media/attachments';
+import {
+  PhotoGallery,
+  PhotoEditor,
+  Documents,
+} from '../src/features/media/attachments';
 
 const native = vi.hoisted(() => ({
   scrollToOffset: vi.fn(),
@@ -210,4 +214,58 @@ it('keeps actual viewer index, both counters and arrows aligned after mixed swip
   expectPage(3);
   await press('Vorheriges Foto');
   expectPage(2);
+});
+
+it('offers replacement rather than additional photos and renders legacy documents without import actions', async () => {
+  const photo: Attachment = {
+    id: 'one',
+    kind: 'photo',
+    name: 'Foto.jpg',
+    file: 'one.jpg',
+    size: 1,
+    sha256: '',
+  };
+  const pick = vi.fn().mockResolvedValue(undefined);
+  await act(async () => {
+    renderer = create(
+      createElement(PhotoEditor, {
+        photos: [photo],
+        actions: {
+          busy: false,
+          pick,
+          remove: vi.fn(),
+          move: vi.fn(),
+          reorder: vi.fn(),
+        },
+      }),
+    );
+  });
+  await act(async () =>
+    renderer!.root
+      .findByProps({ title: 'Neues Foto aufnehmen' })
+      .props.onPress(),
+  );
+  expect(pick).toHaveBeenLastCalledWith('camera', photo.id);
+  await act(async () =>
+    renderer!.root.findByProps({ title: 'Foto aus Galerie' }).props.onPress(),
+  );
+  expect(pick).toHaveBeenLastCalledWith('gallery', photo.id);
+  await act(async () =>
+    renderer!.update(
+      createElement(Documents, {
+        documents: [
+          {
+            ...photo,
+            id: 'pdf',
+            kind: 'pdf',
+            file: 'old.pdf',
+            name: 'Alt.pdf',
+            pages: 1,
+          },
+        ],
+      }),
+    ),
+  );
+  expect(renderer!.root.findAll(host('Button'))).toHaveLength(0);
+  expect(renderer!.root.findAll(host('Pressable'))).toHaveLength(1);
 });
