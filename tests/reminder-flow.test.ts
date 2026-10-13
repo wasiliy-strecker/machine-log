@@ -1,6 +1,7 @@
 import { afterEach, beforeEach, expect, it, vi } from 'vitest';
 import { createElement, useState } from 'react';
 import { act, create, type ReactTestRenderer } from 'react-test-renderer';
+import { PermissionsAndroid } from 'react-native';
 import type { Reminder } from '../src/core/domain/models';
 import type { ReminderStatus } from '../src/core/native/machine-native';
 import { ReminderEditor } from '../src/features/records/reminder-editor';
@@ -199,6 +200,37 @@ it('uses calendar defaults and previews anchored hours without changing old days
     if (previous === undefined) delete process.env.TZ;
     else process.env.TZ = previous;
   }
+});
+
+it('marks missing counter fields before requesting notification permission or saving', async () => {
+  machineRecord.counters[0]!.reminder = defaultReminder();
+  await act(async () => {
+    renderer = create(createElement(RecordEditorScreen));
+  });
+  await act(async () =>
+    root().findByProps({ label: 'Bezeichnung *' }).props.onChangeText(''),
+  );
+  await act(async () =>
+    root().findByProps({ label: 'Einheit *' }).props.onChange(''),
+  );
+  await press('Änderungen speichern');
+  expect(root().findByProps({ label: 'Bezeichnung *' }).props.error).toBe(
+    'Bitte eine Zählerbezeichnung eingeben.',
+  );
+  expect(root().findByProps({ label: 'Einheit *' }).props.error).toBe(
+    'Bitte eine Einheit eingeben.',
+  );
+  expect(PermissionsAndroid.request).not.toHaveBeenCalled();
+  expect(ports.saveCounter).not.toHaveBeenCalled();
+  await act(async () =>
+    root()
+      .findByProps({ label: 'Bezeichnung *' })
+      .props.onChangeText('Presse 2'),
+  );
+  expect(
+    root().findByProps({ label: 'Bezeichnung *' }).props.error,
+  ).toBeUndefined();
+  expect(root().findByProps({ label: 'Einheit *' }).props.error).toBeDefined();
 });
 
 it('preserves day 31 and separate interval choices across disabling, enabling and calendar changes', async () => {

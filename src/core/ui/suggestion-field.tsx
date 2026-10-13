@@ -20,6 +20,7 @@ export function SuggestionField({
   disabled = false,
   autoFocus = false,
   showAllOnFocus = false,
+  error,
 }: {
   label: string;
   placeholder?: string;
@@ -31,6 +32,7 @@ export function SuggestionField({
   disabled?: boolean;
   autoFocus?: boolean;
   showAllOnFocus?: boolean;
+  error?: string;
 }) {
   const c = useTheme();
   const [focused, setFocused] = useState(false);
@@ -52,6 +54,7 @@ export function SuggestionField({
       <View onLayout={(e) => setFieldHeight(e.nativeEvent.layout.height)}>
         <Field
           label={label}
+          error={error}
           value={value}
           onChangeText={(text) => {
             setEditedSinceFocus(true);

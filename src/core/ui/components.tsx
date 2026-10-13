@@ -544,9 +544,13 @@ export function Field({
         )}
       </View>
       {!!error && (
-        <Body style={{ fontSize: 12, color: c.danger, paddingHorizontal: 16 }}>
-          {error}
-        </Body>
+        <View accessibilityLiveRegion="polite">
+          <Body
+            style={{ fontSize: 12, color: c.danger, paddingHorizontal: 16 }}
+          >
+            {error}
+          </Body>
+        </View>
       )}
     </View>
   );

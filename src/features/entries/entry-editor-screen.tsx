@@ -21,6 +21,7 @@ import {
   type AttachmentActions,
 } from '../media/attachments';
 import { useEntryEditor } from './use-entry-editor';
+import { FormErrorTarget } from '../../core/ui/form-error-target';
 export function EntryEditorScreen() {
   const { recordId, entryId, counterId } = useLocalSearchParams<{
     recordId: string;
@@ -30,6 +31,16 @@ export function EntryEditorScreen() {
   const [openedAt] = useState(() => Date.now());
   const vm = useEntryEditor(recordId, entryId, counterId);
   const draft = vm.draft;
+  const firstError = [
+    'closingValue',
+    'closingUnit',
+    'unit',
+    'value',
+    'newCounterNumber',
+    'occurredAt',
+    'note',
+    'reason',
+  ].find((field) => vm.fieldErrors[field]);
   if (!draft)
     return (
       <Page ready={!!vm.error}>
@@ -54,7 +65,11 @@ export function EntryEditorScreen() {
           title: entryId ? 'Eintrag korrigieren' : 'Zählerstand erfassen',
         }}
       />
-      <Notice error text={vm.error} />
+      {!!vm.error && (
+        <FormErrorTarget active attempt={vm.errorAttempt}>
+          <Notice error text={vm.error} />
+        </FormErrorTarget>
+      )}
       <Notice text={vm.notice} />
       {vm.phase === 'choose' ? (
         <>
@@ -146,47 +161,83 @@ export function EntryEditorScreen() {
           {form.kind !== 'reading' && (
             <Card>
               <Body strong>Alter Zählerstand</Body>
-              <Field
-                label="Endstand vor dem Wechsel (optional)"
-                suffix={form.closingUnit}
-                keyboardType="decimal-pad"
-                value={form.closingValue}
-                editable={!vm.busy}
-                onChangeText={(v) => vm.change('closingValue', v)}
-              />
-              <SuggestionField
-                label="Einheit des alten Endstands"
-                helper="Einheit vor dem Wechsel."
-                value={form.closingUnit}
-                suggestions={units}
-                disabled={vm.busy}
-                onChange={(v) => vm.change('closingUnit', v)}
-              />
+              <FormErrorTarget
+                active={firstError === 'closingValue'}
+                attempt={vm.errorAttempt}
+              >
+                <Field
+                  label="Endstand vor dem Wechsel (optional)"
+                  error={vm.fieldErrors.closingValue}
+                  suffix={form.closingUnit}
+                  keyboardType="decimal-pad"
+                  inputMode="decimal"
+                  autoCorrect={false}
+                  autoCapitalize="none"
+                  value={form.closingValue}
+                  editable={!vm.busy}
+                  onChangeText={(v) => vm.change('closingValue', v)}
+                />
+              </FormErrorTarget>
+              <FormErrorTarget
+                active={firstError === 'closingUnit'}
+                attempt={vm.errorAttempt}
+                style={{ zIndex: 1 }}
+              >
+                <SuggestionField
+                  label="Einheit des alten Endstands"
+                  error={vm.fieldErrors.closingUnit}
+                  helper="Einheit vor dem Wechsel."
+                  value={form.closingUnit}
+                  suggestions={units}
+                  disabled={vm.busy}
+                  onChange={(v) => vm.change('closingUnit', v)}
+                />
+              </FormErrorTarget>
               <Body muted>
                 Ist der Endstand unbekannt, bleibt die fehlende Menge als
                 Berechnungslücke sichtbar.
               </Body>
             </Card>
           )}
-          <SuggestionField
-            label="Einheit *"
-            helper="Vorschlag auswählen oder eigene Einheit eingeben."
-            value={form.unit}
-            suggestions={units}
-            disabled={vm.busy}
-            showAllOnFocus
-            onChange={(v) => vm.change('unit', v)}
-          />
-          <Field
-            label={
-              form.kind === 'reading' ? 'Zählerstand *' : 'Neuer Startstand *'
-            }
-            suffix={form.unit}
-            keyboardType="decimal-pad"
-            value={form.value}
-            onChangeText={(v) => vm.change('value', v)}
-            editable={!vm.busy}
-          />
+          <FormErrorTarget
+            active={firstError === 'unit'}
+            attempt={vm.errorAttempt}
+            style={{ zIndex: 1 }}
+          >
+            <SuggestionField
+              label="Einheit *"
+              error={vm.fieldErrors.unit}
+              helper="Vorschlag auswählen oder eigene Einheit eingeben."
+              value={form.unit}
+              suggestions={units}
+              disabled={vm.busy}
+              showAllOnFocus
+              onChange={(v) => vm.change('unit', v)}
+            />
+          </FormErrorTarget>
+          <FormErrorTarget
+            active={firstError === 'value'}
+            attempt={vm.errorAttempt}
+          >
+            <Field
+              label={
+                form.kind === 'reading' ? 'Zählerstand *' : 'Neuer Startstand *'
+              }
+              suffix={form.unit}
+              error={vm.fieldErrors.value}
+              keyboardType="decimal-pad"
+              inputMode="decimal"
+              autoCorrect={false}
+              autoCapitalize="none"
+              value={form.value}
+              onChangeText={(v) => vm.change('value', v)}
+              editable={!vm.busy}
+            />
+          </FormErrorTarget>
+          <Body muted style={{ fontSize: 12, paddingHorizontal: 16 }}>
+            Ziffern eingeben. Für Nachkommastellen ein Komma oder einen Punkt
+            verwenden.
+          </Body>
           {form.unit === 'h' && (
             <Body muted>
               Betriebsstunden dezimal eingeben, zum Beispiel 12,5 für 12 Stunden
@@ -194,33 +245,51 @@ export function EntryEditorScreen() {
             </Body>
           )}
           {form.kind === 'replacement' && (
-            <Field
-              label="Neue Zählernummer (optional)"
-              value={form.newCounterNumber}
-              editable={!vm.busy}
-              onChangeText={(v) => vm.change('newCounterNumber', v)}
-            />
+            <FormErrorTarget
+              active={firstError === 'newCounterNumber'}
+              attempt={vm.errorAttempt}
+            >
+              <Field
+                label="Neue Zählernummer (optional)"
+                error={vm.fieldErrors.newCounterNumber}
+                value={form.newCounterNumber}
+                editable={!vm.busy}
+                onChangeText={(v) => vm.change('newCounterNumber', v)}
+              />
+            </FormErrorTarget>
           )}
-          <Card>
-            <Body strong>Datum und Uhrzeit</Body>
-            <DateField
-              label="Zeitpunkt der Ablesung oder des Wechsels"
-              time
-              value={form.occurredAt}
-              disabled={vm.busy}
-              onChange={(v) => vm.change('occurredAt', v)}
-            />
-          </Card>
+          <FormErrorTarget
+            active={firstError === 'occurredAt'}
+            attempt={vm.errorAttempt}
+          >
+            <Card>
+              <Body strong>Datum und Uhrzeit</Body>
+              <DateField
+                label="Zeitpunkt der Ablesung oder des Wechsels"
+                time
+                value={form.occurredAt}
+                disabled={vm.busy}
+                onChange={(v) => vm.change('occurredAt', v)}
+              />
+              <Notice error text={vm.fieldErrors.occurredAt} />
+            </Card>
+          </FormErrorTarget>
           {Date.parse(form.occurredAt) > openedAt && (
             <Notice text="Dieser Zeitpunkt liegt in der Zukunft und wird im Protokoll entsprechend gekennzeichnet." />
           )}
-          <Field
-            label="Notiz (optional)"
-            multiline
-            value={form.note}
-            onChangeText={(v) => vm.change('note', v)}
-            editable={!vm.busy}
-          />
+          <FormErrorTarget
+            active={firstError === 'note'}
+            attempt={vm.errorAttempt}
+          >
+            <Field
+              label="Notiz (optional)"
+              error={vm.fieldErrors.note}
+              multiline
+              value={form.note}
+              onChangeText={(v) => vm.change('note', v)}
+              editable={!vm.busy}
+            />
+          </FormErrorTarget>
           <Documents documents={documents} />
           {entryId && (
             <Card>
@@ -229,13 +298,19 @@ export function EntryEditorScreen() {
                 Die ursprünglichen Angaben und Fotos bleiben in der
                 Korrekturhistorie erhalten.
               </Body>
-              <Field
-                label="Änderungsgrund *"
-                multiline
-                value={form.reason}
-                onChangeText={(v) => vm.change('reason', v)}
-                editable={!vm.busy}
-              />
+              <FormErrorTarget
+                active={firstError === 'reason'}
+                attempt={vm.errorAttempt}
+              >
+                <Field
+                  label="Änderungsgrund *"
+                  error={vm.fieldErrors.reason}
+                  multiline
+                  value={form.reason}
+                  onChangeText={(v) => vm.change('reason', v)}
+                  editable={!vm.busy}
+                />
+              </FormErrorTarget>
             </Card>
           )}
           <Button

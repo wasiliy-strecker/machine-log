@@ -19,6 +19,7 @@ import { useLeaveGuard } from '../../core/ui/use-leave-guard';
 import { capturePhase } from '../records/presentation-model';
 import type { PhotoSource } from '../../core/media/media-service';
 import { replaceReadingPhoto } from '../../core/media/reading-photo';
+import { readingInput } from './reading-input';
 export function useEntryEditor(
   recordId: string,
   entryId?: string,
@@ -102,12 +103,32 @@ export function useEntryEditor(
     },
   });
   function apply(next: EntryDraft) {
+    for (const key of [
+      'value',
+      'closingValue',
+      'unit',
+      'closingUnit',
+      'kind',
+    ] as const)
+      if (next.form[key] !== current.current?.form[key])
+        task.clearFieldErrors(key);
     current.current = next;
     setDraft(next);
     return machine.persistDraft(next);
   }
   function change<K extends keyof EntryForm>(key: K, value: EntryForm[K]) {
     if (!current.current) return;
+    if (key === 'value' || key === 'closingValue') {
+      const accepted = readingInput(
+        value as string,
+        current.current.form[key as 'value' | 'closingValue'],
+      );
+      if (accepted === null) return;
+      value = accepted as EntryForm[K];
+    }
+    task.clearFieldErrors(key);
+    if (key === 'occurredAt' || key === 'kind')
+      task.clearFieldErrors('value', 'closingValue', 'closingUnit');
     void apply({
       ...current.current,
       form: { ...current.current.form, [key]: value },

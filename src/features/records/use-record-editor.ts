@@ -3,6 +3,7 @@ import { router } from 'expo-router';
 import { PermissionsAndroid, Platform } from 'react-native';
 import { useServices } from '../../core/composition';
 import type { Machine } from '../../core/domain/models';
+import { validateCounterForm } from '../../core/domain/form-validation';
 import {
   counterDetails,
   recordWithCounterDetails,
@@ -107,6 +108,7 @@ export function useRecordEditor(id?: string, counterId?: string) {
     key: K,
     value: CounterDetails[K],
   ) {
+    task.clearFieldErrors(key);
     setForm((current) => current && { ...current, [key]: value });
   }
   return {
@@ -121,6 +123,7 @@ export function useRecordEditor(id?: string, counterId?: string) {
     save: () =>
       task.run(async () => {
         if (!record || !form) return;
+        validateCounterForm(form);
         if (
           form.reminder &&
           Platform.OS === 'android' &&

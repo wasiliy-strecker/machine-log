@@ -7,6 +7,16 @@ import {
   type ReadingValue,
 } from './reading-value';
 
+export class TimelineValidationError extends Error {
+  constructor(
+    message: string,
+    readonly entryId: string,
+    readonly field: 'occurredAt' | 'value' | 'closingValue',
+  ) {
+    super(message);
+  }
+}
+
 export function chronological(events: CounterEvent[]): CounterEvent[] {
   return [...events].sort(
     (a, b) =>
@@ -64,16 +74,20 @@ export function validateTimeline(events: CounterEvent[]): void {
       before &&
       Date.parse(before.occurredAt) === Date.parse(entry.occurredAt)
     )
-      throw new Error(
+      throw new TimelineValidationError(
         'Zu diesem Zeitpunkt gibt es bereits einen Eintrag für diesen Zähler. Bitte Zeitpunkt ändern oder den vorhandenen Eintrag korrigieren.',
+        entry.id,
+        'occurredAt',
       );
     const delta = increment(entry, before);
     if (
       delta.value &&
       compareValues(delta.value, { digits: '0', scale: 0 }) < 0
     )
-      throw new Error(
+      throw new TimelineValidationError(
         'Der Stand widerspricht einer benachbarten Ablesung. Bitte den Zeitpunkt prüfen, eine Rücksetzung oder einen Zählerwechsel erfassen oder die fehlerhafte Ablesung korrigieren.',
+        entry.id,
+        entry.kind === 'reading' ? 'value' : 'closingValue',
       );
     previous.set(key, entry);
   }

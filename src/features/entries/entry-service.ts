@@ -1,5 +1,13 @@
 import { parseValue } from '../../core/domain/reading-value';
-import { validateTimeline } from '../../core/domain/counter-timeline';
+import {
+  validateTimeline,
+  TimelineValidationError,
+} from '../../core/domain/counter-timeline';
+import {
+  FormValidationError,
+  validateEntryForm,
+  validateCorrectionReason,
+} from '../../core/domain/form-validation';
 import {
   recordWithCounterDetails,
   type CounterDetails,
@@ -228,9 +236,8 @@ export class MachineService {
           'Der Eintrag wurde zwischenzeitlich geändert. Bitte den Entwurf verwerfen und erneut öffnen.',
         );
       const f = draft.form;
+      validateEntryForm(f);
       const occurredAt = new Date(f.occurredAt).toISOString();
-      if (Date.parse(occurredAt) > Date.parse('2100-12-31T23:59:59.999Z'))
-        throw new Error('Zeitpunkte sind bis Ende 2100 möglich.');
       const replacement = data.entries
         .filter(
           (e) =>
@@ -273,8 +280,7 @@ export class MachineService {
         await this.repository.removeDraft(draft.id);
         return { entry: existing, warnings: [] };
       }
-      if (existing && !f.reason.trim())
-        throw new Error('Bitte einen Änderungsgrund angeben.');
+      if (existing) validateCorrectionReason(f.reason);
       const entry = entrySchema.parse({
         ...state,
         id: existing?.id ?? this.env.id(),
@@ -297,10 +303,20 @@ export class MachineService {
         createdAt: existing?.createdAt ?? now,
         updatedAt: now,
       });
-      validateSnapshot({
-        ...data,
-        entries: [...data.entries.filter((e) => e.id !== entry.id), entry],
-      });
+      try {
+        validateSnapshot({
+          ...data,
+          entries: [...data.entries.filter((e) => e.id !== entry.id), entry],
+        });
+      } catch (error) {
+        if (error instanceof TimelineValidationError)
+          throw new FormValidationError({
+            [error.field === 'occurredAt' || error.entryId === entry.id
+              ? error.field
+              : 'value']: error.message,
+          });
+        throw error;
+      }
       await this.repository.saveEntry(entry, draft.id);
       // Historical photo versions are still referenced by the immutable revision chain.
       await this.cleanup(

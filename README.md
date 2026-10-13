@@ -230,4 +230,22 @@ Kamera-/OCR-Abläufe bleiben zur kurzen Nutzerabnahme offen.
 Die an ZählerstandLog angeglichene Ableseerinnerung ist mit 32 Anwendungstests,
 45 nativen JVM-Tests und Android-Lint geprüft. Die eigene Dev-APK liegt unter
 `build/dev/maschinenlog-1.0.0-dev-reminders-2026-10-12.apk`.
-Die Geräteinstallation wartet auf einen sicher festgestellten Eingabezustand.
+Dieser Erinnerungsstand wurde am 13. Oktober 2026 zusammen mit der verbesserten
+Formularprüfung datenbewahrend auf dem HONOR BVL-N49 installiert.
+
+Speicherfehler führen zum ersten betroffenen Feld. Eingabefehler erscheinen direkt
+am Feld, allgemeine Fehler am Formularanfang. Erneutes Speichern führt erneut zum
+Fehler, das Korrigieren eines Feldes schließt die Tastatur nicht ungewollt.
+Zählerstände und alte Endstände erlauben Ziffern mit Dezimalkomma oder Dezimalpunkt.
+Gültige eingefügte Tausendergruppierungen werden ohne Rundung normalisiert.
+Ungültige Zeichen werden abgewiesen. Alte ungültige Entwürfe bleiben durch Löschen
+korrigierbar.
+
+Prüfung dieses Stands: `npm run check` mit 38 erfolgreichen Tests und erfolgreicher
+Dev-APK-Erstellung. Der vorhandene Formularentwurf mit Wert und Notiz blieb beim
+Update erhalten. Ein kurzer Gerätecheck bestätigte die rote Feldmarkierung und
+die Fehlermeldung unmittelbar unter dem Zählerstand nach dem Speichern.
+Weitere manuelle Prüfung: Fehlende Einheit und fehlenden Zählerstand speichern,
+Felder korrigieren, erneut speichern sowie `12,5` und `12.5` eingeben.
+Die Auslieferung liegt unter
+`build/dev/maschinenlog-1.0.0-dev-validation-2026-10-13.apk`.
