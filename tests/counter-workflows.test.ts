@@ -285,3 +285,78 @@ it('exports grouped production PDFs and restores encrypted evidence including hi
   tampered[tampered.length - 1]! ^= 1;
   await expect(f.backup.codec.decode(tampered, password)).rejects.toThrow();
 });
+
+it('gives current and archived photos separate large pages while retaining their original bytes', async () => {
+  const f = await setup(),
+    r = record();
+  await f.machine.saveRecord(r);
+  const originalPhoto = await f.machine.importAttachment(
+    await photo(),
+    'photo',
+    'Original.jpg',
+    'camera',
+  );
+  const first = await reading(f, r, 0, '100', {
+    attachments: [originalPhoto],
+    source: 'camera',
+  });
+  const replacementPhoto = await f.machine.importAttachment(
+    await photo(),
+    'photo',
+    'Neues-Foto.jpg',
+    'camera',
+  );
+  const edit = await f.machine.draft(r.id, first);
+  edit.form.attachments = [replacementPhoto];
+  edit.form.reason = 'Besser lesbares Foto';
+  await f.machine.saveEntry(edit);
+  const report = await f.machine.createReport(r.id, first.id, true);
+  const path = join(f.root, 'large-photos.pdf');
+  await writeFile(path, await f.vault.read(report.file));
+  const images = execFileSync('pdfimages', ['-list', path], {
+    encoding: 'utf8',
+  })
+    .trim()
+    .split('\n')
+    .slice(2)
+    .map((line) => line.trim().split(/\s+/));
+  expect(images).toHaveLength(2);
+  expect(new Set(images.map((row) => row[0])).size).toBe(2);
+  for (const [index, row] of images.entries()) {
+    // Poppler reads the generated PDF's image transforms, not layout helpers.
+    const width = (Number(row[3]) * 72) / Number(row[12]);
+    const height = (Number(row[4]) * 72) / Number(row[13]);
+    expect(width).toBeGreaterThan(500);
+    expect(width).toBeLessThan(520);
+    expect(height).toBeGreaterThan(300);
+    expect(width / height).toBeCloseTo(2500 / 1600, 2);
+    const page = execFileSync(
+      'pdftotext',
+      ['-f', row[0]!, '-l', row[0]!, path, '-'],
+      { encoding: 'utf8' },
+    );
+    expect(page).toContain(
+      index === 0 ? 'Aktuelle Fotos' : 'Frühere Fotoversionen',
+    );
+    expect(page).toContain(
+      index === 0 ? replacementPhoto.name : originalPhoto.name,
+    );
+    expect(page).toContain('Foto 1 von 1');
+    expect(page).toContain('Eintrag 1');
+    expect(page).toContain('Dokumentation deiner Produktionsstände.');
+  }
+  const prefix = join(f.root, 'extracted');
+  execFileSync('pdfimages', ['-j', path, prefix]);
+  for (const index of ['000', '001'])
+    expect(new Uint8Array(await readFile(`${prefix}-${index}.jpg`))).toEqual(
+      await photo(),
+    );
+  const compact = await f.machine.createReport(r.id, first.id, false);
+  const compactPath = join(f.root, 'compact.pdf');
+  await writeFile(compactPath, await f.vault.read(compact.file));
+  expect(
+    execFileSync('pdfimages', ['-list', compactPath], { encoding: 'utf8' })
+      .trim()
+      .split('\n'),
+  ).toHaveLength(2);
+});

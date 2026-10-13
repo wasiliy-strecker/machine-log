@@ -406,26 +406,13 @@ export class PdfService {
             ({ attachment }) => current.has(attachment.file) !== archived,
           );
           if (!group.length) continue;
-          layout.ensure(70);
-          layout.gap(12);
-          layout.text(archived ? 'Frühere Fotoversionen' : 'Aktuelle Fotos', {
-            bold: true,
-          });
-          for (let start = 0; start < group.length; start += 2) {
-            layout.ensure(layout.photoRowHeight() + 40);
-            layout.text(
-              group
-                .slice(start, start + 2)
-                .map((p) => p.attachment.name)
-                .join(' · '),
-              { size: 9 },
-            );
-            layout.photos(
-              group.map((p) => p.image),
-              start,
-            );
-            layout.gap(8);
-          }
+          for (const [index, { image, attachment }] of group.entries())
+            layout.photo(image, {
+              title: archived ? 'Frühere Fotoversionen' : 'Aktuelle Fotos',
+              name: attachment.name,
+              number: index + 1,
+              total: group.length,
+            });
         }
       else if (attachments.length) {
         layout.gap(12);

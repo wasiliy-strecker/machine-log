@@ -47,6 +47,9 @@ entfernt ihre lokalen Einträge, Entwürfe und Protokolle.
 
 Einzel- und Zählerprotokolle enthalten Werte, Zuwächse, Übergänge,
 Berechnungslücken und Korrekturen. Fotos und Original-PDF-Seiten sind optional.
+In neu erstellten Protokollen erhält jedes aktuelle und frühere Foto eine eigene
+Seite. Es nutzt die verfügbare Seitenbreite und -höhe mit unverändertem
+Seitenverhältnis, ohne Beschnitt. So bleibt die Zähleranzeige besser lesbar.
 Frühere gemeinsame Maschinenprotokolle bleiben als Altprotokolle zugänglich. Bereits erzeugte PDFs bleiben nach
 Korrekturen unverändert. Protokolle dienen der Dokumentation und sind keine
 amtliche Bestätigung. Zeitangaben stammen vom Gerät.
