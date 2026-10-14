@@ -54,12 +54,11 @@ function ReportCard({
       </View>
       <View style={s.reportBody}>
         <Body style={[s.reportTitle, { color: c.onSecondaryContainer }]}>
-          Produktionsprotokoll ·{' '}
           {report.entryId
-            ? 'Einzelner Eintrag'
+            ? 'Produktionsprotokoll · Einzelner Eintrag'
             : report.counterId
               ? 'Zählerverlauf'
-              : 'Früheres Maschinenprotokoll'}
+              : 'Produktionsprotokoll · Früheres Maschinenprotokoll'}
           {report.partIndex
             ? ` · Teil ${report.partIndex} von ${report.partCount}`
             : ''}
@@ -189,7 +188,7 @@ export function Reports({
             <Body strong style={{ color: c.onSecondaryContainer }}>
               {entryId
                 ? 'Produktionsprotokoll dieses Eintrags'
-                : 'Produktionsprotokoll · Zählerverlauf'}
+                : 'Zählerverlauf'}
             </Body>
             <Body style={{ color: c.onSecondaryContainer }}>
               {entryId
