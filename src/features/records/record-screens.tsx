@@ -15,7 +15,7 @@ import {
   Notice,
   useTheme,
 } from '../../core/ui/components';
-import { Icon, categoryIcon } from '../../core/ui/icon';
+import { Icon } from '../../core/ui/icon';
 import {
   counterTitle,
   counterLocation,
@@ -192,42 +192,36 @@ export function RecordsScreen() {
               <View
                 style={{ flexDirection: 'row', alignItems: 'center', gap: 14 }}
               >
-                <View
-                  style={{
-                    width: 40,
-                    height: 40,
-                    borderRadius: 20,
-                    backgroundColor: c.primary + '1F',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                  }}
-                >
-                  <Icon
-                    name={categoryIcon(record.category)}
-                    color={c.primary}
-                  />
-                  {vm.status?.schedules.find((s) => s.recordId === counter.id)
-                    ?.isNotificationActive && (
-                    <View
-                      style={{
-                        position: 'absolute',
-                        right: -2,
-                        top: -4,
-                        backgroundColor: c.danger,
-                        borderRadius: 10,
-                        paddingHorizontal: 5,
-                      }}
-                    >
-                      <Text style={{ color: c.background, fontSize: 11 }}>
-                        1
-                      </Text>
-                    </View>
-                  )}
-                </View>
                 <View style={{ flex: 1, gap: 4 }}>
-                  <Body strong style={{ fontSize: 16, lineHeight: 24 }}>
-                    {counterTitle(record, counter)}
-                  </Body>
+                  <View
+                    style={{
+                      flexDirection: 'row',
+                      alignItems: 'center',
+                      gap: 8,
+                    }}
+                  >
+                    <Body
+                      strong
+                      style={{ flex: 1, fontSize: 16, lineHeight: 24 }}
+                    >
+                      {counterTitle(record, counter)}
+                    </Body>
+                    {vm.status?.schedules.find((s) => s.recordId === counter.id)
+                      ?.isNotificationActive && (
+                      <View
+                        accessibilityLabel="Aktive Ableseerinnerung"
+                        style={{
+                          backgroundColor: c.danger,
+                          borderRadius: 10,
+                          paddingHorizontal: 5,
+                        }}
+                      >
+                        <Text style={{ color: c.background, fontSize: 11 }}>
+                          1
+                        </Text>
+                      </View>
+                    )}
+                  </View>
                   <Body muted>
                     {[
                       counterTypes[counter.type],
@@ -354,18 +348,6 @@ export function RecordDetailScreen() {
       />
       <Card onPress={edit} style={{ margin: 4, padding: 17, gap: 0 }}>
         <View style={{ flexDirection: 'row', gap: 12, alignItems: 'center' }}>
-          <View
-            style={{
-              width: 40,
-              height: 40,
-              borderRadius: 20,
-              backgroundColor: c.primary + '1F',
-              alignItems: 'center',
-              justifyContent: 'center',
-            }}
-          >
-            <Icon name={categoryIcon(r.category)} color={c.primary} />
-          </View>
           <Body
             strong
             style={{
