@@ -1,4 +1,3 @@
-import { counterTotals } from '../../core/domain/counter-timeline';
 import { formatValue } from '../../core/domain/reading-value';
 import { useCallback, useState } from 'react';
 import { useFocusEffect, router } from 'expo-router';
@@ -80,7 +79,6 @@ export function useRecordDetail(
 ) {
   const { machine, native, revision, refresh } = useServices();
   const [counterId, setCounterId] = useState(initialCounterId ?? '');
-  const [totals, setTotals] = useState<ReturnType<typeof counterTotals>>([]);
   const [record, setRecord] = useState<Machine>(),
     [entries, setEntries] = useState<CounterEvent[]>([]),
     [comparisons, setComparisons] = useState<Record<string, string | null>>({}),
@@ -107,20 +105,14 @@ export function useRecordDetail(
             : found?.counters[0];
         if (!found || !selected)
           throw new Error('Maschine oder Zähler nicht gefunden.');
-        const [page, timeline] = await Promise.all([
-          machine.repository.entries(
-            id,
-            history ? search : '',
-            history ? offset : 0,
-            PAGE_SIZE,
-            selected.id,
-          ),
-          machine.repository.timeline(selected.id),
-        ]);
-        if (active) {
-          setCounterId(selected.id);
-          setTotals(counterTotals(timeline));
-        }
+        const page = await machine.repository.entries(
+          id,
+          history ? search : '',
+          history ? offset : 0,
+          PAGE_SIZE,
+          selected.id,
+        );
+        if (active) setCounterId(selected.id);
         void native.acknowledge(selected.id).catch(() => {});
         return { records, page };
       })()
@@ -171,7 +163,6 @@ export function useRecordDetail(
     record,
     counterId,
     counter: record?.counters.find((c) => c.id === counterId),
-    totals,
     setCounterId: (value: string) => {
       setOffset(0);
       setCounterId(value);

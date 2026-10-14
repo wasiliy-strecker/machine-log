@@ -1,4 +1,3 @@
-import { formatValue } from '../../core/domain/reading-value';
 import { View, Text } from 'react-native';
 import { router, Stack, useLocalSearchParams } from 'expo-router';
 import {
@@ -440,17 +439,6 @@ export function RecordDetailScreen() {
         />
       </View>
       <Notice error text={vm.error} />
-      {vm.totals.map((total) => (
-        <Card key={total.unit}>
-          <Body strong>Dokumentierter Zuwachs</Body>
-          <Body>
-            {formatValue(total.value)} {total.unit}
-          </Body>
-          {total.incomplete && (
-            <Notice text="Unvollständig. Mindestens ein Übergang ist nicht berechenbar." />
-          )}
-        </Card>
-      ))}
       <Reports
         recordId={id}
         counterId={vm.counterId}
