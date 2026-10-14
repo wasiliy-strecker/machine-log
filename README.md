@@ -45,9 +45,12 @@ entfernt. Beim Ersetzen eines Fotos bleiben frühere Fotoversionen nachvollziehb
 Zahlen bleiben als Ziffernfolge und Dezimalskala erhalten. Berechnungen verwenden
 BigInt. Nachträge werden nach ihrem Ablesezeitpunkt einsortiert. Pro Zähler ist ein
 Ereignis je Zeitpunkt möglich. Die erste Ablesung ist ein Ausgangsstand.
+Zuwächse beziehen sich jeweils auf die vorherige Ablesung. Die App und neu
+erzeugte PDF-Protokolle zeigen keine kumulierte Gesamtsumme.
 
 Rücksetzungen und Zählerwechsel enthalten den alten Endstand und den neuen
-Startstand. Beispiel: 100 → Endstand 120 → Startstand 0 → 15 ergibt 35 Stück.
+Startstand. Beispiel: Von 100 bis zum Endstand 120 sind es 20 Stück bis zur
+Rücksetzung. Vom neuen Startstand 0 bis zum Stand 15 sind es weitere 15 Stück.
 Ein unbekannter Endstand bleibt als Berechnungslücke sichtbar. Unterschiedliche
 Einheiten werden nicht verrechnet. Rückläufige Stände müssen durch einen passenden
 Wechsel oder eine Korrektur aufgelöst werden. Es gibt keine automatische Erkennung

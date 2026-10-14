@@ -1,7 +1,7 @@
 import { afterEach, expect, it } from 'vitest';
 import { fixture, record, env, photo, sourcePdf, connect } from './support';
 import { SqlRepository, migrate } from '../src/core/database/repository';
-import { increment, counterTotals } from '../src/core/domain/counter-timeline';
+import { increment } from '../src/core/domain/counter-timeline';
 import { formatValue } from '../src/core/domain/reading-value';
 import {
   allAttachments,
@@ -55,9 +55,9 @@ it('isolates two counters, recalculates late readings and persists across reopen
   });
   await f.repo.saveRecord(r); // Existing multi-counter data from the previous version.
   const baseline = await reading(f, r, 0, '100');
-  expect(counterTotals([baseline])).toEqual([]);
+  expect(increment(baseline)).toMatchObject({ value: null, gap: false });
   const last = await reading(f, r, 30, '150');
-  await reading(f, r, 10, '120');
+  const late = await reading(f, r, 10, '120');
   expect(
     formatValue(increment(last, await f.repo.previousMeasurement(last)).value!),
   ).toBe('30');
@@ -65,9 +65,9 @@ it('isolates two counters, recalculates late readings and persists across reopen
   expect((await f.repo.entries(r.id, '', 0, 10, r.counters[0]!.id)).total).toBe(
     3,
   );
-  expect(
-    counterTotals(await f.repo.timeline(r.counters[0]!.id))[0],
-  ).toMatchObject({ value: { digits: '50', scale: 0 }, incomplete: false });
+  expect(increment(late, await f.repo.previousMeasurement(late))).toMatchObject(
+    { value: { digits: '20', scale: 0 }, gap: false },
+  );
   const db = connect(f.path);
   try {
     await migrate(db.db);
@@ -81,48 +81,69 @@ it('calculates reset and replacement boundaries, including backdated changes', a
     r = record();
   await f.machine.saveRecord(r);
   await reading(f, r, 0, '100');
-  await reading(f, r, 10, '0', { kind: 'reset', closingValue: '120' });
-  await reading(f, r, 20, '15');
+  const reset = await reading(f, r, 10, '0', {
+    kind: 'reset',
+    closingValue: '120',
+  });
+  const afterReset = await reading(f, r, 20, '15');
+  expect(increment(reset, await f.repo.previousMeasurement(reset)).label).toBe(
+    '+20 Stück Zuwachs bis zum Wechsel',
+  );
   expect(
-    formatValue(
-      counterTotals(await f.repo.timeline(r.counters[0]!.id))[0]!.value,
-    ),
-  ).toBe('35');
-  await reading(f, r, 5, '110');
-  await reading(f, r, 30, '500', {
+    increment(afterReset, await f.repo.previousMeasurement(afterReset)).label,
+  ).toBe('+15 Stück Zuwachs');
+  const late = await reading(f, r, 5, '110');
+  expect(increment(late, await f.repo.previousMeasurement(late)).label).toBe(
+    '+10 Stück Zuwachs',
+  );
+  expect(increment(reset, await f.repo.previousMeasurement(reset)).label).toBe(
+    '+10 Stück Zuwachs bis zum Wechsel',
+  );
+  const replacement = await reading(f, r, 30, '500', {
     kind: 'replacement',
     closingValue: '20',
     newCounterNumber: 'NEU-2',
   });
-  await reading(f, r, 40, '505');
+  const afterReplacement = await reading(f, r, 40, '505');
   expect(
-    formatValue(
-      counterTotals(await f.repo.timeline(r.counters[0]!.id))[0]!.value,
-    ),
-  ).toBe('45');
+    increment(replacement, await f.repo.previousMeasurement(replacement)).label,
+  ).toBe('+5 Stück Zuwachs bis zum Wechsel');
+  expect(
+    increment(
+      afterReplacement,
+      await f.repo.previousMeasurement(afterReplacement),
+    ).label,
+  ).toBe('+5 Stück Zuwachs');
 });
 it('marks incomplete transitions and never bridges a changed unit', async () => {
   const f = await setup(),
     r = record();
   await f.machine.saveRecord(r);
   await reading(f, r, 0, '100');
-  await reading(f, r, 10, '0', { kind: 'reset' });
-  await reading(f, r, 20, '15');
-  const totals = counterTotals(await f.repo.timeline(r.counters[0]!.id));
-  expect(totals[0]).toMatchObject({
+  const reset = await reading(f, r, 10, '0', { kind: 'reset' });
+  const afterReset = await reading(f, r, 20, '15');
+  expect(
+    increment(reset, await f.repo.previousMeasurement(reset)),
+  ).toMatchObject({
+    value: null,
+    gap: true,
+    label: 'Berechnungslücke · alter Endstand unbekannt',
+  });
+  expect(
+    increment(afterReset, await f.repo.previousMeasurement(afterReset)),
+  ).toMatchObject({
     value: { digits: '15', scale: 0 },
-    incomplete: true,
+    gap: false,
+    unit: 'Stück',
   });
   const changed = await reading(f, r, 30, '4', { unit: 'kg' });
   expect(
     increment(changed, await f.repo.previousMeasurement(changed)).gap,
   ).toBe(true);
-  await reading(f, r, 40, '5', { unit: 'kg' });
-  expect(
-    counterTotals(await f.repo.timeline(r.counters[0]!.id)).map(
-      (t) => `${formatValue(t.value)} ${t.unit}`,
-    ),
-  ).toEqual(['15 Stück', '1 kg']);
+  const next = await reading(f, r, 40, '5', { unit: 'kg' });
+  expect(increment(next, await f.repo.previousMeasurement(next))).toMatchObject(
+    { value: { digits: '1', scale: 0 }, gap: false, unit: 'kg' },
+  );
 });
 it('rejects inconsistent inserts, duplicate times and removal of a required reset atomically', async () => {
   const f = await setup(),
@@ -226,7 +247,8 @@ it('exports grouped production PDFs and restores encrypted evidence including hi
   const text = await readFile(path + '.txt', 'utf8');
   for (const expected of [
     'Produktionsprotokoll',
-    '34 Stück',
+    '+19 Stück',
+    '+15 Stück',
     'Zyklen',
     'Rücksetzung',
     'Korrektur',
@@ -235,6 +257,9 @@ it('exports grouped production PDFs and restores encrypted evidence including hi
     'Frühere Fotoversionen',
   ])
     expect(text).toContain(expected);
+  const normalized = text.replace(/\s+/g, ' ');
+  expect(normalized).not.toContain('Dokumentierter Zuwachs');
+  expect(normalized).not.toContain('34 Stück');
   const password = 'Synthetisches Passwort';
   const encoded = await f.backup.create(password);
   // Independently authenticate/decrypt with OpenSSL through Node Crypto.

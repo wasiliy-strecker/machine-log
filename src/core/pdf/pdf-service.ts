@@ -9,11 +9,7 @@ import {
   type CounterEvent,
   type Machine,
 } from '../domain/models';
-import {
-  chronological,
-  counterTotals,
-  increment,
-} from '../domain/counter-timeline';
+import { chronological, increment } from '../domain/counter-timeline';
 import { formatValue } from '../domain/reading-value';
 import {
   ReportLayout,
@@ -355,11 +351,6 @@ export class PdfService {
           bold: true,
           color: REPORT_BLUE,
         });
-        history.gap(6);
-        for (const total of counterTotals(rows))
-          history.text(
-            `Dokumentierter Zuwachs: ${formatValue(total.value)} ${total.unit}${total.incomplete ? ' · unvollständig wegen Berechnungslücke' : ''}`,
-          );
         history.gap(8);
         history.historyTable(
           rows.map((e, index) => [

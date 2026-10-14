@@ -1,6 +1,5 @@
 import type { CounterEvent, EventState } from './models';
 import {
-  addValues,
   compareValues,
   formatValue,
   subtractValues,
@@ -91,27 +90,4 @@ export function validateTimeline(events: CounterEvent[]): void {
       );
     previous.set(key, entry);
   }
-}
-export function counterTotals(events: CounterEvent[]) {
-  const totals = new Map<
-    string,
-    { value: ReadingValue; incomplete: boolean }
-  >();
-  let previous: CounterEvent | undefined;
-  for (const entry of chronological(events)) {
-    const delta = increment(entry, previous);
-    if (!delta.value && !delta.gap) {
-      previous = entry;
-      continue;
-    }
-    const total = totals.get(delta.unit) ?? {
-      value: { digits: '0', scale: 0 },
-      incomplete: false,
-    };
-    if (delta.value) total.value = addValues(total.value, delta.value);
-    total.incomplete ||= delta.gap;
-    totals.set(delta.unit, total);
-    previous = entry;
-  }
-  return [...totals].map(([unit, total]) => ({ unit, ...total }));
 }
