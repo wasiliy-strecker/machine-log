@@ -22,6 +22,8 @@ import {
 } from '../media/attachments';
 import { useEntryEditor } from './use-entry-editor';
 import { FormErrorTarget } from '../../core/ui/form-error-target';
+import { CaptureGuidance } from './capture-guidance';
+import { PhotoExamplesButton } from './photo-examples-button';
 export function EntryEditorScreen() {
   const { recordId, entryId, counterId } = useLocalSearchParams<{
     recordId: string;
@@ -62,7 +64,7 @@ export function EntryEditorScreen() {
     <Page>
       <Stack.Screen
         options={{
-          title: entryId ? 'Eintrag korrigieren' : 'Zählerstand erfassen',
+          title: entryId ? 'Eintrag korrigieren' : 'Erfassen / Fotografieren',
         }}
       />
       {!!vm.error && (
@@ -73,20 +75,8 @@ export function EntryEditorScreen() {
       <Notice text={vm.notice} />
       {vm.phase === 'choose' ? (
         <>
-          <Card>
-            <Body strong style={{ fontSize: 16 }}>
-              Produktion festhalten
-            </Body>
-            <Body>
-              Fotografiere die Zähleranzeige gerade und gut lesbar. Vermeide
-              Spiegelungen und Schatten.
-            </Body>
-            <Body muted>
-              MaschinenLog erkennt Zahlen lokal auf deinem Gerät. Du prüfst den
-              erkannten Stand vor dem Speichern. Fotos werden ohne Aufnahme- und
-              Standortmetadaten gespeichert.
-            </Body>
-          </Card>
+          <CaptureGuidance />
+          <PhotoExamplesButton disabled={vm.busy} />
           <Button
             icon="photo_camera_outlined"
             title="Zähler fotografieren"

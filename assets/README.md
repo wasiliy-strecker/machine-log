@@ -13,3 +13,13 @@ Keine dieser Dateien enthält Kundendaten, private Adressen oder echte Dokumente
 `ui/` enthält app-lokale Roboto-Schriften und MaterialIcons aus dem Flutter-SDK
 für die ausdrücklich gewünschte Übereinstimmung der Oberflächen. Die zugehörigen
 Lizenzen sind beigefügt. Es gibt keine Laufzeitabhängigkeit zur Flutter-App.
+
+`photo-examples/` enthält sechs JPEG-Vorschauen der künstlichen Produktionsanzeigen
+aus `production_counter_log/test/manual_fixtures/production_photos/`.
+Die app-lokalen Kopien sind auf maximal 1024 Pixel an der längsten Kante reduziert,
+metadatenfrei und jeweils kleiner als 150 KiB. Die Originale bleiben unverändert.
+Die Galerie dient nur zur Ansicht und legt keine Fotos, OCR-Vorschläge oder
+Ablesungen in der Datenbank an. Die Bilder enthalten keine echten Produktionsdaten.
+
+Fertigung zeigt 012480 Stück, Montage 003256 Stück, Verpackung 001248 Pakete,
+Abfüllung 012345,6 Liter, Zuschnitt 000872,35 Laufmeter und Druck 004218,5 m².

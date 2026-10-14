@@ -14,6 +14,10 @@ Betriebsstunden werden dezimal erfasst.
 Die Erfassung folgt ZählerstandLog: Zähler fotografieren, ein Foto aus der Galerie
 wählen oder ohne Foto erfassen. Neue Ablesungen besitzen höchstens ein aktuelles
 Foto. Zahlen werden mit dem gebündelten lateinischen ML-Kit-Modell lokal erkannt.
+Der Einstieg „Erfassen / Fotografieren“ erklärt die Aufnahme wie das Flutter-Vorbild.
+„Beispiele ansehen“ zeigt sechs künstliche Produktionsanzeigen in einer lokalen,
+wischbaren Galerie. Die Beispiele dienen nur zur Ansicht und werden weder
+importiert noch durch OCR verarbeitet oder als Ablesung gespeichert.
 Mehrere Zahlenvorschläge lassen sich auswählen oder überschreiben. Erst
 „Bestätigen und speichern“ legt die Ablesung an. Bei OCR-Fehlern bleibt die manuelle
 Eingabe mit Foto möglich. Fotos werden auf höchstens 1920 Pixel optimiert und als

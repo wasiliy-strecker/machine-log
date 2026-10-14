@@ -7,16 +7,34 @@ import { ScrollContext } from '../src/core/ui/scroll-host';
 import { FormValidationError } from '../src/core/domain/form-validation';
 import { readingInput } from '../src/features/entries/reading-input';
 import { fixture, record } from './support';
+import {
+  photoExamples,
+  type PhotoExample,
+} from '../src/features/entries/photo-examples';
 
 const ports = vi.hoisted(() => ({
   scrollTo: vi.fn(),
   dismissKeyboard: vi.fn(),
   notify: vi.fn(),
   navigate: vi.fn(),
+  scrollPhotos: vi.fn(),
   hideKeyboard: undefined as (() => void) | undefined,
 }));
 vi.mock('react-native', () => ({
   View: 'View',
+  Image: 'Image',
+  Modal: 'Modal',
+  Pressable: 'Pressable',
+  FlatList: (props: {
+    data: PhotoExample[];
+    renderItem(info: { item: PhotoExample; index: number }): ReactNode;
+  }) =>
+    createElement(
+      'FlatList',
+      props,
+      ...props.data.map((item, index) => props.renderItem({ item, index })),
+    ),
+  useWindowDimensions: () => ({ width: 360, height: 800, fontScale: 1 }),
   Keyboard: {
     dismiss: ports.dismissKeyboard,
     addListener: (_: string, callback: () => void) => {
@@ -24,6 +42,26 @@ vi.mock('react-native', () => ({
       return { remove: vi.fn() };
     },
   },
+}));
+vi.mock('react-native-gesture-handler', () => ({
+  GestureDetector: 'GestureDetector',
+  GestureHandlerRootView: 'GestureHandlerRootView',
+}));
+vi.mock('react-native-reanimated', () => ({
+  default: { View: 'AnimatedView', ScrollView: 'AnimatedScrollView' },
+}));
+vi.mock('react-native-safe-area-context', () => ({
+  useSafeAreaInsets: () => ({ top: 24, bottom: 16, left: 0, right: 0 }),
+}));
+vi.mock('../src/core/ui/use-sheet-drag', () => ({
+  useSheetDrag: () => ({
+    style: {},
+    pan: {},
+    nativeScroll: {},
+    onLayout: vi.fn(),
+    onScrollLayout: vi.fn(),
+    onScroll: vi.fn(),
+  }),
 }));
 vi.mock('expo-router', () => ({
   Stack: { Screen: 'Screen' },
@@ -37,8 +75,10 @@ vi.mock('../src/core/ui/components', () => ({
   Card: 'Card',
   DateField: 'DateField',
   Field: 'Field',
+  IconButton: 'IconButton',
   Notice: 'Notice',
   SelectField: 'SelectField',
+  useTheme: () => ({ card: '#fff', input: '#eee', muted: '#666' }),
   Page: ({ children }: { children: ReactNode }) =>
     createElement(ScrollContext.Provider, { value: host }, children),
   errorText: (error: unknown) =>
@@ -89,6 +129,7 @@ async function mount() {
   await act(async () => {
     renderer = create(createElement(EntryEditorScreen), {
       createNodeMock: (node) => ({
+        scrollToIndex: ports.scrollPhotos,
         measureInWindow: (callback: (x: number, y: number) => void) =>
           callback(
             0,
@@ -104,7 +145,11 @@ async function mount() {
   });
 }
 beforeEach(async () => {
+  vi.restoreAllMocks();
   vi.resetAllMocks();
+  photoExamples.forEach((example, index) =>
+    vi.spyOn(example, 'source').mockReturnValue(index + 1),
+  );
   vi.stubGlobal('requestAnimationFrame', (callback: (time: number) => void) => {
     callback(0);
     return 1;
@@ -145,6 +190,79 @@ it('keeps decimal editing and exact pasted numbers while rejecting signs, letter
   expect(readingInput('258.,569', '258.,5699')).toBe('258.,569');
   expect(readingInput('258,5699', '258.,5699')).toBe('258,5699');
   expect(readingInput('258.,569x', '258.,5699')).toBeNull();
+});
+
+it('offers the production capture guidance and read-only examples with arrows, swiping, load errors and native back', async () => {
+  await mount();
+  expect(root().findByType('Screen' as never).props.options.title).toBe(
+    'Erfassen / Fotografieren',
+  );
+  const text = () =>
+    root()
+      .findAllByType('Body' as never)
+      .map((node) => node.children.join(''))
+      .join('\n');
+  expect(text()).toContain('Für eine gute Erkennung');
+  expect(text()).toContain(
+    'Maschinen-/Zählernummer nach Möglichkeit mitfotografieren',
+  );
+  expect(text()).toContain('1920 Pixel');
+  expect(text()).toContain(
+    'Der erkannte Wert muss vor dem Speichern bestätigt werden.',
+  );
+  const before = await f.repo.snapshot();
+  const drafts = await f.repo.drafts();
+  await press('Beispiele ansehen');
+  expect(text()).toContain('Fertigung · Stück');
+  expect(text()).toContain('KI-generierte Beispiele · nur zur Ansicht');
+  expect(
+    root().findByProps({ label: 'Vorheriges Beispiel' }).props.disabled,
+  ).toBe(true);
+  const viewport = root()
+    .findAllByType('View' as never)
+    .find((node) => node.props.onLayout);
+  await act(async () =>
+    viewport!.props.onLayout({ nativeEvent: { layout: { width: 320 } } }),
+  );
+  await act(async () =>
+    root().findByProps({ label: 'Nächstes Beispiel' }).props.onPress(),
+  );
+  expect(text()).toContain('Montage · Stück');
+  expect(ports.scrollPhotos).toHaveBeenLastCalledWith({
+    index: 1,
+    animated: true,
+  });
+  await act(async () =>
+    root()
+      .findByType('FlatList' as never)
+      .props.onMomentumScrollEnd({
+        nativeEvent: { contentOffset: { x: 320 * 5 } },
+      }),
+  );
+  expect(text()).toContain('Druck · m²');
+  expect(
+    root().findByProps({ label: 'Nächstes Beispiel' }).props.disabled,
+  ).toBe(true);
+  await act(async () =>
+    root()
+      .findAllByType('Image' as never)[0]!
+      .props.onError(),
+  );
+  expect(text()).toContain('Beispiel konnte nicht geladen werden.');
+  await act(async () =>
+    root()
+      .findByType('Modal' as never)
+      .props.onRequestClose(),
+  );
+  expect(root().findAllByType('Modal' as never)).toHaveLength(0);
+  expect(await f.repo.snapshot()).toEqual(before);
+  expect(await f.repo.drafts()).toEqual(drafts);
+  await press('Beispiele ansehen');
+  expect(text()).toContain('Fertigung · Stück');
+  await act(async () =>
+    root().findByProps({ label: 'Schließen' }).props.onPress(),
+  );
+  expect(root().findAllByType('Modal' as never)).toHaveLength(0);
 });
 
 it('marks an empty reading inline, reveals it on every failed save and preserves the draft', async () => {

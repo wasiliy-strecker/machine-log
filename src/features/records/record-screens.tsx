@@ -337,7 +337,7 @@ export function RecordDetailScreen() {
       ready={!vm.loading}
       fab={
         <Fab
-          title="Ablesen / Fotografieren"
+          title="Erfassen / Fotografieren"
           icon="add_a_photo_outlined"
           onPress={capture}
         />

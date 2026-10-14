@@ -4,6 +4,14 @@ MaschinenLog basiert auf der ausdrücklich als Vorlage gewählten, app-lokal
 kopierten Hausakte-Codebase von Wasiliy Strecker am Commit `dfd6fc8`.
 Es besteht keine Runtime-Abhängigkeit zum Nachbarprojekt.
 
+Die Fotoanleitung und der Aufbau der Beispielgalerie stammen aus ZählerstandLog
+und der Flutter-MaschinenLog-App von Wasiliy Strecker. Die app-lokalen React-
+Übertragungen unter `src/features/entries/capture-guidance.tsx` und
+`photo-examples-button.tsx` sind Bearbeitungen unter MPL-2.0.
+Die künstlichen Produktionsanzeigen unter `assets/photo-examples/` sind lokal
+kopierte JPEG-Vorschauen der synthetischen Testbilder aus Flutter MaschinenLog.
+Sie enthalten keine echten Produktions- oder Kundendaten.
+
 Aufbau und Gestaltung der statischen Datenschutzseiten unter `docs/` stammen
 aus ZählerstandLog von Wasiliy Strecker. Inhalte, Farben und Links sind für
 MaschinenLog angepasst. Es werden keine Dateien der Vorlage verändert.
