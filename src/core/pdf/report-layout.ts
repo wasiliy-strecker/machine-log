@@ -16,6 +16,7 @@ const BORDER = REPORT_GREY;
 const HEADER_FILL = rgb(238 / 255, 238 / 255, 238 / 255);
 const HISTORY_FILL = rgb(220 / 255, 231 / 255, 240 / 255);
 const BLACK = rgb(0, 0, 0);
+const PHOTO_MAX_FRACTION = 0.7;
 // Metrics of the bundled Roboto fonts, identical to Fahrzeugakte's PDF fonts.
 const ASCENT = 1900 / 2048;
 const LINE_HEIGHT = 2400 / 2048;
@@ -295,7 +296,11 @@ export class ReportLayout {
     this.gap(4);
     this.text(name, { size: 9 });
     this.gap(12);
-    const fit = image.scaleToFit(this.width, this.bottom - this.top);
+    // Keep the photo near half the former page area without changing its aspect ratio.
+    const fit = image.scaleToFit(
+      this.width * PHOTO_MAX_FRACTION,
+      (this.bottom - this.top) * PHOTO_MAX_FRACTION,
+    );
     const x = this.margin + (this.width - fit.width) / 2;
     const y = PAGE_HEIGHT - this.top - fit.height;
     this.page.drawImage(image, { x, y, ...fit });

@@ -837,7 +837,7 @@ export function BusyOverlay({
       <View
         style={{
           flex: 1,
-          backgroundColor: '#00000066',
+          backgroundColor: '#000000B3',
           justifyContent: 'center',
           padding: 24,
         }}
@@ -847,12 +847,15 @@ export function BusyOverlay({
           accessibilityLiveRegion="polite"
           style={{
             backgroundColor: c.card,
+            borderWidth: 1,
+            borderColor: c.border,
             borderRadius: 28,
             padding: 24,
             width: '100%',
-            maxWidth: 560,
+            maxWidth: 360,
             maxHeight: '85%',
             alignSelf: 'center',
+            elevation: 12,
           }}
         >
           <ScrollView

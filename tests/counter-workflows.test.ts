@@ -286,7 +286,7 @@ it('exports grouped production PDFs and restores encrypted evidence including hi
   await expect(f.backup.codec.decode(tampered, password)).rejects.toThrow();
 });
 
-it('gives current and archived photos separate large pages while retaining their original bytes', async () => {
+it('shows current and archived photos at half the page area while retaining their original bytes', async () => {
   const f = await setup(),
     r = record();
   await f.machine.saveRecord(r);
@@ -326,9 +326,10 @@ it('gives current and archived photos separate large pages while retaining their
     // Poppler reads the generated PDF's image transforms, not layout helpers.
     const width = (Number(row[3]) * 72) / Number(row[12]);
     const height = (Number(row[4]) * 72) / Number(row[13]);
-    expect(width).toBeGreaterThan(500);
-    expect(width).toBeLessThan(520);
-    expect(height).toBeGreaterThan(300);
+    expect(width).toBeGreaterThan(350);
+    expect(width).toBeLessThan(370);
+    expect(height).toBeGreaterThan(220);
+    expect(height).toBeLessThan(245);
     expect(width / height).toBeCloseTo(2500 / 1600, 2);
     const page = execFileSync(
       'pdftotext',
