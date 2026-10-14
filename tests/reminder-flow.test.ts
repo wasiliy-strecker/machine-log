@@ -27,6 +27,7 @@ const ports = vi.hoisted(() => ({
   timeline: vi.fn(),
   saveCounter: vi.fn(),
   saveRecord: vi.fn(),
+  changed: vi.fn(),
   native: {
     reminderStatus: vi.fn(),
     openReminderSettings: vi.fn(),
@@ -127,7 +128,10 @@ function Harness({ initial }: { initial: Reminder | null }) {
   const snapshot = useReminderStatusSnapshot();
   return createElement(ReminderEditor, {
     reminder,
-    onChange: setReminder,
+    onChange: (value) => {
+      ports.changed(value);
+      setReminder(value);
+    },
     busy: false,
     status: snapshot.status,
     refreshStatus: snapshot.refresh,
@@ -305,6 +309,62 @@ it('keeps punctual mode selected after missing permission and refreshes the hint
     'doNotDisturb',
     null,
   );
+});
+
+it.each([
+  ['normal', false],
+  ['normal', true],
+  ['punctualWithSound', false],
+  ['punctualWithSound', true],
+] as const)(
+  'opens alarm settings directly in %s mode with exact permission %s without changing the reminder',
+  async (mode, exact) => {
+    state.exact = exact;
+    await mount({ ...defaultReminder(), deliveryMode: mode });
+    const title = '„Alarme & Erinnerungen“ öffnen';
+    expect(button(title).props.disabled).toBe(false);
+    let resolve!: (opened: boolean) => void;
+    ports.native.openReminderSettings.mockReturnValueOnce(
+      new Promise((done) => {
+        resolve = done;
+      }),
+    );
+    await act(async () => {
+      button(title).props.onPress();
+      button(title).props.onPress();
+    });
+    expect(ports.native.openReminderSettings).toHaveBeenCalledOnce();
+    expect(ports.native.openReminderSettings).toHaveBeenCalledWith(
+      'exact',
+      null,
+    );
+    expect(button(title).props.disabled).toBe(true);
+    expect(ports.changed).not.toHaveBeenCalled();
+    await act(async () => resolve(true));
+    state.exact = true;
+    await act(async () => ports.active?.('active'));
+    expect(button(title).props.disabled).toBe(false);
+    expect(ports.changed).not.toHaveBeenCalled();
+    expect(ports.saveCounter).not.toHaveBeenCalled();
+    expect(ports.notify).not.toHaveBeenCalled();
+  },
+);
+
+it('reports unavailable alarm settings without claiming that the selected reminder mode changed', async () => {
+  await mount();
+  ports.native.openReminderSettings.mockResolvedValueOnce(false);
+  await press('„Alarme & Erinnerungen“ öffnen');
+  expect(ports.notify).toHaveBeenLastCalledWith(
+    'Die Android-Einstellung „Alarme & Erinnerungen“ ist auf diesem Gerät nicht verfügbar.',
+  );
+  ports.native.openReminderSettings.mockRejectedValueOnce(
+    new Error('Settings unavailable'),
+  );
+  await press('„Alarme & Erinnerungen“ öffnen');
+  expect(ports.notify).toHaveBeenLastCalledWith(
+    'Die Android-Einstellung „Alarme & Erinnerungen“ ist auf diesem Gerät nicht verfügbar.',
+  );
+  expect(ports.changed).not.toHaveBeenCalled();
 });
 
 it('serializes repeated tests, sends the right counter and latest reading, and gives eight seconds to read the success hint', async () => {

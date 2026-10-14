@@ -79,6 +79,10 @@ Uhrzeit bleiben beim Aus- und Einschalten im selben Formular erhalten.
 
 „Normale Erinnerung“ berücksichtigt „Nicht stören“ und kann verzögert erscheinen.
 „Pünktlich mit Ton“ führt bei fehlender Freigabe zu „Alarme & Erinnerungen“.
+Der direkte Button **„Alarme & Erinnerungen“ öffnen** ist im aktivierten
+Android-Erinnerungsformular zusätzlich verfügbar. Er öffnet die Systemeinstellung
+auch bei normaler Erinnerung oder bereits erteilter Freigabe, ohne die Auswahl
+oder den Termin zu ändern.
 Eine abgelehnte Freigabe verändert die Auswahl nicht. Appweite Blockierung,
 gesperrte Erinnerungsart und „Nicht stören“ erhalten eigene Hinweise und passende
 Einstellungslinks. Nach Rückkehr werden die Android-Zustände erneut gelesen.
