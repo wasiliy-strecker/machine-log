@@ -1,10 +1,12 @@
 import type { Counter, Machine } from './models';
+import { machineIconId, type MachineIconId } from './machine-icon';
 
 export type CounterDetails = Pick<
   Counter,
   'name' | 'number' | 'type' | 'unit' | 'reminder'
 > & {
   location: string;
+  icon: MachineIconId;
 };
 
 export function counterTitle(record: Machine, counter: Counter): string {
@@ -28,6 +30,7 @@ export function counterDetails(
     unit: counter.unit,
     reminder: counter.reminder,
     location: counterLocation(record, counter),
+    icon: machineIconId(counter.icon),
   };
 }
 
@@ -57,6 +60,7 @@ export function recordWithCounterDetails(
             unit: details.unit,
             reminder: details.reminder,
             location: details.location,
+            icon: details.icon,
           }
         : counter,
     ),

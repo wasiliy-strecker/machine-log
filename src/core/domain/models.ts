@@ -2,6 +2,7 @@ import { z } from 'zod';
 import { validateTimeline } from './counter-timeline';
 import { formatValue } from './reading-value';
 import { MAX_FILE_BYTES, MAX_PDF_PAGES } from '../files/limits';
+import { machineIconIds } from './machine-icon';
 
 const id = z.string().uuid();
 const short = z.string().max(500);
@@ -46,6 +47,7 @@ export const counterSchema = z
     number: short,
     reminder: reminderSchema.nullable(),
     location: short.optional(),
+    icon: z.enum(machineIconIds).optional(),
   })
   .strict();
 export const recordSchema = z

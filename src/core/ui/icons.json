@@ -71,5 +71,12 @@
   "notifications_outlined": 62007,
   "alarm_outlined": 61030,
   "radio_button_unchecked": 58628,
-  "notifications_off_outlined": 62006
+  "notifications_off_outlined": 62006,
+  "precision_manufacturing": 58596,
+  "factory": 984317,
+  "construction": 57737,
+  "inventory_2": 58186,
+  "print": 58602,
+  "agriculture": 57443,
+  "local_shipping": 58278
 }

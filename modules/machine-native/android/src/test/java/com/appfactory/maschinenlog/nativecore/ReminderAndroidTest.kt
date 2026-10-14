@@ -65,6 +65,49 @@ class ReminderAndroidTest {
         }
     }
 
+    @Test fun selectedIconsSurviveReminderStorageAndAppearInRealAndTestNotifications() {
+        val oldJson = org.json.JSONObject(reminder().toJson()).apply { remove("icon") }.toString()
+        val old = requireNotNull(StoredReminder.fromJson(oldJson))
+        assertEquals("machine", old.icon)
+        assertEquals(R.drawable.ic_machine_machine, MachineIcons.drawableId("unknown"))
+        ReminderNotifier.showRecord(context, old)
+        assertEquals(R.drawable.ic_machine_machine,
+            shadowOf(notifications).allNotifications.single().smallIcon.resId)
+        for (icon in listOf("machine", "factory", "tools", "packaging", "printer", "pump", "agriculture", "transport")) {
+            notifications.cancelAll()
+            val saved = reminder().copy(icon = icon)
+            ReminderStore.save(context, saved, 123L, false)
+            assertEquals(icon, ReminderStore.find(context, saved.recordId)?.icon)
+            ReminderNotifier.showRecord(context, requireNotNull(ReminderStore.find(context, saved.recordId)))
+            var notification = shadowOf(notifications).allNotifications.single()
+            assertEquals(MachineIcons.drawableId(icon), notification.smallIcon.resId)
+            assertNotNull(notification.getLargeIcon())
+            notifications.cancelAll()
+            assertEquals("posted", ReminderNotifier.showTest(context, "counter-a", "Presse 1", "machine", "Produktionszähler", null, null, false, icon))
+            notification = shadowOf(notifications).allNotifications.single()
+            assertEquals(MachineIcons.drawableId(icon), notification.smallIcon.resId)
+            assertNotNull(notification.getLargeIcon())
+        }
+    }
+
+    @Test fun changingTheIconRefreshesAnActiveMessageSilentlyAndKeepsTheDueAlarm() {
+        val saved = reminder()
+        val due = System.currentTimeMillis() - 1000L
+        ReminderStore.save(context, saved, due, false)
+        ReminderNotifier.showRecord(context, saved, 42L)
+        ReminderStore.setLastTriggered(context, saved.recordId, 42L)
+        val changed = saved.copy(icon = "printer")
+        assertTrue(ReminderScheduler.update(context, changed))
+        ReminderNotifier.refreshActive(context, changed)
+        val notification = shadowOf(notifications).allNotifications.single()
+        assertEquals(R.drawable.ic_machine_printer, notification.smallIcon.resId)
+        assertEquals(42L, notification.`when`)
+        assertTrue(notification.flags and android.app.Notification.FLAG_ONLY_ALERT_ONCE != 0)
+        assertEquals(due, ReminderStore.nextTrigger(context, saved.recordId))
+        assertEquals(42L, ReminderStore.lastTriggered(context, saved.recordId))
+        assertTrue(ReminderNotifier.activeRecordIds(context).contains(saved.recordId))
+    }
+
     @Test fun careWithoutHeightAppearsInRealAndTestNotifications() {
         val care = reminder().copy(label = "Testmaschine", latestValue = "Wartung", latestUnit = "")
         ReminderNotifier.showRecord(context, care)

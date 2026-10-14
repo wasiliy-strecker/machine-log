@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Outline of the matching glyph in assets/ui/MaterialIcons-Regular.otf. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp" android:height="24dp"
+    android:viewportWidth="24" android:viewportHeight="24">
+    <path android:fillColor="#FFFFFF" android:pathData="M20.02 2.02L3.98 2.02C3 2.02 2.02 2.91 2.02 3.98L2.02 7.03C2.02 7.73 2.44 8.34 3 8.72L3 20.02C3 21.09 4.08 21.98 5.02 21.98L18.98 21.98C19.92 21.98 21 21.09 21 20.02L21 8.72C21.56 8.34 21.98 7.73 21.98 7.03L21.98 3.98C21.98 2.91 21 2.02 20.02 2.02ZM15 14.02L9 14.02L9 12L15 12L15 14.02ZM20.02 6.98L3.98 6.98L3.98 3.98L20.02 3.98L20.02 6.98Z" />
+</vector>

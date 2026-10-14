@@ -1,5 +1,6 @@
 import type { OcrText } from '../ocr/candidate-extractor';
 import type { Reminder } from '../domain/models';
+import type { MachineIconId } from '../domain/machine-icon';
 import { requireNativeModule } from 'expo';
 export type ReminderAvailability =
   'available' | 'appBlocked' | 'channelBlocked' | 'unknown';
@@ -8,6 +9,7 @@ export type ReminderSettingsTarget =
 export type ReminderTestResult =
   'posted' | 'appBlocked' | 'channelBlocked' | 'failed' | 'unknown';
 export type ReminderTestRequest = {
+  icon: MachineIconId;
   counterId: string | null;
   label: string;
   latestValue: string | null;

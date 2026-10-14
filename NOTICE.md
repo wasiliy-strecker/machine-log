@@ -27,3 +27,8 @@ Die Lizenztexte der eingebetteten Roboto-, MaterialIcons- und DejaVu-Schriften
 liegen in `assets/`. Weitere Abhängigkeiten behalten ihre jeweiligen Lizenzen
 in den Paketmetadaten. Das Zahnrad-/Zähler-Icon wurde für MaschinenLog als
 SVG erstellt.
+
+Die acht Maschinensymbole verwenden Glyphen der gebündelten MaterialIcons-Schrift.
+Die Android-Vektoren unter `modules/machine-native/android/src/main/res/drawable/`
+mit dem Präfix `ic_machine_` sind aus denselben Glyphen abgeleitet. Die zugehörige
+Lizenz liegt unter `assets/ui/MaterialIcons_LICENSE.txt`.

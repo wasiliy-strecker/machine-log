@@ -19,6 +19,7 @@ import {
 import { ReminderEditor } from './reminder-editor';
 import { useRecordEditor } from './use-record-editor';
 import { FormErrorTarget } from '../../core/ui/form-error-target';
+import { MachineIconPicker } from './machine-icon-picker';
 
 export function RecordEditorScreen() {
   const { id, counterId } = useLocalSearchParams<{
@@ -99,6 +100,11 @@ export function RecordEditorScreen() {
             vm.change('unit', defaultUnits[type]);
           }}
         />
+        <MachineIconPicker
+          value={form.icon}
+          disabled={vm.busy}
+          onChange={(value) => vm.change('icon', value)}
+        />
         <FormErrorTarget
           active={firstError === 'name'}
           attempt={vm.errorAttempt}
@@ -163,6 +169,7 @@ export function RecordEditorScreen() {
             onChange={(value) => vm.change('reminder', value)}
             counterId={id ? vm.counterId : null}
             label={form.name || counterTypes[form.type]}
+            icon={form.icon}
             status={vm.reminderStatus}
             refreshStatus={vm.refreshReminderStatus}
           />

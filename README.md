@@ -8,8 +8,19 @@ Ablesungen, nachvollziehbaren Korrekturen und Produktionsprotokollen als PDF.
 
 Jeder Listeneintrag steht für genau einen Produktionszähler für Stückzahlen,
 Zyklen, Betriebsstunden oder Mengen. Das Stammdatenformular enthält Zählerart,
-Bezeichnung, Maschinen-/Zählernummer, Produktionsbereich, Einheit und Erinnerung.
+Maschinensymbol, Bezeichnung, Maschinen-/Zählernummer, Produktionsbereich,
+Einheit und Erinnerung.
 Betriebsstunden werden dezimal erfasst.
+
+Im Stammdatenformular stehen acht Maschinensymbole zur Auswahl: Maschine,
+Fertigung, Werkzeuge, Verpackung, Drucker, Pumpe, Landmaschine und Transport.
+Das gewählte Symbol erscheint in der Übersicht, den Zählerdetails, der
+Einzelansicht einer Ablesung sowie in geplanten und getesteten Android-Erinnerungen.
+Es gehört zu den Stammdaten des jeweiligen Zählers und ist in verschlüsselten
+Backups enthalten. Altbestände ohne Auswahl verwenden das Symbol „Maschine“.
+Symboländerungen verändern keine Ablesung oder Korrekturhistorie.
+Bereits angezeigte Erinnerungen erhalten das neue Symbol ohne erneuten Ton.
+Android bestimmt die genaue Darstellung der Nachricht und ihrer Symbole.
 
 Die Erfassung folgt ZählerstandLog: Zähler fotografieren, ein Foto aus der Galerie
 wählen oder ohne Foto erfassen. Neue Ablesungen besitzen höchstens ein aktuelles

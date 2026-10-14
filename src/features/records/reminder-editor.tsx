@@ -11,6 +11,7 @@ import {
 import { Icon } from '../../core/ui/icon';
 import { useMaterialDateTime } from '../../core/ui/material-date-time';
 import type { Reminder } from '../../core/domain/models';
+import type { MachineIconId } from '../../core/domain/machine-icon';
 import type { ReminderStatus } from '../../core/native/machine-native';
 import { useReminderEditor } from './use-reminder-editor';
 import {
@@ -31,6 +32,7 @@ export function ReminderEditor(props: {
   refreshStatus(): Promise<ReminderStatus | undefined>;
   counterId: string | null;
   label: string;
+  icon?: MachineIconId;
 }) {
   const { reminder, status } = props;
   const c = useTheme(),

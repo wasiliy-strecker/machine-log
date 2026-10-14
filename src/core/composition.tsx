@@ -1,6 +1,5 @@
 import type { OcrPort } from './ocr/candidate-extractor';
-import { formatValue } from './domain/reading-value';
-import { counterTitle } from './domain/production-counter';
+import { reminderRequests } from './native/reminder-requests';
 import { replaceReadingPhoto } from './media/reading-photo';
 import { StartupError, StartupPending } from './startup/startup';
 import { PdfViewerService } from './pdf/viewer-service';
@@ -74,28 +73,7 @@ async function createServices(): Promise<Services> {
   const machine = new MachineService(repository, vault, env, pdf, {
     async sync(records, entries) {
       return machineNative.syncReminders(
-        JSON.stringify(
-          records.flatMap((r) =>
-            r.counters
-              .filter((c) => c.reminder)
-              .map((c) => {
-                const latest = entries
-                  .filter((e) => e.counterId === c.id)
-                  .sort((a, b) => b.occurredAt.localeCompare(a.occurredAt))[0];
-                return {
-                  ...c.reminder,
-                  recordId: c.id,
-                  label: counterTitle(r, c),
-                  category: 'machine',
-                  categoryLabel: 'Produktionszähler',
-                  latestValue: latest
-                    ? formatValue(latest.measurement.value)
-                    : null,
-                  latestUnit: latest?.measurement.unit ?? c.unit,
-                };
-              }),
-          ),
-        ),
+        JSON.stringify(reminderRequests(records, entries)),
       );
     },
   });

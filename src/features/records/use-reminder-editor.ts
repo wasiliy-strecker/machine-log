@@ -1,5 +1,9 @@
 import { useEffect, useRef, useState } from 'react';
 import type { Reminder } from '../../core/domain/models';
+import {
+  machineIconId,
+  type MachineIconId,
+} from '../../core/domain/machine-icon';
 import type {
   ReminderStatus,
   ReminderSettingsTarget,
@@ -23,6 +27,7 @@ export function useReminderEditor({
   refreshStatus,
   counterId,
   label,
+  icon,
 }: {
   reminder: Reminder | null;
   busy: boolean;
@@ -31,6 +36,7 @@ export function useReminderEditor({
   refreshStatus(): Promise<ReminderStatus | undefined>;
   counterId: string | null;
   label: string;
+  icon?: MachineIconId;
 }) {
   const { native, machine } = useServices();
   const feedback = useFeedback();
@@ -173,6 +179,7 @@ export function useReminderEditor({
       const latest = entries[entries.length - 1];
       result = await native.testReminder({
         counterId,
+        icon: machineIconId(icon),
         label: label.trim().slice(0, 500) || 'Produktionszähler',
         latestValue: latest ? formatValue(latest.measurement.value) : null,
         latestUnit: latest?.measurement.unit ?? null,

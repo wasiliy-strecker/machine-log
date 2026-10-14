@@ -20,6 +20,7 @@ import { dateTime, entrySummary } from '../records/presentation-model';
 import { Reports } from '../records/reports';
 import { PhotoGallery, Documents } from '../media/attachments';
 import { useEntryDetail } from './use-entry-detail';
+import { MachineIcon } from '../../core/ui/machine-icon';
 export function EntryDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const vm = useEntryDetail(id),
@@ -33,6 +34,9 @@ export function EntryDetailScreen() {
       </Page>
     );
   const photos = e.attachments.filter((a) => a.kind === 'photo');
+  const counter = vm.record?.counters.find(
+    (counter) => counter.id === e.counterId,
+  );
   return (
     <Page ready={!vm.loading}>
       <Stack.Screen options={{ title: 'Eintrag' }} />
@@ -56,14 +60,14 @@ export function EntryDetailScreen() {
       >
         {entrySummary(e)}
       </Text>
-      <Body>
-        {vm.record
-          ? counterTitle(
-              vm.record,
-              vm.record.counters.find((counter) => counter.id === e.counterId)!,
-            )
-          : e.counterName}
-      </Body>
+      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
+        <MachineIcon icon={counter?.icon} />
+        <Body style={{ flex: 1 }}>
+          {vm.record && counter
+            ? counterTitle(vm.record, counter)
+            : e.counterName}
+        </Body>
+      </View>
       <View style={{ gap: 12, marginTop: 4, marginBottom: 6 }}>
         <Button
           secondary

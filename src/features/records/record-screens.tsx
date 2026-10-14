@@ -16,6 +16,7 @@ import {
   useTheme,
 } from '../../core/ui/components';
 import { Icon } from '../../core/ui/icon';
+import { MachineIcon } from '../../core/ui/machine-icon';
 import {
   counterTitle,
   counterLocation,
@@ -200,6 +201,7 @@ export function RecordsScreen() {
                       gap: 8,
                     }}
                   >
+                    <MachineIcon icon={counter.icon} />
                     <Body
                       strong
                       style={{ flex: 1, fontSize: 16, lineHeight: 24 }}
@@ -348,6 +350,7 @@ export function RecordDetailScreen() {
       />
       <Card onPress={edit} style={{ margin: 4, padding: 17, gap: 0 }}>
         <View style={{ flexDirection: 'row', gap: 12, alignItems: 'center' }}>
+          <MachineIcon icon={vm.counter?.icon} />
           <Body
             strong
             style={{

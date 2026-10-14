@@ -38,6 +38,7 @@ const ports = vi.hoisted(() => ({
 vi.mock('react-native', () => ({
   View: 'View',
   Text: 'Text',
+  Pressable: 'Pressable',
   Keyboard: { dismiss: vi.fn() },
   AppState: {
     addEventListener: (_: string, callback: (state: string) => void) => {
@@ -137,6 +138,7 @@ function Harness({ initial }: { initial: Reminder | null }) {
     refreshStatus: snapshot.refresh,
     counterId: machineRecord.counters[0]!.id,
     label: 'Presse 1',
+    icon: machineRecord.counters[0]!.icon,
   });
 }
 async function mount(initial: Reminder | null = defaultReminder()) {
@@ -235,6 +237,46 @@ it('marks missing counter fields before requesting notification permission or sa
     root().findByProps({ label: 'Bezeichnung *' }).props.error,
   ).toBeUndefined();
   expect(root().findByProps({ label: 'Einheit *' }).props.error).toBeDefined();
+});
+
+it('selects exactly one machine icon and passes it to saved metadata and test reminders', async () => {
+  machineRecord.counters[0]!.reminder = defaultReminder();
+  await act(async () => {
+    renderer = create(createElement(RecordEditorScreen));
+  });
+  const options = () => root().findAllByProps({ accessibilityRole: 'radio' });
+  expect(options()).toHaveLength(8);
+  expect(
+    options().filter((node) => node.props.accessibilityState.checked),
+  ).toHaveLength(1);
+  expect(
+    options().find((node) => node.props.accessibilityState.checked)!.props
+      .accessibilityLabel,
+  ).toBe('Maschinensymbol: Maschine');
+  await act(async () =>
+    options()
+      .find(
+        (node) => node.props.accessibilityLabel === 'Maschinensymbol: Drucker',
+      )!
+      .props.onPress(),
+  );
+  expect(
+    options().filter((node) => node.props.accessibilityState.checked),
+  ).toHaveLength(1);
+  expect(
+    options().find((node) => node.props.accessibilityState.checked)!.props
+      .accessibilityLabel,
+  ).toBe('Maschinensymbol: Drucker');
+  await press('Erinnerung jetzt testen');
+  expect(ports.native.testReminder).toHaveBeenLastCalledWith(
+    expect.objectContaining({ icon: 'printer' }),
+  );
+  await press('Änderungen speichern');
+  expect(ports.saveCounter).toHaveBeenCalledWith(
+    machineRecord.id,
+    machineRecord.counters[0]!.id,
+    expect.objectContaining({ icon: 'printer' }),
+  );
 });
 
 it('preserves day 31 and separate interval choices across disabling, enabling and calendar changes', async () => {
@@ -382,6 +424,7 @@ it('serializes repeated tests, sends the right counter and latest reading, and g
   });
   expect(ports.native.testReminder).toHaveBeenCalledOnce();
   expect(ports.native.testReminder).toHaveBeenCalledWith({
+    icon: 'machine',
     counterId: machineRecord.counters[0]!.id,
     label: 'Presse 1',
     latestValue: '12,5',

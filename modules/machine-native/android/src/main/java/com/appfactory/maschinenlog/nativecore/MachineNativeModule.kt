@@ -83,7 +83,11 @@ class MachineNativeModule : Module() {
             for (index in 0 until desired.length()) {
                 val reminder = requireNotNull(StoredReminder.fromJson(desired.getJSONObject(index).toString()))
                 ids.add(reminder.recordId)
-                if (!ReminderScheduler.update(context, reminder)) warnings.add("${reminder.label}: Erinnerung konnte nicht geplant werden.")
+                if (!ReminderScheduler.update(context, reminder)) {
+                    warnings.add("${reminder.label}: Erinnerung konnte nicht geplant werden.")
+                } else if (!ReminderNotifier.refreshActive(context, reminder)) {
+                    warnings.add("${reminder.label}: Das Symbol einer angezeigten Erinnerung konnte nicht aktualisiert werden.")
+                }
                 if (ReminderNotifier.availability(context, reminder.isPunctual) != ReminderAvailability.AVAILABLE) warnings.add("${reminder.label}: Benachrichtigungen sind nicht freigegeben.")
                 if (reminder.isPunctual && !ReminderScheduler.canScheduleExact(context)) warnings.add("${reminder.label}: Ohne Freigabe für genaue Alarme erinnert Android möglicherweise später.")
             }
@@ -104,7 +108,7 @@ class MachineNativeModule : Module() {
         AsyncFunction("testReminder") { request: Map<String, String?> ->
             val mode = requireNotNull(request["deliveryMode"])
             require(mode == "normal" || mode == "punctualWithSound")
-            ReminderNotifier.showTest(context, request["counterId"], request["label"].orEmpty(), "machine", "Produktionszähler", request["latestValue"], request["latestUnit"], mode == "punctualWithSound")
+            ReminderNotifier.showTest(context, request["counterId"], request["label"].orEmpty(), "machine", "Produktionszähler", request["latestValue"], request["latestUnit"], mode == "punctualWithSound", request["icon"])
         }
         AsyncFunction("openReminderSettings") { target: String, mode: String? ->
             openReminderSettings(context, target, mode)

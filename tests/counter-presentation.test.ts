@@ -11,6 +11,8 @@ import {
 } from '../src/features/records/presentation-model';
 import { replaceReadingPhoto } from '../src/core/media/reading-photo';
 import { evidenceJson, type Machine } from '../src/core/domain/models';
+import { reminderRequests } from '../src/core/native/reminder-requests';
+import { defaultReminder } from '../src/features/records/reminder-model';
 
 const fixtures: Awaited<ReturnType<typeof fixture>>[] = [];
 async function setup() {
@@ -85,14 +87,56 @@ it('projects legacy counters separately with isolated readings, search and metad
     name: 'Laufzeit',
     number: 'H-2',
     location: 'Halle 3',
+    icon: 'printer',
   });
   const updated = (await f.repo.records())[0]!;
   expect(updated.counters[0]).toEqual(r.counters[0]);
   expect(updated.name).toBe(r.name);
   expect(updated.location).toBe(r.location);
   expect(counterLocation(updated, updated.counters[1]!)).toBe('Halle 3');
+  expect(updated.counters[1]!.icon).toBe('printer');
   expect(counterLocation(updated, updated.counters[0]!)).toBe(r.location);
   expect(evidenceJson((await f.repo.snapshot()).entries)).toBe(before);
+});
+
+it('keeps old backups readable and restores machine symbols without changing reading evidence', async () => {
+  const f = await setup();
+  const old = record();
+  old.counters[0]!.reminder = defaultReminder();
+  await f.machine.saveRecord(old);
+  const entry = await read(f, old, old.counters[0]!.id, '100');
+  const restored = await setup();
+  const roundTrip = async () =>
+    restored.backup.restore(
+      await restored.backup.codec.decode(
+        await f.backup.create('Test26'),
+        'Test26',
+      ),
+    );
+  await roundTrip();
+  const restoredOld = (await restored.repo.records())[0]!;
+  expect(restoredOld.counters[0]!.icon).toBeUndefined();
+  expect(counterDetails(restoredOld, restoredOld.counters[0]!).icon).toBe(
+    'machine',
+  );
+  expect(reminderRequests([restoredOld], [entry])[0]).toMatchObject({
+    icon: 'machine',
+    recordId: entry.counterId,
+    latestValue: '100',
+    latestUnit: 'Stück',
+  });
+  await f.machine.saveCounter(old.id, old.counters[0]!.id, {
+    ...counterDetails(old, old.counters[0]!),
+    icon: 'pump',
+  });
+  await roundTrip();
+  const snapshot = await restored.repo.snapshot();
+  expect(snapshot.records[0]!.counters[0]!.icon).toBe('pump');
+  expect((await restored.repo.dashboard())[0]!.counter.icon).toBe('pump');
+  expect(evidenceJson(snapshot.entries)).toBe(evidenceJson([entry]));
+  expect(reminderRequests(snapshot.records, snapshot.entries)[0]?.icon).toBe(
+    'pump',
+  );
 });
 
 it('deletes only the selected legacy counter and keeps other readings, drafts and immutable common reports', async () => {

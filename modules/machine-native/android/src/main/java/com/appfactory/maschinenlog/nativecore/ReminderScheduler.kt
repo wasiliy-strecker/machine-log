@@ -15,6 +15,7 @@ import android.media.AudioAttributes
 import android.media.RingtoneManager
 import android.net.Uri
 import android.os.Build
+import android.os.Bundle
 import androidx.core.app.NotificationCompat
 
 internal object ReminderScheduler {
@@ -158,6 +159,7 @@ internal object ReminderNotifier {
     private const val testNotificationId = 2001
     private const val recordTagPrefix = "meter:"
     private const val testTag = "reminder:test"
+    private const val machineIconExtra = "com.appfactory.maschinenlog.MACHINE_ICON"
 
     fun channelId(punctual: Boolean): String = if (punctual) alarmChannelId else normalChannelId
 
@@ -217,6 +219,7 @@ internal object ReminderNotifier {
         context: Context,
         reminder: StoredReminder,
         postedAt: Long = System.currentTimeMillis(),
+        onlyAlertOnce: Boolean = false,
     ): Long? {
         if (availability(context, reminder.isPunctual) != ReminderAvailability.AVAILABLE) return null
         val channelId = channelId(reminder.isPunctual)
@@ -234,7 +237,10 @@ internal object ReminderNotifier {
         }
         val summary = "${reminder.categoryLabel} · $latestReading"
         val notification = NotificationCompat.Builder(context, channelId)
-            .setSmallIcon(R.drawable.ic_stat_machine)
+            .setSmallIcon(MachineIcons.drawableId(reminder.icon))
+            .setLargeIcon(MachineIcons.bitmap(context, reminder.icon))
+            .setOnlyAlertOnce(onlyAlertOnce)
+            .addExtras(Bundle().apply { putString(machineIconExtra, reminder.icon) })
             .setColor(Color.rgb(0, 107, 99))
             .setContentTitle("${reminder.categoryLabel} · ${reminder.label}")
             .setContentText(summary)
@@ -277,6 +283,21 @@ internal object ReminderNotifier {
         }
     }
 
+    fun refreshActive(context: Context, reminder: StoredReminder): Boolean {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M) return true
+        return try {
+            val active = context.getSystemService(NotificationManager::class.java)
+                .activeNotifications.firstOrNull {
+                    it.tag == recordTag(reminder.recordId) && it.id == recordNotificationId
+                } ?: return true
+            if (active.notification.extras.getString(machineIconExtra) == reminder.icon) return true
+            // Updating a machine's symbol must not trigger another reminder sound.
+            showRecord(context, reminder, active.notification.`when`, onlyAlertOnce = true) != null
+        } catch (_: Exception) {
+            false
+        }
+    }
+
     fun showTest(
         context: Context,
         recordId: String?,
@@ -286,6 +307,7 @@ internal object ReminderNotifier {
         latestValue: String?,
         latestUnit: String?,
         punctual: Boolean,
+        icon: String? = null,
     ): String {
         val availability = availability(context, punctual)
         if (availability != ReminderAvailability.AVAILABLE) return availability.wireValue
@@ -299,7 +321,8 @@ internal object ReminderNotifier {
             context,
             channelId(punctual),
         )
-            .setSmallIcon(R.drawable.ic_stat_machine)
+            .setSmallIcon(MachineIcons.drawableId(icon))
+            .setLargeIcon(MachineIcons.bitmap(context, icon))
             .setColor(Color.rgb(0, 107, 99))
             .setContentTitle("Test: $categoryLabel · $label")
             .setContentText(latestReading)
