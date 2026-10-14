@@ -717,21 +717,32 @@ export function DateField({
       }}
     >
       {picker.dialog}
-      <Text
+      <View
+        pointerEvents="none"
         style={{
           position: 'absolute',
           top: -10,
           left: 12,
-          paddingHorizontal: 4,
-          backgroundColor: c.background,
-          color: c.muted,
-          fontFamily: 'Roboto',
-          fontSize: 12,
-          lineHeight: 18,
+          maxWidth: '90%',
+          paddingHorizontal: 8,
+          borderRadius: 8,
+          backgroundColor: c.card,
+          overflow: 'hidden',
+          zIndex: 1,
         }}
       >
-        {label}
-      </Text>
+        <Text
+          numberOfLines={1}
+          style={{
+            color: c.muted,
+            fontFamily: 'Roboto',
+            fontSize: 12,
+            lineHeight: 18,
+          }}
+        >
+          {label}
+        </Text>
+      </View>
       <Pressable
         accessibilityRole="button"
         accessibilityLabel={label}
