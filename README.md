@@ -65,6 +65,10 @@ entfernt ihre lokalen Einträge, Entwürfe und Protokolle.
 
 Einzel- und Zählerprotokolle enthalten Werte, Zuwächse, Übergänge,
 Berechnungslücken und Korrekturen. Fotos und Original-PDF-Seiten sind optional.
+Gespeicherte Zählerverlaufsprotokolle und Einzelprotokolle werden mit zehn PDFs
+pro Seite geladen. Ab elf PDFs erscheinen „Zurück“, „Weiter“ und „Seite x von y“.
+Beim Blättern springt die Ansicht zum Beginn des jeweiligen PDF-Bereichs.
+Wird das letzte PDF einer Seite gelöscht, erscheint die vorherige gültige Seite.
 In neu erstellten Protokollen erhält jedes aktuelle und frühere Foto eine eigene
 Seite. Es nutzt die verfügbare Seitenbreite und -höhe mit unverändertem
 Seitenverhältnis, ohne Beschnitt. So bleibt die Zähleranzeige besser lesbar.

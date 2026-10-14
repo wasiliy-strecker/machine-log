@@ -12,6 +12,17 @@ export interface SqlConnection {
   run(sql: string, ...params: (string | number | null)[]): Promise<void>;
   all<T>(sql: string, ...params: (string | number | null)[]): Promise<T[]>;
 }
+export type ReportPageRequest = {
+  recordId: string;
+  entryId: string | null;
+  counterId: string | null;
+  offset: number;
+};
+export type ReportPage = {
+  rows: SavedReport[];
+  total: number;
+  offset: number;
+};
 export interface Repository {
   snapshot(): Promise<Snapshot>;
   records(): Promise<Machine[]>;
@@ -34,6 +45,7 @@ export interface Repository {
   previousMeasurement(entry: CounterEvent): Promise<CounterEvent | null>;
   timeline(counterId: string): Promise<CounterEvent[]>;
   reports(recordId: string): Promise<SavedReport[]>;
+  reportPage(request: ReportPageRequest): Promise<ReportPage>;
   drafts(): Promise<EntryDraft[]>;
   saveDraft(draft: EntryDraft): Promise<void>;
   removeDraft(id: string): Promise<void>;

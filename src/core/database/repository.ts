@@ -1,6 +1,11 @@
 import { formatValue } from '../domain/reading-value';
 import { counterTitle } from '../domain/production-counter';
-import { SerialQueue, type Repository, type SqlConnection } from '../ports';
+import {
+  SerialQueue,
+  type Repository,
+  type SqlConnection,
+  type ReportPageRequest,
+} from '../ports';
 import {
   type CounterEvent,
   type Machine,
@@ -53,7 +58,7 @@ export class SqlRepository implements Repository {
   private async bodies<T>(
     table: string,
     where = '',
-    params: (string | number)[] = [],
+    params: (string | number | null)[] = [],
   ): Promise<T[]> {
     return (
       await this.db.all<{ body: string }>(
@@ -161,6 +166,41 @@ export class SqlRepository implements Repository {
         [recordId],
       ),
     );
+  }
+  reportPage(request: ReportPageRequest) {
+    return this.queue.run(async () => {
+      let clause = 'WHERE record_id=? AND entry_id IS ?';
+      const params: (string | number | null)[] = [
+        request.recordId,
+        request.entryId,
+      ];
+      if (request.counterId) {
+        clause +=
+          " AND (json_extract(body,'$.counterId') IS NULL OR json_extract(body,'$.counterId')=?)";
+        params.push(request.counterId);
+      }
+      const total =
+        (
+          await this.db.all<{ n: number }>(
+            `SELECT count(*) n FROM reports ${clause}`,
+            ...params,
+          )
+        )[0]?.n ?? 0;
+      const lastOffset = Math.max(
+        0,
+        Math.floor((total - 1) / PAGE_SIZE) * PAGE_SIZE,
+      );
+      const offset = Math.min(
+        lastOffset,
+        Math.max(0, Math.floor(request.offset / PAGE_SIZE) * PAGE_SIZE),
+      );
+      const rows = await this.bodies<SavedReport>(
+        'reports',
+        `${clause} ORDER BY json_extract(body,'$.createdAt') DESC, json_extract(body,'$.groupId') DESC, json_extract(body,'$.partIndex') ASC, id DESC LIMIT ? OFFSET ?`,
+        [...params, PAGE_SIZE, offset],
+      );
+      return { rows, total, offset };
+    });
   }
   previousMeasurement(entry: CounterEvent) {
     return this.queue.run(async () => {

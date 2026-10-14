@@ -1,23 +1,18 @@
 import { formatValue } from '../../core/domain/reading-value';
 import { useCallback, useState } from 'react';
 import { useFocusEffect, router } from 'expo-router';
-import { useIsFocused } from 'expo-router/react-navigation';
-import { useStartupHold } from '../../core/startup/startup';
 import { useServices } from '../../core/composition';
 import type {
   EntryDraft,
   Machine,
   CounterEvent,
-  SavedReport,
 } from '../../core/domain/models';
 import { PAGE_SIZE } from '../../core/domain/models';
 import { useReminderStatus } from './use-reminder-status';
 import { errorText } from '../../core/ui/components';
 import { useTask } from '../../core/ui/use-task';
-import { useFeedback } from '../../core/ui/feedback';
 import {
   visibleRecords,
-  visibleReports,
   historyComparison,
   type DashboardItem,
   type HistoryItem,
@@ -199,146 +194,5 @@ export function useRecordDetail(
         refresh();
         router.replace('/');
       }),
-  };
-}
-export function useReports(
-  recordId: string,
-  entryId: string | null,
-  hasAttachments: boolean,
-  counterId: string | null = null,
-) {
-  const focused = useIsFocused();
-  const [loading, setLoading] = useState(true);
-  useStartupHold(focused && loading);
-  const { machine, revision, refresh } = useServices();
-  const feedback = useFeedback();
-  const task = useTask();
-  const [reports, setReports] = useState<SavedReport[]>([]),
-    [offset, setOffset] = useState(0),
-    [expanded, setExpanded] = useState(false),
-    [availableFiles, setAvailableFiles] = useState<Set<string> | null>(null),
-    [loadError, setLoadError] = useState(''),
-    [attempt, setAttempt] = useState(0),
-    [deletingId, setDeletingId] = useState<string>();
-  useFocusEffect(
-    useCallback(() => {
-      let active = true;
-      setLoading(true);
-      setLoadError('');
-      setAvailableFiles(null);
-      Promise.all([
-        machine.repository.reports(recordId),
-        entryId || expanded ? machine.vault.list() : Promise.resolve(null),
-      ])
-        .then(([rows, files]) => {
-          if (active) {
-            const filtered = visibleReports(rows, entryId, counterId);
-            setReports(filtered);
-            setAvailableFiles(files ? new Set(files) : null);
-            setOffset((old) =>
-              old >= filtered.length
-                ? Math.max(
-                    0,
-                    Math.floor((filtered.length - 1) / PAGE_SIZE) * PAGE_SIZE,
-                  )
-                : old,
-            );
-          }
-        })
-        .catch((e) => {
-          if (active) setLoadError(errorText(e));
-        })
-        .finally(() => {
-          if (active) setLoading(false);
-        });
-      return () => {
-        active = false;
-      };
-      // Revision/retry tokens intentionally reload persisted data on focus.
-      // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [machine, recordId, entryId, counterId, revision, expanded, attempt]),
-  );
-  return {
-    ...task,
-    loading,
-    loadError,
-    expanded,
-    setExpanded,
-    availableFiles,
-    deletingId,
-    retry: () => setAttempt((n) => n + 1),
-    reports: reports.slice(offset, offset + PAGE_SIZE),
-    total: reports.length,
-    offset,
-    setOffset,
-    create: async () => {
-      try {
-        const selectedCounterId = counterId;
-        const anyAttachments =
-          !selectedCounterId && !entryId
-            ? (await machine.repository.entries(recordId, '', 0, 1))
-                .hasAttachments
-            : hasAttachments;
-        const mode = await feedback.choose({
-          title: 'PDF-Inhalt wählen',
-          message: 'Wähle, welche Inhalte deine PDF enthalten soll.',
-          optionStyle: 'cards',
-          options: [
-            {
-              value: 'compact',
-              label: 'Kompakt ohne Anhänge',
-              description:
-                'Stände, Zuwächse, Wechsel, Korrekturen und Notizen mit Dokumentenliste.',
-              icon: 'description_outlined',
-            },
-            {
-              value: 'full',
-              label: 'Mit Fotos',
-              description: anyAttachments
-                ? entryId
-                  ? 'Enthält das aktuelle Foto und frühere Fotoversionen. Vorhandene Altanhänge bleiben enthalten.'
-                  : 'Enthält aktuelle und frühere Fotos der Ablesungen. Vorhandene Altanhänge bleiben enthalten.'
-                : 'Keine Fotos vorhanden.',
-              icon: 'photo_outlined',
-              disabled: !anyAttachments,
-            },
-          ],
-        });
-        if (mode === null) return;
-        await task.run(async () => {
-          const report = await machine.createReport(
-            recordId,
-            entryId,
-            mode === 'full',
-            selectedCounterId,
-          );
-          refresh();
-          setOffset(0);
-          router.push({ pathname: '/pdf/[id]', params: { id: report.id } });
-        });
-      } catch (error) {
-        task.setError(errorText(error));
-      }
-    },
-    open: (report: SavedReport) =>
-      router.push({ pathname: '/pdf/[id]', params: { id: report.id } }),
-    remove: async (report: SavedReport) => {
-      if (
-        await feedback.confirm(
-          'Produktionsprotokoll löschen?',
-          'Die gespeicherte PDF wird entfernt. Bereits exportierte Kopien bleiben erhalten.',
-        )
-      )
-        await task.run(async () => {
-          setDeletingId(report.id);
-          try {
-            await machine.delete('report', report.id);
-            refresh();
-            feedback.notify('Produktionsprotokoll gelöscht.');
-          } finally {
-            setDeletingId(undefined);
-          }
-        });
-    },
   };
 }
