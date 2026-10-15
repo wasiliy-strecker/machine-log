@@ -12,6 +12,12 @@ Maschinensymbol, Bezeichnung, Maschinen-/Zählernummer, Produktionsbereich,
 Einheit und Erinnerung.
 Betriebsstunden werden dezimal erfasst.
 
+Die Hauptansicht ist wie bei ZählerstandLog eine durchgehend scrollbare Liste
+ohne Seitenwechsel. Alle Zähler bleiben durchsuchbar und sortierbar. Ihre Karten
+werden mit einer `FlatList` erst für den sichtbaren Bereich und seine Umgebung
+aufgebaut. Beim Zurückkehren aus Details bleiben Suchtext und Scrollposition
+erhalten, während die Daten im Hintergrund aktualisiert werden.
+
 Bei „Zählerart“ lassen sich Stückzahl, Zyklen, Betriebsstunden und Menge auswählen
 oder eigene Bezeichnungen wie Prüfzyklen und Chargen eingeben. Bereits gespeicherte
 eigene Arten erscheinen wieder als Vorschläge. Standardarten schlagen die passende

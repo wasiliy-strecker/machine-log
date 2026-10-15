@@ -1,4 +1,5 @@
-import { View, Text } from 'react-native';
+import { FlatList, View, Text, useWindowDimensions } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { router, Stack, useLocalSearchParams } from 'expo-router';
 import {
   Body,
@@ -32,6 +33,7 @@ import {
   reminderSummary,
   sortLabels,
   type RecordSort,
+  type DashboardItem,
 } from './presentation-model';
 import { PAGE_SIZE, type Counter } from '../../core/domain/models';
 import type { ReminderStatus } from '../../core/native/machine-native';
@@ -83,19 +85,193 @@ export function ReminderInfo({
     </View>
   );
 }
+type DashboardHeaderProps = Pick<
+  ReturnType<typeof useRecords>,
+  'search' | 'setSearch' | 'sort' | 'setSort' | 'error' | 'retry'
+> & { count: number };
+
+// Keep the header component type stable so typing never remounts its input.
+function DashboardHeader({
+  search,
+  setSearch,
+  sort,
+  setSort,
+  count,
+  error,
+  retry,
+}: DashboardHeaderProps) {
+  const feedback = useFeedback();
+  return (
+    <View style={{ gap: 12, paddingBottom: 12 }}>
+      {!!error && (
+        <>
+          <Notice error text={error} />
+          <Button title="Erneut laden" onPress={retry} />
+        </>
+      )}
+      <Title subtitle="Zählerstände erfassen und Produktionszuwächse nachvollziehen.">
+        Deine Produktionszähler
+      </Title>
+      <View style={{ marginTop: 4 }}>
+        <Field
+          label="Zähler suchen"
+          leading="search"
+          value={search}
+          onChangeText={setSearch}
+          trailing={search ? 'close' : undefined}
+          onTrailingPress={() => setSearch('')}
+          returnKeyType="search"
+        />
+      </View>
+      <View
+        style={{
+          flexDirection: 'row',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          gap: 12,
+          flexWrap: 'wrap',
+        }}
+      >
+        <Body muted>
+          {count} {search.trim() ? 'Treffer' : 'Zähler'}
+        </Body>
+        <Button
+          secondary
+          icon="sort"
+          menu
+          title={sortLabels[sort]}
+          onPress={(anchor) =>
+            void feedback
+              .choose({
+                title: 'Zähler sortieren',
+                anchor,
+                options: (Object.keys(sortLabels) as RecordSort[]).map(
+                  (value) => ({
+                    value,
+                    label: sortLabels[value],
+                    icon: value === sort ? 'check' : undefined,
+                  }),
+                ),
+              })
+              .then((value) => {
+                if (value) setSort(value as RecordSort);
+              })
+          }
+        />
+      </View>
+    </View>
+  );
+}
+
+function DashboardCard({
+  item,
+  hasDraft,
+  status,
+}: {
+  item: DashboardItem;
+  hasDraft: boolean;
+  status?: ReminderStatus;
+}) {
+  const { record, counter, latest, lastEdited } = item;
+  const c = useTheme();
+  return (
+    <Card
+      onPress={() =>
+        router.push({
+          pathname: '/record/[id]',
+          params: { id: record.id, counterId: counter.id },
+        })
+      }
+    >
+      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 14 }}>
+        <View style={{ flex: 1, gap: 4 }}>
+          <View
+            style={{
+              flexDirection: 'row',
+              alignItems: 'center',
+              gap: 8,
+            }}
+          >
+            <MachineIcon icon={counter.icon} />
+            <Body strong style={{ flex: 1, fontSize: 16, lineHeight: 24 }}>
+              {counterTitle(record, counter)}
+            </Body>
+            {status?.schedules.find((s) => s.recordId === counter.id)
+              ?.isNotificationActive && (
+              <View
+                accessibilityLabel="Aktive Ableseerinnerung"
+                style={{
+                  backgroundColor: c.danger,
+                  borderRadius: 10,
+                  paddingHorizontal: 5,
+                }}
+              >
+                <Text style={{ color: c.background, fontSize: 11 }}>1</Text>
+              </View>
+            )}
+          </View>
+          <Body muted>
+            {[counterTypeLabel(counter.type), counterLocation(record, counter)]
+              .filter(Boolean)
+              .join(' · ')}
+          </Body>
+          <Text
+            style={{
+              fontFamily: 'RobotoBlack',
+              fontSize: 22,
+              lineHeight: 28,
+              color: c.ink,
+              marginTop: 2,
+            }}
+          >
+            {entrySummary(latest)}
+          </Text>
+          <Body muted style={{ fontSize: 12, lineHeight: 16 }}>
+            Zuletzt bearbeitet: {dateTime(lastEdited)}
+          </Body>
+          {hasDraft && (
+            <Body muted style={{ fontSize: 12 }}>
+              Gesicherter Formularentwurf
+            </Body>
+          )}
+          <ReminderInfo
+            record={counter}
+            status={status}
+            onEdit={() =>
+              router.push({
+                pathname: '/record/edit',
+                params: { id: record.id, counterId: counter.id },
+              })
+            }
+          />
+        </View>
+        <Icon name="chevron_right" />
+      </View>
+    </Card>
+  );
+}
+
+function CounterSeparator() {
+  return <View style={{ height: 12 }} />;
+}
+const dashboardKey = (item: DashboardItem) => item.counter.id;
+
 export function RecordsScreen() {
   const vm = useRecords(),
     c = useTheme(),
-    feedback = useFeedback();
+    safe = useSafeAreaInsets(),
+    { fontScale } = useWindowDimensions();
   const create = () => router.push('/record/edit');
+  const showList = !vm.loading && !vm.empty;
   return (
     <Page
       ready={!vm.loading}
+      scroll={!showList}
       fab={<Fab title="Zähler anlegen" onPress={create} />}
     >
       {vm.loading ? (
         <Busy label="Produktionszähler werden geladen …" />
-      ) : vm.error ? (
+      ) : vm.error && vm.empty ? (
         <>
           <Notice error text={vm.error} />
           <Button title="Erneut laden" onPress={vm.retry} />
@@ -119,150 +295,47 @@ export function RecordsScreen() {
           </Body>
         </View>
       ) : (
-        <>
-          <Title subtitle="Zählerstände erfassen und Produktionszuwächse nachvollziehen.">
-            Deine Produktionszähler
-          </Title>
-          <View style={{ marginTop: 4 }}>
-            <Field
-              label="Zähler suchen"
-              leading="search"
-              value={vm.search}
-              onChangeText={vm.setSearch}
-              trailing={vm.search ? 'close' : undefined}
-              onTrailingPress={() => vm.setSearch('')}
-              returnKeyType="search"
+        <FlatList
+          style={{ flex: 1 }}
+          contentContainerStyle={{
+            paddingHorizontal: 16,
+            paddingTop: 8,
+            paddingBottom: Math.max(112, 56 * fontScale + 48) + safe.bottom,
+            width: '100%',
+            maxWidth: 800,
+            alignSelf: 'center',
+            flexGrow: 1,
+          }}
+          keyboardShouldPersistTaps="handled"
+          keyboardDismissMode="on-drag"
+          data={vm.items}
+          keyExtractor={dashboardKey}
+          ListHeaderComponent={
+            <DashboardHeader
+              search={vm.search}
+              setSearch={vm.setSearch}
+              sort={vm.sort}
+              setSort={vm.setSort}
+              count={vm.items.length}
+              error={vm.error}
+              retry={vm.retry}
             />
-          </View>
-          <View
-            style={{
-              flexDirection: 'row',
-              justifyContent: 'space-between',
-              alignItems: 'center',
-              gap: 12,
-              flexWrap: 'wrap',
-            }}
-          >
-            <Body muted>
-              {vm.items.length} {vm.search ? 'Treffer' : 'Zähler'}
-            </Body>
-            <Button
-              secondary
-              icon="sort"
-              menu
-              title={sortLabels[vm.sort]}
-              onPress={(anchor) =>
-                void feedback
-                  .choose({
-                    title: 'Zähler sortieren',
-                    anchor,
-                    options: (Object.keys(sortLabels) as RecordSort[]).map(
-                      (value) => ({
-                        value,
-                        label: sortLabels[value],
-                        icon: value === vm.sort ? 'check' : undefined,
-                      }),
-                    ),
-                  })
-                  .then((value) => {
-                    if (value) vm.setSort(value as RecordSort);
-                  })
-              }
-            />
-          </View>
-          {!vm.items.length && (
+          }
+          ListEmptyComponent={
             <Card>
               <Icon name="search" size={42} color={c.primary} />
               <Body>Keine passenden Zähler gefunden.</Body>
             </Card>
+          }
+          ItemSeparatorComponent={CounterSeparator}
+          renderItem={({ item }) => (
+            <DashboardCard
+              item={item}
+              hasDraft={vm.drafts.some((d) => d.counterId === item.counter.id)}
+              status={vm.status}
+            />
           )}
-          {vm.items.map(({ record, counter, latest, lastEdited }) => (
-            <Card
-              key={counter.id}
-              onPress={() =>
-                router.push({
-                  pathname: '/record/[id]',
-                  params: { id: record.id, counterId: counter.id },
-                })
-              }
-            >
-              <View
-                style={{ flexDirection: 'row', alignItems: 'center', gap: 14 }}
-              >
-                <View style={{ flex: 1, gap: 4 }}>
-                  <View
-                    style={{
-                      flexDirection: 'row',
-                      alignItems: 'center',
-                      gap: 8,
-                    }}
-                  >
-                    <MachineIcon icon={counter.icon} />
-                    <Body
-                      strong
-                      style={{ flex: 1, fontSize: 16, lineHeight: 24 }}
-                    >
-                      {counterTitle(record, counter)}
-                    </Body>
-                    {vm.status?.schedules.find((s) => s.recordId === counter.id)
-                      ?.isNotificationActive && (
-                      <View
-                        accessibilityLabel="Aktive Ableseerinnerung"
-                        style={{
-                          backgroundColor: c.danger,
-                          borderRadius: 10,
-                          paddingHorizontal: 5,
-                        }}
-                      >
-                        <Text style={{ color: c.background, fontSize: 11 }}>
-                          1
-                        </Text>
-                      </View>
-                    )}
-                  </View>
-                  <Body muted>
-                    {[
-                      counterTypeLabel(counter.type),
-                      counterLocation(record, counter),
-                    ]
-                      .filter(Boolean)
-                      .join(' · ')}
-                  </Body>
-                  <Text
-                    style={{
-                      fontFamily: 'RobotoBlack',
-                      fontSize: 22,
-                      lineHeight: 28,
-                      color: c.ink,
-                      marginTop: 2,
-                    }}
-                  >
-                    {entrySummary(latest)}
-                  </Text>
-                  <Body muted style={{ fontSize: 12, lineHeight: 16 }}>
-                    Zuletzt bearbeitet: {dateTime(lastEdited)}
-                  </Body>
-                  {vm.drafts.some((d) => d.counterId === counter.id) && (
-                    <Body muted style={{ fontSize: 12 }}>
-                      Gesicherter Formularentwurf
-                    </Body>
-                  )}
-                  <ReminderInfo
-                    record={counter}
-                    status={vm.status}
-                    onEdit={() =>
-                      router.push({
-                        pathname: '/record/edit',
-                        params: { id: record.id, counterId: counter.id },
-                      })
-                    }
-                  />
-                </View>
-                <Icon name="chevron_right" />
-              </View>
-            </Card>
-          ))}
-        </>
+        />
       )}
     </Page>
   );
