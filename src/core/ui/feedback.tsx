@@ -197,10 +197,10 @@ export function FeedbackProvider({ children }: { children: ReactNode }) {
                 style={[
                   {
                     backgroundColor: bottomSheet ? c.elevated : c.card,
+                    borderWidth: 1,
+                    borderColor: c.border,
                     ...(bottomSheet
                       ? {
-                          borderWidth: 1,
-                          borderColor: c.border,
                           elevation: 24,
                           shadowColor: '#000000',
                           shadowOffset: { width: 0, height: -6 },
