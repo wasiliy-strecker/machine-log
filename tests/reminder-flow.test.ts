@@ -18,6 +18,7 @@ import {
 import { record } from './support';
 
 const ports = vi.hoisted(() => ({
+  creating: false,
   notify: vi.fn(),
   dismiss: vi.fn(),
   refresh: vi.fn(),
@@ -57,10 +58,13 @@ vi.mock('expo-router', async () => {
   return {
     Stack: { Screen: 'Screen' },
     router: { dismissTo: ports.dismiss, replace: ports.dismiss },
-    useLocalSearchParams: () => ({
-      id: machineRecord.id,
-      counterId: machineRecord.counters[0]!.id,
-    }),
+    useLocalSearchParams: () =>
+      ports.creating
+        ? {}
+        : {
+            id: machineRecord.id,
+            counterId: machineRecord.counters[0]!.id,
+          },
     useFocusEffect: (callback: () => () => void) =>
       React.useEffect(callback, [callback]),
   };
@@ -159,6 +163,7 @@ const text = () =>
     .join('\n');
 beforeEach(() => {
   vi.resetAllMocks();
+  ports.creating = false;
   machineRecord = record();
   state = {
     notifications: true,
@@ -206,6 +211,74 @@ it('uses calendar defaults and previews anchored hours without changing old days
     if (previous === undefined) delete process.env.TZ;
     else process.env.TZ = previous;
   }
+});
+
+it('offers predefined and saved counter types when creating a counter', async () => {
+  ports.creating = true;
+  machineRecord.counters[0]!.type = 'Prüfzyklen';
+  await act(async () => {
+    renderer = create(createElement(RecordEditorScreen));
+  });
+  const field = root().findByProps({ label: 'Zählerart *' });
+  expect(field.props.value).toBe('Stückzahl');
+  expect(field.props.suggestions).toEqual([
+    'Stückzahl',
+    'Zyklen',
+    'Betriebsstunden',
+    'Menge',
+    'Prüfzyklen',
+  ]);
+  expect(button('Zähler speichern').props.disabled).toBe(true);
+});
+
+it('accepts custom types and preserves an explicitly chosen unit when selecting another type', async () => {
+  await act(async () => {
+    renderer = create(createElement(RecordEditorScreen));
+  });
+  await select('Zählerart *', 'Betriebsstunden');
+  expect(root().findByProps({ label: 'Einheit *' }).props.value).toBe('h');
+  await select('Einheit *', 'Maschinenstunden');
+  await select('Zählerart *', 'Prüfzyklen');
+  expect(root().findByProps({ label: 'Einheit *' }).props.value).toBe(
+    'Maschinenstunden',
+  );
+  await select('Zählerart *', 'Zyklen');
+  expect(root().findByProps({ label: 'Einheit *' }).props.value).toBe(
+    'Maschinenstunden',
+  );
+  await select('Zählerart *', 'Prüfzyklen');
+  await select('Einheit *', 'kg');
+  await select('Zählerart *', 'Betriebsstunden');
+  expect(root().findByProps({ label: 'Einheit *' }).props.value).toBe('kg');
+  await select('Zählerart *', 'Prüfzyklen');
+  await select('Einheit *', 'Maschinenstunden');
+  await press('Änderungen speichern');
+  expect(ports.saveCounter).toHaveBeenCalledWith(
+    machineRecord.id,
+    machineRecord.counters[0]!.id,
+    expect.objectContaining({ type: 'Prüfzyklen', unit: 'Maschinenstunden' }),
+  );
+});
+
+it('requires a counter type and clears both field errors when a preset fills the missing unit', async () => {
+  await act(async () => {
+    renderer = create(createElement(RecordEditorScreen));
+  });
+  await select('Zählerart *', '');
+  await select('Einheit *', '');
+  await press('Änderungen speichern');
+  expect(root().findByProps({ label: 'Zählerart *' }).props.error).toBe(
+    'Bitte eine Zählerart eingeben.',
+  );
+  expect(ports.saveCounter).not.toHaveBeenCalled();
+  await select('Zählerart *', 'Betriebsstunden');
+  expect(
+    root().findByProps({ label: 'Zählerart *' }).props.error,
+  ).toBeUndefined();
+  expect(
+    root().findByProps({ label: 'Einheit *' }).props.error,
+  ).toBeUndefined();
+  expect(root().findByProps({ label: 'Einheit *' }).props.value).toBe('h');
 });
 
 it('marks missing counter fields before requesting notification permission or saving', async () => {

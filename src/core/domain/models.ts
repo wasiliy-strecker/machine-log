@@ -42,7 +42,7 @@ export const counterSchema = z
   .object({
     id,
     name: short.trim().min(1, 'Bitte eine Zählerbezeichnung eingeben.'),
-    type: z.enum(['pieces', 'cycles', 'hours', 'quantity']),
+    type: z.string().trim().min(1, 'Bitte eine Zählerart eingeben.').max(100),
     unit: z.string().trim().min(1, 'Bitte eine Einheit eingeben.').max(20),
     number: short,
     reminder: reminderSchema.nullable(),

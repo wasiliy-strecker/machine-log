@@ -13,6 +13,11 @@ import { replaceReadingPhoto } from '../src/core/media/reading-photo';
 import { evidenceJson, type Machine } from '../src/core/domain/models';
 import { reminderRequests } from '../src/core/native/reminder-requests';
 import { defaultReminder } from '../src/features/records/reminder-model';
+import {
+  counterTypeLabel,
+  counterTypeValue,
+  counterTypeSuggestions,
+} from '../src/core/domain/counter-type';
 
 const fixtures: Awaited<ReturnType<typeof fixture>>[] = [];
 async function setup() {
@@ -95,11 +100,12 @@ it('projects legacy counters separately with isolated readings, search and metad
   expect(updated.location).toBe(r.location);
   expect(counterLocation(updated, updated.counters[1]!)).toBe('Halle 3');
   expect(updated.counters[1]!.icon).toBe('printer');
+  expect(updated.counters[1]!.type).toBe('hours');
   expect(counterLocation(updated, updated.counters[0]!)).toBe(r.location);
   expect(evidenceJson((await f.repo.snapshot()).entries)).toBe(before);
 });
 
-it('keeps old backups readable and restores machine symbols without changing reading evidence', async () => {
+it('keeps old backups readable and restores custom counter types and machine symbols without changing reading evidence', async () => {
   const f = await setup();
   const old = record();
   old.counters[0]!.reminder = defaultReminder();
@@ -116,6 +122,8 @@ it('keeps old backups readable and restores machine symbols without changing rea
   await roundTrip();
   const restoredOld = (await restored.repo.records())[0]!;
   expect(restoredOld.counters[0]!.icon).toBeUndefined();
+  expect(restoredOld.counters[0]!.type).toBe('pieces');
+  expect(counterTypeLabel(restoredOld.counters[0]!.type)).toBe('Stückzahl');
   expect(counterDetails(restoredOld, restoredOld.counters[0]!).icon).toBe(
     'machine',
   );
@@ -128,15 +136,42 @@ it('keeps old backups readable and restores machine symbols without changing rea
   await f.machine.saveCounter(old.id, old.counters[0]!.id, {
     ...counterDetails(old, old.counters[0]!),
     icon: 'pump',
+    type: ' Chargen ',
+    unit: 'Chargen',
   });
   await roundTrip();
   const snapshot = await restored.repo.snapshot();
   expect(snapshot.records[0]!.counters[0]!.icon).toBe('pump');
+  expect(snapshot.records[0]!.counters[0]!.type).toBe('Chargen');
+  expect(snapshot.records[0]!.counters[0]!.unit).toBe('Chargen');
   expect((await restored.repo.dashboard())[0]!.counter.icon).toBe('pump');
   expect(evidenceJson(snapshot.entries)).toBe(evidenceJson([entry]));
+  expect(
+    visibleRecords(await restored.repo.dashboard(), 'chargen', 'type'),
+  ).toHaveLength(1);
   expect(reminderRequests(snapshot.records, snapshot.entries)[0]?.icon).toBe(
     'pump',
   );
+});
+
+it('keeps preset IDs compatible and suggests saved custom types without duplicate labels', () => {
+  const r = legacy();
+  r.counters[0]!.type = ' Chargen ';
+  r.counters[1]!.type = 'chargen';
+  const suggestions = counterTypeSuggestions([r]);
+  expect(suggestions.slice(0, 4)).toEqual([
+    'Stückzahl',
+    'Zyklen',
+    'Betriebsstunden',
+    'Menge',
+  ]);
+  expect(
+    suggestions.slice(4).map((value) => value.toLocaleLowerCase('de-DE')),
+  ).toEqual(['chargen']);
+  expect(counterTypeLabel('hours')).toBe('Betriebsstunden');
+  expect(counterTypeValue(' BETRIEBSSTUNDEN ')).toBe('hours');
+  expect(counterTypeValue(' Prüfzyklen ')).toBe('Prüfzyklen');
+  expect(counterTypeLabel('Prüfzyklen')).toBe('Prüfzyklen');
 });
 
 it('deletes only the selected legacy counter and keeps other readings, drafts and immutable common reports', async () => {

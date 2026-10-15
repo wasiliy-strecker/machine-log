@@ -1,5 +1,6 @@
 import type { Counter, Machine } from './models';
 import { machineIconId, type MachineIconId } from './machine-icon';
+import { counterTypeLabel, counterTypeValue } from './counter-type';
 
 export type CounterDetails = Pick<
   Counter,
@@ -26,7 +27,7 @@ export function counterDetails(
   return {
     name: record.counters.length > 1 ? counter.name : record.name,
     number: counter.number || record.number,
-    type: counter.type,
+    type: counterTypeLabel(counter.type),
     unit: counter.unit,
     reminder: counter.reminder,
     location: counterLocation(record, counter),
@@ -56,7 +57,7 @@ export function recordWithCounterDetails(
             ...counter,
             name: details.name,
             number: details.number,
-            type: details.type,
+            type: counterTypeValue(details.type),
             unit: details.unit,
             reminder: details.reminder,
             location: details.location,

@@ -12,6 +12,12 @@ Maschinensymbol, Bezeichnung, Maschinen-/Zählernummer, Produktionsbereich,
 Einheit und Erinnerung.
 Betriebsstunden werden dezimal erfasst.
 
+Bei „Zählerart“ lassen sich Stückzahl, Zyklen, Betriebsstunden und Menge auswählen
+oder eigene Bezeichnungen wie Prüfzyklen und Chargen eingeben. Bereits gespeicherte
+eigene Arten erscheinen wieder als Vorschläge. Standardarten schlagen die passende
+Standardeinheit vor. Eine selbst eingetragene Einheit bleibt beim Wechsel erhalten.
+Eigene Arten sind auch in Suche, Sortierung und verschlüsselten Backups enthalten.
+
 Im Stammdatenformular stehen acht Maschinensymbole zur Auswahl: Maschine,
 Fertigung, Werkzeuge, Verpackung, Drucker, Pumpe, Landmaschine und Transport.
 Das gewählte Symbol erscheint in der Übersicht, den Zählerdetails, der

@@ -1,9 +1,13 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { router } from 'expo-router';
 import { PermissionsAndroid, Platform } from 'react-native';
 import { useServices } from '../../core/composition';
 import type { Machine } from '../../core/domain/models';
 import { validateCounterForm } from '../../core/domain/form-validation';
+import {
+  counterTypeSuggestions,
+  unitForCounterType,
+} from '../../core/domain/counter-type';
 import {
   counterDetails,
   recordWithCounterDetails,
@@ -59,15 +63,20 @@ export function useRecordEditor(id?: string, counterId?: string) {
     record ? counterDetails(record, record.counters[0]!) : undefined,
   );
   const [initial, setInitial] = useState(() => JSON.stringify(form));
+  const automaticUnit = useRef(true);
+  const [typeSuggestions, setTypeSuggestions] = useState(() =>
+    counterTypeSuggestions([]),
+  );
   const task = useTask();
   const { setError } = task;
   useEffect(() => {
-    if (!id) return;
     let active = true;
     machine.repository
       .records()
       .then((records) => {
         if (!active) return;
+        setTypeSuggestions(counterTypeSuggestions(records));
+        if (!id) return;
         const found = records.find((r) => r.id === id);
         const counter = counterId
           ? found?.counters.find((c) => c.id === counterId)
@@ -75,6 +84,8 @@ export function useRecordEditor(id?: string, counterId?: string) {
         if (!found || !counter)
           throw new Error('Der Zähler wurde nicht gefunden.');
         const details = counterDetails(found, counter);
+        automaticUnit.current =
+          unitForCounterType(details.type, '', true) === details.unit;
         setRecord(found);
         setSelectedId(counter.id);
         setForm(details);
@@ -108,6 +119,7 @@ export function useRecordEditor(id?: string, counterId?: string) {
     key: K,
     value: CounterDetails[K],
   ) {
+    if (key === 'unit') automaticUnit.current = false;
     task.clearFieldErrors(key);
     setForm((current) => current && { ...current, [key]: value });
   }
@@ -115,6 +127,25 @@ export function useRecordEditor(id?: string, counterId?: string) {
     form,
     dirty,
     change,
+    typeSuggestions,
+    changeType: (value: string) => {
+      const automatic = automaticUnit.current;
+      const unit = form
+        ? unitForCounterType(value, form.unit, automatic)
+        : undefined;
+      task.clearFieldErrors(
+        'type',
+        ...(unit !== undefined && unit !== form?.unit ? ['unit'] : []),
+      );
+      setForm(
+        (current) =>
+          current && {
+            ...current,
+            type: value,
+            unit: unitForCounterType(value, current.unit, automatic),
+          },
+      );
+    },
     counterId: selectedId,
     reminderStatus: reminderState.status,
     refreshReminderStatus: reminderState.refresh,

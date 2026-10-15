@@ -7,15 +7,10 @@ import {
   Field,
   Notice,
   Page,
-  SelectField,
 } from '../../core/ui/components';
 import { SuggestionField } from '../../core/ui/suggestion-field';
-import {
-  type Counter,
-  counterTypes,
-  defaultUnits,
-  units,
-} from '../../core/domain/models';
+import { units } from '../../core/domain/models';
+import { counterTypeLabel } from '../../core/domain/counter-type';
 import { ReminderEditor } from './reminder-editor';
 import { useRecordEditor } from './use-record-editor';
 import { FormErrorTarget } from '../../core/ui/form-error-target';
@@ -28,9 +23,14 @@ export function RecordEditorScreen() {
   }>();
   const vm = useRecordEditor(id, counterId);
   const form = vm.form;
-  const firstError = ['name', 'number', 'location', 'unit', 'reminder'].find(
-    (field) => vm.fieldErrors[field],
-  );
+  const firstError = [
+    'type',
+    'name',
+    'number',
+    'location',
+    'unit',
+    'reminder',
+  ].find((field) => vm.fieldErrors[field]);
   if (!form)
     return (
       <Page ready={!!vm.error}>
@@ -86,20 +86,23 @@ export function RecordEditorScreen() {
             <Notice error text={vm.error} />
           </FormErrorTarget>
         )}
-        <SelectField
-          label="Zählerart"
-          value={form.type}
-          disabled={vm.busy}
-          options={Object.entries(counterTypes).map(([value, label]) => ({
-            value,
-            label,
-          }))}
-          onChange={(value) => {
-            const type = value as Counter['type'];
-            vm.change('type', type);
-            vm.change('unit', defaultUnits[type]);
-          }}
-        />
+        <FormErrorTarget
+          active={firstError === 'type'}
+          attempt={vm.errorAttempt}
+          style={{ zIndex: 2 }}
+        >
+          <SuggestionField
+            label="Zählerart *"
+            placeholder="z. B. Stückzahl oder Chargen"
+            helper="Vorschlag auswählen oder eigene Zählerart eingeben. Die passende Einheit kannst du unten festlegen."
+            value={form.type}
+            suggestions={vm.typeSuggestions}
+            onChange={vm.changeType}
+            disabled={vm.busy}
+            showAllOnFocus
+            error={vm.fieldErrors.type}
+          />
+        </FormErrorTarget>
         <MachineIconPicker
           value={form.icon}
           disabled={vm.busy}
@@ -168,7 +171,7 @@ export function RecordEditorScreen() {
             busy={vm.busy}
             onChange={(value) => vm.change('reminder', value)}
             counterId={id ? vm.counterId : null}
-            label={form.name || counterTypes[form.type]}
+            label={form.name || counterTypeLabel(form.type)}
             icon={form.icon}
             status={vm.reminderStatus}
             refreshStatus={vm.refreshReminderStatus}

@@ -16,6 +16,7 @@ import {
 } from '../../core/ui/components';
 import { Icon } from '../../core/ui/icon';
 import { MachineIcon } from '../../core/ui/machine-icon';
+import { counterTypeLabel } from '../../core/domain/counter-type';
 import {
   counterTitle,
   counterLocation,
@@ -32,11 +33,7 @@ import {
   sortLabels,
   type RecordSort,
 } from './presentation-model';
-import {
-  PAGE_SIZE,
-  counterTypes,
-  type Counter,
-} from '../../core/domain/models';
+import { PAGE_SIZE, type Counter } from '../../core/domain/models';
 import type { ReminderStatus } from '../../core/native/machine-native';
 export function ReminderInfo({
   record,
@@ -225,7 +222,7 @@ export function RecordsScreen() {
                   </View>
                   <Body muted>
                     {[
-                      counterTypes[counter.type],
+                      counterTypeLabel(counter.type),
                       counterLocation(record, counter),
                     ]
                       .filter(Boolean)
@@ -359,7 +356,9 @@ export function RecordDetailScreen() {
               letterSpacing: 0.15,
             }}
           >
-            {vm.counter ? counterTypes[vm.counter.type] : 'Produktionszähler'}
+            {vm.counter
+              ? counterTypeLabel(vm.counter.type)
+              : 'Produktionszähler'}
           </Body>
           <Icon name="chevron_right" color={c.muted} />
         </View>

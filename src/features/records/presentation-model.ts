@@ -8,11 +8,8 @@ import type {
   EntryDraft,
   SavedReport,
 } from '../../core/domain/models';
-import {
-  categories,
-  counterTypes,
-  eventLabels,
-} from '../../core/domain/models';
+import { categories, eventLabels } from '../../core/domain/models';
+import { counterTypeLabel } from '../../core/domain/counter-type';
 import {
   counterTitle,
   counterLocation,
@@ -93,7 +90,7 @@ export function visibleRecords(
         r.number,
         counter.name,
         counter.number,
-        counterTypes[counter.type],
+        counterTypeLabel(counter.type),
         counter.unit,
         r.category,
         counterLocation(r, counter),
@@ -113,8 +110,8 @@ export function visibleRecords(
                 counterTitle(b.record, b.counter),
                 'de-DE',
               )
-            : counterTypes[a.counter.type].localeCompare(
-                counterTypes[b.counter.type],
+            : counterTypeLabel(a.counter.type).localeCompare(
+                counterTypeLabel(b.counter.type),
                 'de-DE',
               )) ||
         counterTitle(a.record, a.counter).localeCompare(
