@@ -68,6 +68,7 @@ export function FeedbackProvider({ children }: { children: ReactNode }) {
   const safe = useSafeAreaInsets();
   const window = useWindowDimensions();
   const [question, setQuestion] = useState<Question>();
+  const bottomSheet = !!question && !question.dialog && !question.anchor;
   const cardOptions =
     question?.optionStyle === 'cards' && !question.dialog && !question.anchor;
   const plainMenu = question?.optionStyle === 'plain' && !!question.anchor;
@@ -108,11 +109,7 @@ export function FeedbackProvider({ children }: { children: ReactNode }) {
     resolve.current = null;
   }, []);
   const dismiss = useCallback(() => finish(null), [finish]);
-  const sheet = useSheetDrag(
-    !!question && !question.dialog && !question.anchor,
-    question,
-    dismiss,
-  );
+  const sheet = useSheetDrag(bottomSheet, question, dismiss);
   const confirm = useCallback(
     async (
       title: string,
@@ -174,7 +171,11 @@ export function FeedbackProvider({ children }: { children: ReactNode }) {
             style={{
               flex: 1,
               justifyContent: question?.dialog ? 'center' : 'flex-end',
-              backgroundColor: question?.anchor ? 'transparent' : '#00000066',
+              backgroundColor: question?.anchor
+                ? 'transparent'
+                : bottomSheet
+                  ? '#00000099'
+                  : '#00000066',
               padding: question?.dialog ? 24 : 0,
             }}
           >
@@ -195,7 +196,18 @@ export function FeedbackProvider({ children }: { children: ReactNode }) {
                 onLayout={sheet.onLayout}
                 style={[
                   {
-                    backgroundColor: c.card,
+                    backgroundColor: bottomSheet ? c.elevated : c.card,
+                    ...(bottomSheet
+                      ? {
+                          borderWidth: 1,
+                          borderColor: c.border,
+                          elevation: 24,
+                          shadowColor: '#000000',
+                          shadowOffset: { width: 0, height: -6 },
+                          shadowOpacity: 0.3,
+                          shadowRadius: 20,
+                        }
+                      : {}),
                     borderRadius: 28,
                     borderBottomLeftRadius: question?.dialog ? 28 : 0,
                     borderBottomRightRadius: question?.dialog ? 28 : 0,

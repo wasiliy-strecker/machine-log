@@ -170,7 +170,7 @@ it('rejects inconsistent inserts, duplicate times and removal of a required rese
     }),
   ).rejects.toThrow('nicht entfernt');
 });
-it('retains originals and photo versions, requires a reason and rejects stale or divergent corrections', async () => {
+it('retains originals, photo versions and supplied reasons and rejects stale or divergent corrections', async () => {
   const f = await setup(),
     r = record();
   await f.machine.saveRecord(r);
@@ -189,9 +189,9 @@ it('retains originals and photo versions, requires a reason and rejects stale or
   d.form.value = '101';
   d.form.attachments = [];
   d.form.ocr = null;
-  await expect(f.machine.saveEntry(d)).rejects.toThrow('Änderungsgrund');
   d.form.reason = 'Anzeige falsch gelesen';
   const changed = (await f.machine.saveEntry(d)).entry;
+  expect(changed.revisions[0]!.reason).toBe('Anzeige falsch gelesen');
   expect(changed.revisions[0]!.before.measurement.value.digits).toBe('100');
   expect(changed.original.attachments[0]?.sha256).toBe(a.sha256);
   expect(await f.vault.read(a.file)).toEqual(await photo());
@@ -238,7 +238,10 @@ it('exports grouped production PDFs and restores encrypted evidence including hi
   edit.form.value = '101';
   edit.form.reason = 'Ziffer berichtigt';
   edit.form.attachments = [];
-  await f.machine.saveEntry(edit);
+  const corrected = (await f.machine.saveEntry(edit)).entry;
+  const withoutReason = await f.machine.draft(r.id, corrected);
+  withoutReason.form.note = 'Notiz ergänzt';
+  await f.machine.saveEntry(withoutReason);
   expect(await f.vault.read(originalReport.file)).toEqual(originalBytes);
   const report = await f.machine.createReport(r.id, null, true);
   const path = join(f.root, 'production.pdf');
@@ -258,6 +261,8 @@ it('exports grouped production PDFs and restores encrypted evidence including hi
   ])
     expect(text).toContain(expected);
   const normalized = text.replace(/\s+/g, ' ');
+  expect(text.match(/Änderungsgrund:/g)).toHaveLength(1);
+  expect(text).toContain('Korrektur 2');
   expect(normalized).not.toContain('Dokumentierter Zuwachs');
   expect(normalized).not.toContain('34 Stück');
   const password = 'Synthetisches Passwort';
@@ -291,9 +296,10 @@ it('exports grouped production PDFs and restores encrypted evidence including hi
   expect(evidenceJson(restored)).toBe(evidenceJson(before));
   for (const key of snapshotFiles(restored))
     expect((await f.vault.read(key)).length).toBeGreaterThan(0);
-  expect(
-    restored.entries.find((e) => e.id === first.id)?.revisions,
-  ).toHaveLength(1);
+  const revisions = restored.entries.find((e) => e.id === first.id)!.revisions;
+  expect(revisions).toHaveLength(2);
+  expect(revisions[0]!.reason).toBe('Ziffer berichtigt');
+  expect(revisions[1]!.reason).toBe('');
   const immutable = restored.reports.find((p) => p.id === originalReport.id)!;
   expect(digest(await f.vault.read(immutable.file))).toBe(
     digest(originalBytes),

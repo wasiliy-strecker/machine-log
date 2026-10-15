@@ -220,7 +220,7 @@ function entrySection(
         `Korrektur ${i + 1} · ${dateTime(revision.changedAt, true)}`,
         { bold: true },
       );
-      layout.text(`Änderungsgrund: ${revision.reason}`);
+      if (revision.reason) layout.text(`Änderungsgrund: ${revision.reason}`);
       layout.gap(6);
       const before = stateRows(revision.before),
         after = stateRows(revision.after);

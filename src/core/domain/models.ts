@@ -110,7 +110,7 @@ export const revisionSchema = z
     id,
     parentId: id.nullable(),
     changedAt: timestamp,
-    reason: short.trim().min(1, 'Bitte einen Änderungsgrund angeben.'),
+    reason: short.trim(),
     before: eventStateSchema,
     after: eventStateSchema,
   })

@@ -4,7 +4,6 @@ import { act, create, type ReactTestRenderer } from 'react-test-renderer';
 import { EntryEditorScreen } from '../src/features/entries/entry-editor-screen';
 import { FormErrorTarget } from '../src/core/ui/form-error-target';
 import { ScrollContext } from '../src/core/ui/scroll-host';
-import { FormValidationError } from '../src/core/domain/form-validation';
 import { readingInput } from '../src/features/entries/reading-input';
 import { fixture, record } from './support';
 import {
@@ -369,12 +368,6 @@ it('assigns unit, closing value, time conflicts and correction reasons to their 
   await f.machine.saveEntry(d);
   const correction = await f.machine.draft(machineRecord.id, first);
   correction.form.value = '101';
-  await expect(f.machine.saveEntry(correction)).rejects.toBeInstanceOf(
-    FormValidationError,
-  );
-  await expect(f.machine.saveEntry(correction)).rejects.toMatchObject({
-    fields: { reason: 'Bitte einen Änderungsgrund angeben.' },
-  });
   correction.form.reason = 'x'.repeat(501);
   await expect(f.machine.saveEntry(correction)).rejects.toMatchObject({
     fields: { reason: expect.stringContaining('500 Zeichen') },
@@ -384,4 +377,35 @@ it('assigns unit, closing value, time conflicts and correction reasons to their 
   await expect(f.machine.saveEntry(unchanged)).resolves.toMatchObject({
     entry: { id: first.id, revisions: [] },
   });
+});
+
+it('saves corrections without a reason while retaining the original and changed values', async () => {
+  const draft = await f.machine.draft(machineRecord.id);
+  draft.form.value = '100';
+  const original = (await f.machine.saveEntry(draft)).entry;
+  params.entryId = original.id;
+  await mount();
+  const date = field('Datum und Uhrzeit');
+  expect(date.props.showLabel).toBe(false);
+  expect(
+    date
+      .parent!.findAllByType('Body' as never)
+      .map((node) => node.props.children),
+  ).toEqual(['Datum und Uhrzeit', 'Zeitpunkt der Ablesung oder des Wechsels']);
+  expect(field('Änderungsgrund (optional)').props.value).toBe('');
+  await act(async () => field('Zählerstand *').props.onChangeText('101'));
+  await act(async () =>
+    field('Änderungsgrund (optional)').props.onChangeText('  '),
+  );
+  await press('Korrektur bestätigen und speichern');
+  const saved = (await f.repo.snapshot()).entries[0]!;
+  expect(saved.original).toEqual(original.original);
+  expect(saved.measurement.value.digits).toBe('101');
+  expect(saved.revisions).toHaveLength(1);
+  expect(saved.revisions[0]).toMatchObject({
+    reason: '',
+    before: { measurement: { value: { digits: '100' } } },
+    after: { measurement: { value: { digits: '101' } } },
+  });
+  expect(ports.navigate).toHaveBeenCalled();
 });

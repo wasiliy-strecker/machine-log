@@ -4,23 +4,18 @@ import {
   Body,
   Button,
   Busy,
-  Card,
   Notice,
   Page,
   useTheme,
 } from '../../core/ui/components';
-import {
-  eventLabels,
-  sourceLabels,
-  allAttachments,
-} from '../../core/domain/models';
-import { formatValue } from '../../core/domain/reading-value';
+import { allAttachments } from '../../core/domain/models';
 import { counterTitle } from '../../core/domain/production-counter';
-import { dateTime, entrySummary } from '../records/presentation-model';
+import { entrySummary } from '../records/presentation-model';
 import { Reports } from '../records/reports';
 import { PhotoGallery, Documents } from '../media/attachments';
 import { useEntryDetail } from './use-entry-detail';
 import { MachineIcon } from '../../core/ui/machine-icon';
+import { CorrectionHistory, EntryInformation } from './entry-detail-sections';
 export function EntryDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const vm = useEntryDetail(id),
@@ -68,6 +63,9 @@ export function EntryDetailScreen() {
             : e.counterName}
         </Body>
       </View>
+      {Date.parse(e.occurredAt) > Date.parse(e.updatedAt) && (
+        <Notice text="Beim Speichern lag der angegebene Ablesezeitpunkt in der Zukunft. Der tatsächliche Speicherzeitpunkt bleibt separat erhalten." />
+      )}
       <View style={{ gap: 12, marginTop: 4, marginBottom: 6 }}>
         <Button
           secondary
@@ -94,98 +92,9 @@ export function EntryDetailScreen() {
         />
       </View>
       <Notice error text={vm.error} />
-      <Card>
-        <Body strong>Eintragsinformationen</Body>
-        <Body>{dateTime(e.occurredAt)}</Body>
-        <Body>
-          {e.counterName} · {sourceLabels[e.source]}
-        </Body>
-        <Body>{eventLabels[e.kind]}</Body>
-        {e.kind !== 'reading' && (
-          <Body>
-            Alter Endstand:{' '}
-            {e.closing
-              ? `${formatValue(e.closing.value)} ${e.closing.unit}`
-              : 'Unbekannt'}
-          </Body>
-        )}
-        {!!e.newCounterNumber && (
-          <Body>Neue Zählernummer: {e.newCounterNumber}</Body>
-        )}
-        {vm.delta && <Notice text={vm.delta.label} />}
-        {e.ocr && (
-          <Body muted>
-            OCR-Vorschlag: {e.ocr.selectedText || 'Kein Vorschlag übernommen'}
-          </Body>
-        )}
-        {Date.parse(e.occurredAt) > Date.parse(e.updatedAt) && (
-          <Notice text="Der Ablesezeitpunkt lag beim Speichern dieses Stands in der Zukunft." />
-        )}
-        {!!e.note && <Body>{e.note}</Body>}
-        <Body muted style={{ fontSize: 12 }}>
-          Zuletzt bearbeitet: {dateTime(e.updatedAt)}
-        </Body>
-      </Card>
+      <EntryInformation entry={e} />
       <Documents documents={e.attachments.filter((a) => a.kind === 'pdf')} />
-      {e.revisions.length > 0 && (
-        <Card>
-          <Body strong>Korrekturhistorie</Body>
-          <Body>
-            Ursprünglich: {formatValue(e.original.measurement.value)}{' '}
-            {e.original.measurement.unit} · {dateTime(e.original.occurredAt)}
-          </Body>
-          {e.revisions.map((revision, index) => (
-            <View key={revision.id} style={{ gap: 6, marginTop: 12 }}>
-              <Body strong>
-                Korrektur {index + 1} · {dateTime(revision.changedAt)}
-              </Body>
-              <Body>Grund: {revision.reason}</Body>
-              <Body>
-                {eventLabels[revision.before.kind]} →{' '}
-                {eventLabels[revision.after.kind]}
-              </Body>
-              <Body>
-                Stand: {formatValue(revision.before.measurement.value)}{' '}
-                {revision.before.measurement.unit} →{' '}
-                {formatValue(revision.after.measurement.value)}{' '}
-                {revision.after.measurement.unit}
-              </Body>
-              <Body>
-                Zeitpunkt: {dateTime(revision.before.occurredAt)} →{' '}
-                {dateTime(revision.after.occurredAt)}
-              </Body>
-              {(revision.before.closing || revision.after.closing) && (
-                <Body>
-                  Endstand:{' '}
-                  {revision.before.closing
-                    ? `${formatValue(revision.before.closing.value)} ${revision.before.closing.unit}`
-                    : 'Unbekannt'}{' '}
-                  →{' '}
-                  {revision.after.closing
-                    ? `${formatValue(revision.after.closing.value)} ${revision.after.closing.unit}`
-                    : 'Unbekannt'}
-                </Body>
-              )}
-              {revision.before.note !== revision.after.note && (
-                <Body>
-                  Notiz: {revision.before.note || '–'} →{' '}
-                  {revision.after.note || '–'}
-                </Body>
-              )}
-              <PhotoGallery
-                photos={revision.before.attachments.filter(
-                  (a) => a.kind === 'photo',
-                )}
-              />
-              <Documents
-                documents={revision.before.attachments.filter(
-                  (a) => a.kind === 'pdf',
-                )}
-              />
-            </View>
-          ))}
-        </Card>
-      )}
+      <CorrectionHistory key={e.id} entry={e} />
       <Reports
         recordId={e.recordId}
         entryId={e.id}

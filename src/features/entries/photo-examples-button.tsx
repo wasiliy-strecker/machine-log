@@ -111,7 +111,7 @@ function PhotoExamplesGallery({ close }: { close(): void }) {
           style={{
             flex: 1,
             justifyContent: 'flex-end',
-            backgroundColor: '#00000066',
+            backgroundColor: '#00000099',
             paddingTop: safe.top,
           }}
         >
@@ -132,7 +132,14 @@ function PhotoExamplesGallery({ close }: { close(): void }) {
               onLayout={sheet.onLayout}
               style={[
                 {
-                  backgroundColor: c.card,
+                  backgroundColor: c.elevated,
+                  borderWidth: 1,
+                  borderColor: c.border,
+                  elevation: 24,
+                  shadowColor: '#000000',
+                  shadowOffset: { width: 0, height: -6 },
+                  shadowOpacity: 0.3,
+                  shadowRadius: 20,
                   borderTopLeftRadius: 28,
                   borderTopRightRadius: 28,
                   width: '100%',

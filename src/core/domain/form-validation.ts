@@ -75,8 +75,6 @@ export function validateEntryForm(form: EntryForm): void {
 export function validateCorrectionReason(reason: string): void {
   if (!revisionSchema.shape.reason.safeParse(reason.trim()).success)
     throw new FormValidationError({
-      reason: reason.trim()
-        ? 'Bitte höchstens 500 Zeichen für den Änderungsgrund eingeben.'
-        : 'Bitte einen Änderungsgrund angeben.',
+      reason: 'Bitte höchstens 500 Zeichen für den Änderungsgrund eingeben.',
     });
 }

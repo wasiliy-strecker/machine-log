@@ -254,8 +254,10 @@ export function EntryEditorScreen() {
           >
             <Card>
               <Body strong>Datum und Uhrzeit</Body>
+              <Body muted>Zeitpunkt der Ablesung oder des Wechsels</Body>
               <DateField
-                label="Zeitpunkt der Ablesung oder des Wechsels"
+                label="Datum und Uhrzeit"
+                showLabel={false}
                 time
                 value={form.occurredAt}
                 disabled={vm.busy}
@@ -293,7 +295,7 @@ export function EntryEditorScreen() {
                 attempt={vm.errorAttempt}
               >
                 <Field
-                  label="Änderungsgrund *"
+                  label="Änderungsgrund (optional)"
                   error={vm.fieldErrors.reason}
                   multiline
                   value={form.reason}

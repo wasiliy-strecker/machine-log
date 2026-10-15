@@ -62,8 +62,12 @@ Einheiten werden nicht verrechnet. Rückläufige Stände müssen durch einen pas
 Wechsel oder eine Korrektur aufgelöst werden. Es gibt keine automatische Erkennung
 von Rücksetzungen oder Überläufen, keine Einheitenumrechnung und keine Schichtanalyse.
 
-Korrekturen benötigen einen Grund. Originalwerte, Zeitpunkte, OCR-Quelle und
-frühere Anhänge bleiben in einer unveränderlichen Korrekturkette erhalten.
+Ein Änderungsgrund ist bei Korrekturen optional. Originalwerte, Zeitpunkte,
+OCR-Quelle und frühere Anhänge bleiben in einer unveränderlichen Korrekturkette
+erhalten. Die Ablesungsansicht zeigt wie ZählerstandLog beschriftete Angaben zu
+Zeitpunkt, Quelle und optionaler Notiz. Der „Korrekturverlauf“ erklärt seinen
+Zweck und zeigt neueste Korrekturen zuerst. Nur geänderte Angaben erscheinen mit
+„Vorher“ und „Neu“. Frühere Fotos lassen sich bei einer Fotoänderung aufklappen.
 Einträge können bewusst gelöscht werden, sofern dadurch keine widersprüchliche
 Zählerfolge entsteht. Ein Zähler mit Einträgen, Entwürfen oder eigenen Protokollen
 kann nicht aus der Maschine entfernt werden. Das Löschen der gesamten Maschine

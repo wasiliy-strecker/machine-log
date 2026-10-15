@@ -665,6 +665,7 @@ export function Choices({
 }
 export function DateField({
   label,
+  showLabel = true,
   value,
   onChange,
   time = false,
@@ -672,6 +673,7 @@ export function DateField({
   disabled = false,
 }: {
   label: string;
+  showLabel?: boolean;
   value: string;
   onChange(v: string): void;
   time?: boolean;
@@ -717,32 +719,34 @@ export function DateField({
       }}
     >
       {picker.dialog}
-      <View
-        pointerEvents="none"
-        style={{
-          position: 'absolute',
-          top: -10,
-          left: 12,
-          maxWidth: '90%',
-          paddingHorizontal: 8,
-          borderRadius: 8,
-          backgroundColor: c.card,
-          overflow: 'hidden',
-          zIndex: 1,
-        }}
-      >
-        <Text
-          numberOfLines={1}
+      {showLabel && (
+        <View
+          pointerEvents="none"
           style={{
-            color: c.muted,
-            fontFamily: 'Roboto',
-            fontSize: 12,
-            lineHeight: 18,
+            position: 'absolute',
+            top: -10,
+            left: 12,
+            maxWidth: '90%',
+            paddingHorizontal: 8,
+            borderRadius: 8,
+            backgroundColor: c.card,
+            overflow: 'hidden',
+            zIndex: 1,
           }}
         >
-          {label}
-        </Text>
-      </View>
+          <Text
+            numberOfLines={1}
+            style={{
+              color: c.muted,
+              fontFamily: 'Roboto',
+              fontSize: 12,
+              lineHeight: 18,
+            }}
+          >
+            {label}
+          </Text>
+        </View>
+      )}
       <Pressable
         accessibilityRole="button"
         accessibilityLabel={label}

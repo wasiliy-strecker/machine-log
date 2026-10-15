@@ -1,4 +1,3 @@
-import { increment, type Increment } from '../../core/domain/counter-timeline';
 import { useCallback, useState } from 'react';
 import { router, useFocusEffect } from 'expo-router';
 import { useServices } from '../../core/composition';
@@ -8,7 +7,6 @@ import { errorText } from '../../core/ui/components';
 import type { CounterEvent, Machine } from '../../core/domain/models';
 export function useEntryDetail(id: string) {
   const { machine, revision, refresh } = useServices();
-  const [delta, setDelta] = useState<Increment>();
   const [entry, setEntry] = useState<CounterEvent>(),
     [record, setRecord] = useState<Machine>(),
     [loading, setLoading] = useState(true);
@@ -19,13 +17,9 @@ export function useEntryDetail(id: string) {
     useCallback(() => {
       let active = true;
       Promise.all([machine.repository.entry(id), machine.repository.records()])
-        .then(async ([entry, records]) => {
-          const previous = entry
-            ? await machine.repository.previousMeasurement(entry)
-            : null;
+        .then(([entry, records]) => {
           if (active) {
             setEntry(entry ?? undefined);
-            setDelta(entry ? increment(entry, previous) : undefined);
             setRecord(records.find((r) => r.id === entry?.recordId));
             setError('');
           }
@@ -45,7 +39,6 @@ export function useEntryDetail(id: string) {
   );
   return {
     entry,
-    delta,
     record,
     loading,
     ...task,
