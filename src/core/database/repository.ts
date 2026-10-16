@@ -143,7 +143,14 @@ export class SqlRepository implements Repository {
           )
         )[0]?.n ?? 0;
       const any = await this.db.all<{ found: number }>(
-        `SELECT EXISTS(SELECT 1 FROM entries WHERE record_id=? ${counterId ? 'AND counter_id=?' : ''} AND (json_array_length(body,'$.attachments')>0 OR json_array_length(body,'$.original.attachments')>0 OR EXISTS(SELECT 1 FROM json_each(body,'$.revisions') WHERE json_array_length(value,'$.before.attachments')>0 OR json_array_length(value,'$.after.attachments')>0))) found`,
+        `SELECT EXISTS(SELECT 1 FROM entries WHERE record_id=? ${counterId ? 'AND counter_id=?' : ''} AND (
+          json_array_length(body,'$.attachments')>0
+          OR EXISTS(SELECT 1 FROM json_each(body,'$.original.attachments') WHERE json_extract(value,'$.kind')='pdf')
+          OR EXISTS(SELECT 1 FROM json_each(body,'$.revisions') revision WHERE
+            EXISTS(SELECT 1 FROM json_each(revision.value,'$.before.attachments') WHERE json_extract(value,'$.kind')='pdf')
+            OR EXISTS(SELECT 1 FROM json_each(revision.value,'$.after.attachments') WHERE json_extract(value,'$.kind')='pdf')
+          )
+        )) found`,
         ...(counterId ? [recordId, counterId] : [recordId]),
       );
       return { rows, total, hasAttachments: any[0]?.found === 1 };

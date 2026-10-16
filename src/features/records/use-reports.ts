@@ -109,8 +109,8 @@ export function useReports(
               label: 'Mit Fotos',
               description: anyAttachments
                 ? entryId
-                  ? 'Enthält das aktuelle Foto und frühere Fotoversionen. Vorhandene Altanhänge bleiben enthalten.'
-                  : 'Enthält aktuelle und frühere Fotos der Ablesungen. Vorhandene Altanhänge bleiben enthalten.'
+                  ? 'Enthält nur das aktuelle Foto. Vorhandene PDF-Altanhänge bleiben enthalten.'
+                  : 'Enthält nur die aktuellen Fotos der Ablesungen. Vorhandene PDF-Altanhänge bleiben enthalten.'
                 : 'Keine Fotos vorhanden.',
               icon: 'photo_outlined',
               disabled: !anyAttachments,

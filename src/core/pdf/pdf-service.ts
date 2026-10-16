@@ -1,7 +1,6 @@
 import { PDFDocument, type PDFImage } from 'pdf-lib';
 import fontkit from '@pdf-lib/fontkit';
 import {
-  allAttachments,
   eventLabels,
   sourceLabels,
   type Attachment,
@@ -9,6 +8,7 @@ import {
   type CounterEvent,
   type Machine,
 } from '../domain/models';
+import { reportAttachments } from '../domain/report-attachments';
 import { chronological, increment } from '../domain/counter-timeline';
 import { formatValue } from '../domain/reading-value';
 import {
@@ -302,7 +302,7 @@ export class PdfService {
     options: ReportOptions,
   ): Promise<Uint8Array> {
     const referenced = new Map(
-      entries.flatMap(allAttachments).map((a) => [a.file, a]),
+      entries.flatMap(reportAttachments).map((a) => [a.file, a]),
     );
     if (
       [...referenced.values()].reduce((sum, a) => sum + a.size, 0) >
@@ -370,9 +370,7 @@ export class PdfService {
       const layout = new ReportLayout(pdf, fonts, number);
       entrySection(layout, entry, previous.get(entry.id), number);
       const current = new Set(entry.attachments.map((a) => a.file));
-      const attachments = [
-        ...new Map(allAttachments(entry).map((a) => [a.file, a])).values(),
-      ];
+      const attachments = reportAttachments(entry);
       const photos: { attachment: Attachment; image: PDFImage }[] = [];
       const documents: { attachment: Attachment; pdf: PDFDocument }[] = [];
       for (const attachment of attachments) {
@@ -392,25 +390,16 @@ export class PdfService {
         }
       }
       if (full)
-        for (const archived of [false, true]) {
-          const group = photos.filter(
-            ({ attachment }) => current.has(attachment.file) !== archived,
-          );
-          if (!group.length) continue;
-          for (const [index, { image, attachment }] of group.entries())
-            layout.photo(image, {
-              title: archived ? 'Frühere Fotoversionen' : 'Aktuelle Fotos',
-              name: attachment.name,
-              number: index + 1,
-              total: group.length,
-            });
-        }
+        for (const [index, { image, attachment }] of photos.entries())
+          layout.photo(image, {
+            title: 'Aktuelle Fotos',
+            name: attachment.name,
+            number: index + 1,
+            total: photos.length,
+          });
       else if (attachments.length) {
         layout.gap(12);
-        layout.text(
-          'Anhänge einschließlich früherer Versionen (nicht eingebettet)',
-          { bold: true },
-        );
+        layout.text('Anhänge (nicht eingebettet)', { bold: true });
         for (const a of attachments)
           layout.text(
             `${current.has(a.file) ? 'Aktuell' : 'Frühere Version'} · ${a.name}`,

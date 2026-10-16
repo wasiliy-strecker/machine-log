@@ -85,9 +85,10 @@ Gespeicherte Zählerverlaufsprotokolle und Einzelprotokolle werden mit zehn PDFs
 pro Seite geladen. Ab elf PDFs erscheinen „Zurück“, „Weiter“ und „Seite x von y“.
 Beim Blättern springt die Ansicht zum Beginn des jeweiligen PDF-Bereichs.
 Wird das letzte PDF einer Seite gelöscht, erscheint die vorherige gültige Seite.
-In neu erstellten Protokollen erhält jedes aktuelle und frühere Foto eine eigene
-Seite. Es nutzt die verfügbare Seitenbreite und -höhe mit unverändertem
-Seitenverhältnis, ohne Beschnitt. So bleibt die Zähleranzeige besser lesbar.
+Neu erstellte Protokolle zeigen je Ablesung nur das aktuelle Foto. Frühere
+Fotoversionen bleiben in der Korrekturhistorie und in Backups erhalten.
+Jedes aktuelle Foto erhält eine eigene Seite mit unverändertem Seitenverhältnis
+und ohne Beschnitt. Die bisherige Fotogröße bleibt erhalten.
 Frühere gemeinsame Maschinenprotokolle bleiben als Altprotokolle zugänglich. Bereits erzeugte PDFs bleiben nach
 Korrekturen unverändert. Protokolle dienen der Dokumentation und sind keine
 amtliche Bestätigung. Zeitangaben stammen vom Gerät.

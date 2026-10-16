@@ -1,4 +1,4 @@
-import { afterEach, expect, it } from 'vitest';
+import { afterEach, expect, it, vi } from 'vitest';
 import { fixture, record, env, photo, sourcePdf, connect } from './support';
 import { SqlRepository, migrate } from '../src/core/database/repository';
 import { increment } from '../src/core/domain/counter-timeline';
@@ -16,6 +16,7 @@ import { join } from 'node:path';
 import { execFileSync } from 'node:child_process';
 import { createDecipheriv, pbkdf2Sync } from 'node:crypto';
 import { mergeEvent } from '../src/core/backup/backup-service';
+import { reportAttachments } from '../src/core/domain/report-attachments';
 
 const fixtures: Awaited<ReturnType<typeof fixture>>[] = [];
 async function setup() {
@@ -257,9 +258,17 @@ it('exports grouped production PDFs and restores encrypted evidence including hi
     'Korrektur',
     'Ziffer berichtigt',
     'SYNTHETIC_MACHINE_ATTACHMENT',
-    'Frühere Fotoversionen',
   ])
     expect(text).toContain(expected);
+  expect(text).not.toContain('Frühere Fotoversionen');
+  expect(
+    execFileSync('pdfimages', ['-list', path], { encoding: 'utf8' })
+      .trim()
+      .split('\n'),
+  ).toHaveLength(2);
+  expect(
+    (await f.repo.entries(r.id, '', 0, 1, r.counters[0]!.id)).hasAttachments,
+  ).toBe(true);
   const normalized = text.replace(/\s+/g, ' ');
   expect(text.match(/Änderungsgrund:/g)).toHaveLength(1);
   expect(text).toContain('Korrektur 2');
@@ -317,12 +326,20 @@ it('exports grouped production PDFs and restores encrypted evidence including hi
   await expect(f.backup.codec.decode(tampered, password)).rejects.toThrow();
 });
 
-it('shows current and archived photos at half the page area while retaining their original bytes', async () => {
+it('embeds only current photos in single and history reports, keeping their size and original bytes', async () => {
   const f = await setup(),
     r = record();
   await f.machine.saveRecord(r);
+  const originalBytes = new Uint8Array(
+    await readFile(
+      new URL(
+        '../assets/photo-examples/01_fertigung_012480_stueck.jpg',
+        import.meta.url,
+      ),
+    ),
+  );
   const originalPhoto = await f.machine.importAttachment(
-    await photo(),
+    originalBytes,
     'photo',
     'Original.jpg',
     'camera',
@@ -337,58 +354,156 @@ it('shows current and archived photos at half the page area while retaining thei
     'Neues-Foto.jpg',
     'camera',
   );
+  expect(replacementPhoto.sha256).not.toBe(originalPhoto.sha256);
   const edit = await f.machine.draft(r.id, first);
   edit.form.attachments = [replacementPhoto];
   edit.form.reason = 'Besser lesbares Foto';
-  await f.machine.saveEntry(edit);
-  const report = await f.machine.createReport(r.id, first.id, true);
-  const path = join(f.root, 'large-photos.pdf');
-  await writeFile(path, await f.vault.read(report.file));
-  const images = execFileSync('pdfimages', ['-list', path], {
-    encoding: 'utf8',
-  })
-    .trim()
-    .split('\n')
-    .slice(2)
-    .map((line) => line.trim().split(/\s+/));
-  expect(images).toHaveLength(2);
-  expect(new Set(images.map((row) => row[0])).size).toBe(2);
-  for (const [index, row] of images.entries()) {
-    // Poppler reads the generated PDF's image transforms, not layout helpers.
-    const width = (Number(row[3]) * 72) / Number(row[12]);
-    const height = (Number(row[4]) * 72) / Number(row[13]);
-    expect(width).toBeGreaterThan(350);
-    expect(width).toBeLessThan(370);
-    expect(height).toBeGreaterThan(220);
-    expect(height).toBeLessThan(245);
-    expect(width / height).toBeCloseTo(2500 / 1600, 2);
-    const page = execFileSync(
-      'pdftotext',
-      ['-f', row[0]!, '-l', row[0]!, path, '-'],
-      { encoding: 'utf8' },
+  const corrected = (await f.machine.saveEntry(edit)).entry;
+  expect(reportAttachments(corrected)).toEqual([replacementPhoto]);
+  const evidence = evidenceJson((await f.repo.snapshot()).entries);
+  const read = f.vault.read.bind(f.vault);
+  const reads = vi.spyOn(f.vault, 'read').mockImplementation(async (file) => {
+    if (file === originalPhoto.file)
+      throw new Error('Archived photo must not be needed for a report.');
+    return read(file);
+  });
+  try {
+    for (const single of [true, false]) {
+      const report = await f.machine.createReport(
+        r.id,
+        single ? first.id : null,
+        true,
+        r.counters[0]!.id,
+      );
+      const path = join(
+        f.root,
+        single ? 'single-photo.pdf' : 'history-photo.pdf',
+      );
+      await writeFile(path, await f.vault.read(report.file));
+      const images = execFileSync('pdfimages', ['-list', path], {
+        encoding: 'utf8',
+      })
+        .trim()
+        .split('\n')
+        .slice(2)
+        .map((line) => line.trim().split(/\s+/));
+      expect(images).toHaveLength(1);
+      const row = images[0]!;
+      // Poppler reads the generated PDF's transforms and embedded bytes.
+      const width = (Number(row[3]) * 72) / Number(row[12]);
+      const height = (Number(row[4]) * 72) / Number(row[13]);
+      expect(width).toBeGreaterThan(350);
+      expect(width).toBeLessThan(370);
+      expect(height).toBeGreaterThan(220);
+      expect(height).toBeLessThan(245);
+      expect(width / height).toBeCloseTo(2500 / 1600, 2);
+      const page = execFileSync(
+        'pdftotext',
+        ['-f', row[0]!, '-l', row[0]!, path, '-'],
+        { encoding: 'utf8' },
+      );
+      expect(page).toContain('Aktuelle Fotos');
+      expect(page).toContain(replacementPhoto.name);
+      expect(page).not.toContain(originalPhoto.name);
+      expect(page).toContain('Foto 1 von 1');
+      expect(page).toContain('Eintrag 1');
+      expect(page).toContain('Dokumentation deiner Produktionsstände.');
+      expect(
+        execFileSync('pdftotext', [path, '-'], { encoding: 'utf8' }),
+      ).not.toContain('Frühere Fotoversionen');
+      const prefix = join(
+        f.root,
+        single ? 'extracted-single' : 'extracted-history',
+      );
+      execFileSync('pdfimages', ['-j', path, prefix]);
+      expect(new Uint8Array(await readFile(`${prefix}-000.jpg`))).toEqual(
+        await photo(),
+      );
+      const compact = await f.machine.createReport(
+        r.id,
+        single ? first.id : null,
+        false,
+        r.counters[0]!.id,
+      );
+      const compactPath = path + '.compact.pdf';
+      await writeFile(compactPath, await f.vault.read(compact.file));
+      expect(
+        execFileSync('pdfimages', ['-list', compactPath], { encoding: 'utf8' })
+          .trim()
+          .split('\n'),
+      ).toHaveLength(2);
+    }
+    expect(reads.mock.calls.some(([file]) => file === originalPhoto.file)).toBe(
+      false,
     );
-    expect(page).toContain(
-      index === 0 ? 'Aktuelle Fotos' : 'Frühere Fotoversionen',
-    );
-    expect(page).toContain(
-      index === 0 ? replacementPhoto.name : originalPhoto.name,
-    );
-    expect(page).toContain('Foto 1 von 1');
-    expect(page).toContain('Eintrag 1');
-    expect(page).toContain('Dokumentation deiner Produktionsstände.');
+  } finally {
+    reads.mockRestore();
   }
-  const prefix = join(f.root, 'extracted');
-  execFileSync('pdfimages', ['-j', path, prefix]);
-  for (const index of ['000', '001'])
-    expect(new Uint8Array(await readFile(`${prefix}-${index}.jpg`))).toEqual(
-      await photo(),
-    );
-  const compact = await f.machine.createReport(r.id, first.id, false);
-  const compactPath = join(f.root, 'compact.pdf');
-  await writeFile(compactPath, await f.vault.read(compact.file));
+  expect(evidenceJson((await f.repo.snapshot()).entries)).toBe(evidence);
+  expect(await f.vault.read(originalPhoto.file)).toEqual(originalBytes);
+});
+
+it('does not fall back to an archived photo when the current photo was removed and scopes availability to the selected counter', async () => {
+  const f = await setup(),
+    r = record();
+  r.counters.push({ ...r.counters[0]!, id: env.id(), name: 'Legacy counter' });
+  await f.repo.saveRecord(r);
+  const image = await f.machine.importAttachment(
+    await photo(),
+    'photo',
+    'Original.jpg',
+    'camera',
+  );
+  const first = await reading(f, r, 0, '100', {
+    attachments: [image],
+    source: 'camera',
+  });
+  const otherImage = await f.machine.importAttachment(
+    await photo(),
+    'photo',
+    'Other.jpg',
+    'camera',
+  );
+  await reading(
+    f,
+    r,
+    0,
+    '200',
+    { attachments: [otherImage], source: 'camera' },
+    r.counters[1]!.id,
+  );
+  const edit = await f.machine.draft(r.id, first);
+  edit.form.attachments = [];
+  const removed = (await f.machine.saveEntry(edit)).entry;
+  expect(reportAttachments(removed)).toEqual([]);
+  expect(allAttachments(removed)).toContainEqual(image);
   expect(
-    execFileSync('pdfimages', ['-list', compactPath], { encoding: 'utf8' })
-      .trim()
-      .split('\n'),
-  ).toHaveLength(2);
+    (await f.repo.entries(r.id, '', 0, 1, r.counters[0]!.id)).hasAttachments,
+  ).toBe(false);
+  expect(
+    (await f.repo.entries(r.id, '', 0, 1, r.counters[1]!.id)).hasAttachments,
+  ).toBe(true);
+  expect((await f.repo.entries(r.id, '', 0, 1)).hasAttachments).toBe(true);
+  for (const single of [true, false]) {
+    const report = await f.machine.createReport(
+      r.id,
+      single ? first.id : null,
+      true,
+      r.counters[0]!.id,
+    );
+    const path = join(
+      f.root,
+      single ? 'removed-single.pdf' : 'removed-history.pdf',
+    );
+    await writeFile(path, await f.vault.read(report.file));
+    expect(
+      execFileSync('pdfimages', ['-list', path], { encoding: 'utf8' })
+        .trim()
+        .split('\n'),
+    ).toHaveLength(2);
+    expect(
+      execFileSync('pdftotext', [path, '-'], { encoding: 'utf8' }),
+    ).not.toContain('Frühere Fotoversionen');
+  }
+  expect(await f.vault.read(image.file)).toEqual(await photo());
 });

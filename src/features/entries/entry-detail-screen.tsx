@@ -8,7 +8,7 @@ import {
   Page,
   useTheme,
 } from '../../core/ui/components';
-import { allAttachments } from '../../core/domain/models';
+import { reportAttachments } from '../../core/domain/report-attachments';
 import { counterTitle } from '../../core/domain/production-counter';
 import { entrySummary } from '../records/presentation-model';
 import { Reports } from '../records/reports';
@@ -98,7 +98,7 @@ export function EntryDetailScreen() {
       <Reports
         recordId={e.recordId}
         entryId={e.id}
-        hasAttachments={!!allAttachments(e).length}
+        hasAttachments={!!reportAttachments(e).length}
         summary={entrySummary(e)}
       />
     </Page>

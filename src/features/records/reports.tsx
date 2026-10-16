@@ -239,7 +239,7 @@ function ReportSection({
             </Body>
             <Body style={{ color: c.onSecondaryContainer }}>
               {entryId
-                ? 'Erstelle die PDF kompakt oder mit dem aktuellen Foto und früheren Fotoversionen. Stand, Zeitpunkt und Notizen sind enthalten – zum Speichern, Drucken oder Teilen.'
+                ? 'Erstelle die PDF kompakt oder mit dem aktuellen Foto. Stand, Zeitpunkt und Notizen sind enthalten – zum Speichern, Drucken oder Teilen.'
                 : 'Die PDF bündelt die Ablesungen, Zuwächse und Korrekturen dieses Zählers. Erstelle sie kompakt oder mit Fotos – zum Speichern, Drucken oder Teilen.'}
             </Body>
           </View>
