@@ -107,6 +107,10 @@ PDFs und JPEGs behalten ihre Inhaltsprüfung. Die Wiederherstellung prüft auch
 neu geschriebene Dateien und verwendet ihren Dateicache nur innerhalb des
 laufenden Vorgangs. Das Dateiformat und die Passwortableitung sind unverändert.
 Bestehende Sicherungen bleiben lesbar.
+Asynchrone Dateiverschiebungen werden vor der Prüfung der Zieldatei vollständig
+abgewartet. Das verhindert einen vorzeitigen Importabbruch beim Wiederherstellen
+älterer Sicherungen. Auch beim Teilen von Backups sowie Einzel- und mehrteiligen
+PDFs wird die jeweilige Kopie fertiggestellt, bevor Android sie erhält.
 
 Der Ladehinweis unterscheidet Vorbereitung, Dateiprüfung, Verschlüsselung,
 Entschlüsselung und Wiederherstellung. Bei Dateischritten erscheint der
@@ -320,3 +324,11 @@ datenbewahrend auf dem HONOR BVL-N49 installiert. Die APK liegt unter
 Paket, Signatur und Prüfsumme der installierten APK wurden bestätigt.
 Der App-Prozess wurde ohne gemeldete Startfehler gestartet. Das Smartphone war
 gesperrt. Es wurde kein Backup mit Nutzerdaten erzeugt oder wiederhergestellt.
+
+Die anschließende Korrektur für vollständig abgewartete Dateiverschiebungen und
+Kopien ist mit 90 Anwendungstests geprüft und ebenfalls datenbewahrend installiert.
+Die aktuelle APK liegt unter
+`build/dev/maschinenlog-1.0.0-dev-backup-restore-file-wait-2026-10-16.apk`.
+Die Einstellungen mit „Backup wiederherstellen“ wurden auf dem entsperrten
+Smartphone geöffnet. Die Wiederherstellung der echten alten Sicherung benötigt
+die Passworteingabe durch den Nutzer direkt auf dem Gerät.

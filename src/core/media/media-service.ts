@@ -114,14 +114,18 @@ export class ExpoMedia implements MediaPort {
       );
     }
   }
-  private sharedCopy(item: ShareItem, directory: Directory, fallback: string) {
+  private async sharedCopy(
+    item: ShareItem,
+    directory: Directory,
+    fallback: string,
+  ) {
     const name =
       (item.name || fallback)
         .replace(/\.pdf$/i, '')
         .replace(/[^\p{L}\p{N} ._-]/gu, '_')
         .slice(0, 160) + '.pdf';
     const copy = new File(directory, name);
-    new File(this.machine.vault.uri(item.file)).copy(copy);
+    await new File(this.machine.vault.uri(item.file)).copy(copy);
     return copy.uri;
   }
   async share(item: ShareItem) {
@@ -136,7 +140,7 @@ export class ExpoMedia implements MediaPort {
         `share-${this.machine.env.id()}`,
       );
       directory.create({ intermediates: true, idempotent: true });
-      uri = this.sharedCopy(item, directory, 'Produktionsprotokoll');
+      uri = await this.sharedCopy(item, directory, 'Produktionsprotokoll');
     }
     await Sharing.shareAsync(uri, {
       mimeType: item.file.endsWith('.pdf') ? 'application/pdf' : 'image/jpeg',
@@ -152,16 +156,18 @@ export class ExpoMedia implements MediaPort {
     );
     directory.create({ intermediates: true, idempotent: true });
     try {
-      const uris = items.map((item, i) =>
-        this.sharedCopy(
-          {
-            ...item,
-            name: `Produktionsprotokoll_Teil_${String(i + 1).padStart(2, '0')}_von_${items.length}`,
-          },
-          directory,
-          'Produktionsprotokoll',
-        ),
-      );
+      const uris: string[] = [];
+      for (const [i, item] of items.entries())
+        uris.push(
+          await this.sharedCopy(
+            {
+              ...item,
+              name: `Produktionsprotokoll_Teil_${String(i + 1).padStart(2, '0')}_von_${items.length}`,
+            },
+            directory,
+            'Produktionsprotokoll',
+          ),
+        );
       await machineNative.sharePdfs(uris);
       // Android reads the content URIs after the chooser resolves. Keep these
       // disposable copies in cache while the receiving app consumes them.
@@ -190,7 +196,7 @@ export class ExpoMedia implements MediaPort {
     const directory = new Directory(Paths.cache, 'shared-backups');
     directory.create({ idempotent: true, intermediates: true });
     const copy = new File(directory, file.name);
-    new File(file.uri).copy(copy);
+    await new File(file.uri).copy(copy);
     await Sharing.shareAsync(copy.uri, {
       mimeType: 'application/octet-stream',
       dialogTitle: 'MaschinenLog-Backup teilen',
