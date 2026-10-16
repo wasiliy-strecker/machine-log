@@ -4,6 +4,7 @@ import { replaceReadingPhoto } from './media/reading-photo';
 import { StartupError, StartupPending } from './startup/startup';
 import { PdfViewerService } from './pdf/viewer-service';
 import { androidPasswordKey } from './backup/password-key';
+import { expoBackupCrypto } from './backup/expo-backup-crypto';
 import {
   createContext,
   useContext,
@@ -109,7 +110,7 @@ async function createServices(): Promise<Services> {
     ocr: { recognize: (uri) => machineNative.recognizeText(uri) },
     backup: new BackupService(
       machine,
-      new BackupCodec(env, androidPasswordKey),
+      new BackupCodec(env, androidPasswordKey, expoBackupCrypto),
     ),
     media,
     native: machineNative,

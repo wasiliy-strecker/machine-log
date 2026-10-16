@@ -1,0 +1,196 @@
+{
+  "records": [
+    {
+      "id": "55505f91-8f47-4368-aa55-6063061032e7",
+      "name": "SYNTHETIC_BACKUP_FIXTURE",
+      "number": "M-01",
+      "category": "Fertigung",
+      "location": "Testort",
+      "manufacturer": "",
+      "model": "",
+      "serial": "",
+      "installedOn": "",
+      "note": "",
+      "counters": [
+        {
+          "id": "332d3aa8-5085-4330-8e4b-3a2f833be02e",
+          "name": "Produktion",
+          "type": "pieces",
+          "unit": "Stück",
+          "number": "",
+          "reminder": null
+        }
+      ],
+      "createdAt": "2026-10-16T17:33:21.222Z",
+      "updatedAt": "2026-10-16T17:33:21.223Z"
+    }
+  ],
+  "entries": [
+    {
+      "kind": "reading",
+      "occurredAt": "2026-10-16T17:33:21.273Z",
+      "timezoneOffsetMinutes": 120,
+      "counterName": "Produktion",
+      "counterNumber": "",
+      "newCounterNumber": "",
+      "measurement": {
+        "value": {
+          "digits": "101",
+          "scale": 0
+        },
+        "unit": "Stück"
+      },
+      "closing": null,
+      "source": "manual",
+      "ocr": null,
+      "note": "",
+      "attachments": [
+        {
+          "id": "9a7cb7f8-0dc5-4cca-84ff-c20ba8c79f87",
+          "kind": "photo",
+          "name": "Current.jpg",
+          "file": "da7aa172-dd34-41ae-854b-ad3c13de8383.jpg",
+          "sha256": "9eb6533f4e5bc958ab2d318aca86d0070cbc0909805914846abb11056b7a20d6",
+          "size": 96739
+        },
+        {
+          "id": "cf76121c-516b-4e13-82f8-43d78f67231c",
+          "kind": "pdf",
+          "name": "Legacy.pdf",
+          "file": "f87b9ff2-da1e-41ed-a3a5-f0cf7b580942.pdf",
+          "sha256": "d94f3eb0177b759dcea83912bf05d4424cbcc92eb092b064c71686e3f6567f39",
+          "size": 1083,
+          "pages": 2
+        }
+      ],
+      "id": "0a607579-0d74-46ef-95bd-ca35f6b66eb3",
+      "recordId": "55505f91-8f47-4368-aa55-6063061032e7",
+      "counterId": "332d3aa8-5085-4330-8e4b-3a2f833be02e",
+      "original": {
+        "kind": "reading",
+        "occurredAt": "2026-10-16T17:33:21.273Z",
+        "timezoneOffsetMinutes": 120,
+        "counterName": "Produktion",
+        "counterNumber": "",
+        "newCounterNumber": "",
+        "measurement": {
+          "value": {
+            "digits": "100",
+            "scale": 0
+          },
+          "unit": "Stück"
+        },
+        "closing": null,
+        "source": "manual",
+        "ocr": null,
+        "note": "",
+        "attachments": [
+          {
+            "id": "1e8736b8-846f-4ab0-8e0d-8723a70bd9a6",
+            "kind": "photo",
+            "name": "Original.jpg",
+            "file": "51b08b24-d8ee-4ae1-8b87-e604c2d2456b.jpg",
+            "sha256": "9eb6533f4e5bc958ab2d318aca86d0070cbc0909805914846abb11056b7a20d6",
+            "size": 96739
+          },
+          {
+            "id": "cf76121c-516b-4e13-82f8-43d78f67231c",
+            "kind": "pdf",
+            "name": "Legacy.pdf",
+            "file": "f87b9ff2-da1e-41ed-a3a5-f0cf7b580942.pdf",
+            "sha256": "d94f3eb0177b759dcea83912bf05d4424cbcc92eb092b064c71686e3f6567f39",
+            "size": 1083,
+            "pages": 2
+          }
+        ]
+      },
+      "revisions": [
+        {
+          "id": "e7bc3c66-10c5-44de-b596-2cfc7152d7ce",
+          "parentId": null,
+          "changedAt": "2026-10-16T17:33:21.317Z",
+          "reason": "SYNTHETIC_CORRECTION",
+          "before": {
+            "kind": "reading",
+            "occurredAt": "2026-10-16T17:33:21.273Z",
+            "timezoneOffsetMinutes": 120,
+            "counterName": "Produktion",
+            "counterNumber": "",
+            "newCounterNumber": "",
+            "measurement": {
+              "value": {
+                "digits": "100",
+                "scale": 0
+              },
+              "unit": "Stück"
+            },
+            "closing": null,
+            "source": "manual",
+            "ocr": null,
+            "note": "",
+            "attachments": [
+              {
+                "id": "1e8736b8-846f-4ab0-8e0d-8723a70bd9a6",
+                "kind": "photo",
+                "name": "Original.jpg",
+                "file": "51b08b24-d8ee-4ae1-8b87-e604c2d2456b.jpg",
+                "sha256": "9eb6533f4e5bc958ab2d318aca86d0070cbc0909805914846abb11056b7a20d6",
+                "size": 96739
+              },
+              {
+                "id": "cf76121c-516b-4e13-82f8-43d78f67231c",
+                "kind": "pdf",
+                "name": "Legacy.pdf",
+                "file": "f87b9ff2-da1e-41ed-a3a5-f0cf7b580942.pdf",
+                "sha256": "d94f3eb0177b759dcea83912bf05d4424cbcc92eb092b064c71686e3f6567f39",
+                "size": 1083,
+                "pages": 2
+              }
+            ]
+          },
+          "after": {
+            "kind": "reading",
+            "occurredAt": "2026-10-16T17:33:21.273Z",
+            "timezoneOffsetMinutes": 120,
+            "counterName": "Produktion",
+            "counterNumber": "",
+            "newCounterNumber": "",
+            "measurement": {
+              "value": {
+                "digits": "101",
+                "scale": 0
+              },
+              "unit": "Stück"
+            },
+            "closing": null,
+            "source": "manual",
+            "ocr": null,
+            "note": "",
+            "attachments": [
+              {
+                "id": "9a7cb7f8-0dc5-4cca-84ff-c20ba8c79f87",
+                "kind": "photo",
+                "name": "Current.jpg",
+                "file": "da7aa172-dd34-41ae-854b-ad3c13de8383.jpg",
+                "sha256": "9eb6533f4e5bc958ab2d318aca86d0070cbc0909805914846abb11056b7a20d6",
+                "size": 96739
+              },
+              {
+                "id": "cf76121c-516b-4e13-82f8-43d78f67231c",
+                "kind": "pdf",
+                "name": "Legacy.pdf",
+                "file": "f87b9ff2-da1e-41ed-a3a5-f0cf7b580942.pdf",
+                "sha256": "d94f3eb0177b759dcea83912bf05d4424cbcc92eb092b064c71686e3f6567f39",
+                "size": 1083,
+                "pages": 2
+              }
+            ]
+          }
+        }
+      ],
+      "createdAt": "2026-10-16T17:33:21.284Z",
+      "updatedAt": "2026-10-16T17:33:21.317Z"
+    }
+  ],
+  "reports": []
+}

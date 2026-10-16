@@ -91,6 +91,13 @@ const fill = async (label: string, value: string) => {
     root().findByProps({ label }).props.onChangeText(value),
   );
 };
+function deferred<T>() {
+  let resolve!: (value: T) => void;
+  const promise = new Promise<T>((done) => {
+    resolve = done;
+  });
+  return { promise, resolve };
+}
 async function mount() {
   if (renderer) await act(async () => renderer!.unmount());
   await act(async () => {
@@ -130,6 +137,7 @@ beforeEach(async () => {
 afterEach(async () => {
   if (renderer) await act(async () => renderer!.unmount());
   renderer = undefined;
+  vi.restoreAllMocks();
   for (const f of fixtures.splice(0)) await f.close();
 });
 
@@ -266,4 +274,141 @@ it('serializes repeated create taps and releases the operation after password ca
   await press('Verschlüsseltes Backup erstellen');
   await press('Abbrechen');
   expect(root().findAll(host('Modal'))).toHaveLength(0);
+});
+
+it('shows file progress, encryption and export preparation while blocking duplicate operations', async () => {
+  const checked = deferred<void>(),
+    encrypted = deferred<void>();
+  const preparedFile = deferred<typeof prepared>();
+  const createBackup = vi
+    .spyOn(active.backup, 'create')
+    .mockImplementation(async (_password, report) => {
+      report?.({ phase: 'checking', completedFiles: 3, totalFiles: 12 });
+      await checked.promise;
+      report?.({ phase: 'encrypting' });
+      await encrypted.promise;
+      return new Uint8Array([1, 2, 3]);
+    });
+  ports.media.prepareBackup.mockImplementation(() => preparedFile.promise);
+  try {
+    await press('Verschlüsseltes Backup erstellen');
+    await fill('Passwort', password);
+    await fill('Passwort wiederholen', password);
+    await press('Weiter');
+    expect(root().find(host('BusyOverlay')).props).toMatchObject({
+      visible: true,
+      label: 'Dateien werden geprüft · 3 von 12',
+    });
+    expect(button('Verschlüsseltes Backup erstellen').props.disabled).toBe(
+      true,
+    );
+    expect(button('Backup wiederherstellen').props.disabled).toBe(true);
+    await act(async () => checked.resolve());
+    expect(root().find(host('BusyOverlay')).props.label).toBe(
+      'Backup wird verschlüsselt …',
+    );
+    await act(async () => encrypted.resolve());
+    await settled(() =>
+      expect(ports.media.prepareBackup).toHaveBeenCalledOnce(),
+    );
+    expect(root().find(host('BusyOverlay')).props.label).toBe(
+      'Speicherort wird vorbereitet …',
+    );
+    await act(async () => preparedFile.resolve(prepared));
+    await settled(() =>
+      expect(ports.media.discardBackup).toHaveBeenCalledOnce(),
+    );
+    expect(createBackup).toHaveBeenCalledOnce();
+    expect(root().find(host('BusyOverlay')).props.visible).toBe(false);
+    expect(button('Verschlüsseltes Backup erstellen').props.disabled).toBe(
+      false,
+    );
+  } finally {
+    checked.resolve();
+    encrypted.resolve();
+    preparedFile.resolve(prepared);
+  }
+});
+
+it('clears progress and unlocks backup actions after an encryption failure so the user can retry', async () => {
+  const createBackup = vi.spyOn(active.backup, 'create');
+  createBackup.mockImplementationOnce(async (_password, report) => {
+    report?.({ phase: 'encrypting' });
+    throw new Error('SYNTHETIC_ENCRYPTION_FAILURE');
+  });
+  await press('Verschlüsseltes Backup erstellen');
+  await fill('Passwort', password);
+  await fill('Passwort wiederholen', password);
+  await press('Weiter');
+  await settled(() =>
+    expect(root().find(host('Notice')).props.text).toContain(
+      'SYNTHETIC_ENCRYPTION_FAILURE',
+    ),
+  );
+  expect(root().find(host('BusyOverlay')).props.visible).toBe(false);
+  expect(button('Verschlüsseltes Backup erstellen').props.disabled).toBe(false);
+  expect(ports.media.prepareBackup).not.toHaveBeenCalled();
+  expect(ports.media.saveBackup).not.toHaveBeenCalled();
+  expect(ports.media.discardBackup).not.toHaveBeenCalled();
+  await press('Verschlüsseltes Backup erstellen');
+  await fill('Passwort', password);
+  await fill('Passwort wiederholen', password);
+  await press('Weiter');
+  await settled(() => expect(ports.media.discardBackup).toHaveBeenCalledOnce());
+  expect(createBackup).toHaveBeenCalledTimes(2);
+});
+
+it('shows decryption and restore progress and clears the overlay before restore confirmation', async () => {
+  const decoded = await active.backup.codec.decode(
+    await active.backup.create(password),
+    password,
+  );
+  const decrypting = deferred<void>(),
+    checking = deferred<void>(),
+    restoring = deferred<void>();
+  vi.spyOn(active.backup.codec, 'decode').mockImplementation(
+    async (_bytes, _password, report) => {
+      report?.({ phase: 'decrypting' });
+      await decrypting.promise;
+      report?.({ phase: 'checking', completedFiles: 2, totalFiles: 5 });
+      await checking.promise;
+      return decoded;
+    },
+  );
+  const confirm = deferred<boolean>();
+  ports.feedback.confirm.mockImplementation(() => confirm.promise);
+  vi.spyOn(active.backup, 'restore').mockImplementation(
+    async (_decoded, report) => {
+      report?.({ phase: 'restoring', completedFiles: 1, totalFiles: 5 });
+      await restoring.promise;
+      return { warnings: [] };
+    },
+  );
+  try {
+    await press('Backup wiederherstellen');
+    await fill('Passwort', password);
+    await press('Weiter');
+    expect(root().find(host('BusyOverlay')).props.label).toBe(
+      'Backup wird entschlüsselt …',
+    );
+    await act(async () => decrypting.resolve());
+    expect(root().find(host('BusyOverlay')).props.label).toBe(
+      'Dateien werden geprüft · 2 von 5',
+    );
+    await act(async () => checking.resolve());
+    expect(ports.feedback.confirm).toHaveBeenCalledOnce();
+    expect(root().find(host('BusyOverlay')).props.visible).toBe(false);
+    await act(async () => confirm.resolve(true));
+    expect(root().find(host('BusyOverlay')).props.label).toBe(
+      'Backup wird wiederhergestellt · 1 von 5',
+    );
+    await act(async () => restoring.resolve());
+    expect(ports.refresh).toHaveBeenCalledOnce();
+    expect(root().find(host('BusyOverlay')).props.visible).toBe(false);
+  } finally {
+    decrypting.resolve();
+    checking.resolve();
+    confirm.resolve(false);
+    restoring.resolve();
+  }
 });

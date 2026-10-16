@@ -99,6 +99,19 @@ aber keine Formularentwürfe. Wiederherstellung erhält neuere lokale Korrekture
 Getrennt weiterentwickelte Korrekturketten werden vor der Datenübernahme abgewiesen.
 Die eigene Formatkennung verhindert die Übernahme fremder App-Backups.
 Backups sind auf 128 MiB begrenzt, einzelne Dateien auf 50 MiB.
+Android verwendet für SHA-256 und AES-GCM die nativen Funktionen der bereits
+vorhandenen Expo-Kryptobibliothek. Beim Erstellen wird jede unterschiedliche
+Datei einmal gelesen und einmal gehasht. Alle Referenzen aus Originalen und
+Korrekturen werden weiterhin gegen diese Prüfsumme und Dateigröße geprüft.
+PDFs und JPEGs behalten ihre Inhaltsprüfung. Die Wiederherstellung prüft auch
+neu geschriebene Dateien und verwendet ihren Dateicache nur innerhalb des
+laufenden Vorgangs. Das Dateiformat und die Passwortableitung sind unverändert.
+Bestehende Sicherungen bleiben lesbar.
+
+Der Ladehinweis unterscheidet Vorbereitung, Dateiprüfung, Verschlüsselung,
+Entschlüsselung und Wiederherstellung. Bei Dateischritten erscheint der
+tatsächliche Zähler, beispielsweise „3 von 12“. Erneutes Wählen eines
+Speicherorts verwendet dieselbe vorbereitete Sicherung.
 
 ## Ableseerinnerungen
 
@@ -295,3 +308,11 @@ Weitere manuelle Prüfung: Fehlende Einheit und fehlenden Zählerstand speichern
 Felder korrigieren, erneut speichern sowie `12,5` und `12.5` eingeben.
 Die Auslieferung liegt unter
 `build/dev/maschinenlog-1.0.0-dev-validation-2026-10-13.apk`.
+
+Die Backup-Optimierung wird lokal mit einer festen synthetischen Sicherung des
+bisherigen Codecs, den echten Expo-JavaScript-Schnittstellen an einer durch
+Node/OpenSSL ersetzten nativen Grenze und unabhängigen Kompatibilitätsprüfungen
+getestet. Das Smartphone ist für diese Änderung nicht angeschlossen. Die
+tatsächliche Dauer über die Android-Schnittstellen und die sichtbare
+Fortschrittsanzeige müssen beim nächsten Gerätetest geprüft werden. Für diesen
+Stand wurde keine neue APK gebaut oder installiert.
