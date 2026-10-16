@@ -312,7 +312,11 @@ Die Auslieferung liegt unter
 Die Backup-Optimierung wird lokal mit einer festen synthetischen Sicherung des
 bisherigen Codecs, den echten Expo-JavaScript-Schnittstellen an einer durch
 Node/OpenSSL ersetzten nativen Grenze und unabhängigen Kompatibilitätsprüfungen
-getestet. Das Smartphone ist für diese Änderung nicht angeschlossen. Die
-tatsächliche Dauer über die Android-Schnittstellen und die sichtbare
-Fortschrittsanzeige müssen beim nächsten Gerätetest geprüft werden. Für diesen
-Stand wurde keine neue APK gebaut oder installiert.
+getestet. Die tatsächliche Dauer über die Android-Schnittstellen und die sichtbare
+Fortschrittsanzeige müssen beim nächsten Gerätetest geprüft werden. Die
+optimierte Dev-Version wurde am 16. Oktober 2026 nach erneutem Anschließen
+datenbewahrend auf dem HONOR BVL-N49 installiert. Die APK liegt unter
+`build/dev/maschinenlog-1.0.0-dev-backup-optimization-2026-10-16.apk`.
+Paket, Signatur und Prüfsumme der installierten APK wurden bestätigt.
+Der App-Prozess wurde ohne gemeldete Startfehler gestartet. Das Smartphone war
+gesperrt. Es wurde kein Backup mit Nutzerdaten erzeugt oder wiederhergestellt.
