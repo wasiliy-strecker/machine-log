@@ -179,7 +179,9 @@ werden wie bei ZählerstandLog über GitHub Pages bereitgestellt.
 - Die Zahlen-OCR verwendet ein mitgeliefertes ML-Kit-Modell.
   Google-Bibliotheken verarbeiten technische Leistungs- und Nutzungsmetriken.
   Bilder, erkannte Texte und Dokumenteninhalte werden dadurch nicht an Google
-  übertragen. Details stehen in den [ML-Kit-Datenschutzhinweisen](https://developers.google.com/ml-kit/terms).
+  übertragen. Details stehen in den [ML-Kit-Datenschutzhinweisen](https://developers.google.com/ml-kit/terms)
+  und den [Android-SDK-Datenangaben](https://developers.google.com/ml-kit/android-data-disclosure).
+  Beide Datenschutzerklärungen erläutern die technischen Datenkategorien.
 - Android-Systembackups sind deaktiviert. Manuelle Backups sind verschlüsselt.
 - PDFs und verschlüsselte Backups verlassen die private App-Ablage nur durch
   eine bewusste Speicher- oder Teilen-Aktion. Speicherort und Empfänger bestimmen Sie.
@@ -251,6 +253,9 @@ Rollenziffern anhand ihrer Positionen. Siehe [NOTICE.md](NOTICE.md).
 
 ## Prüfung und Geräteabnahme
 
+Der [technische Prüfstand](docs/technical-release-readiness.md) hält die aktuellen
+Paketprüfungen, verbleibende Sicherheitsmeldungen und die Geräteabnahme fest.
+
 Die kurze automatisierte Suite prüft exakte Zahlen, OCR-Kandidaten, getrennte Altzähler,
 Nachträge, Rücksetzungen, Wechsel, Korrekturen, SQLite-Neuöffnung und einen vollständigen
 PDF-/Backup-Ablauf. Die Entschlüsselung wird unabhängig mit Node Crypto geprüft.
@@ -272,7 +277,8 @@ Kurzer manueller Ablauf nach Installation: Zwei getrennte Zähler für Stückzah
 Betriebsstunden anlegen, einen Stand manuell und einen per Foto bestätigen, einen Nachtrag und
 eine Rücksetzung erfassen, eine Ablesung mit Grund korrigieren, Produktions-PDF
 öffnen und ein Backup speichern sowie wiederherstellen. Frühere Werte und Fotos
-müssen in Historie und PDF erhalten bleiben.
+müssen in der Historie erhalten bleiben. Neu erzeugte PDFs enthalten nur die
+aktuellen Fotos.
 
 Prüfung der Erstumsetzung: `npm run check` mit 19 Tests, 41 native JVM-Tests und
 Modul-Lint erfolgreich. Dev-APK `1.0.0` mit Code `1`, eigener Dev-Signatur,
@@ -332,3 +338,15 @@ Die aktuelle APK liegt unter
 Die Einstellungen mit „Backup wiederherstellen“ wurden auf dem entsperrten
 Smartphone geöffnet. Die Wiederherstellung der echten alten Sicherung benötigt
 die Passworteingabe durch den Nutzer direkt auf dem Gerät.
+
+Die anschließende technische Prüfung am 16. Oktober 2026 aktualisiert kompatible
+Expo-SDK-57-Pakete und behebt die Meldungen für `shell-quote` und `source-map-js`.
+Expo-Kompatibilitätsprüfung, Expo Doctor, 90 Anwendungstests, 51 native Tests
+und Android-Lint sind erfolgreich. Die neue eigenständige Dev-APK liegt unter
+`build/dev/maschinenlog-1.0.0-dev-sdk57-check-2026-10-16.apk` und wurde
+datenbewahrend installiert. Signatur, installierte Datei-Prüfsumme und
+Prozessstart wurden geprüft. Das Smartphone war gesperrt. Der reale
+Funktionsdurchlauf einschließlich der alten und neuen Sicherung bleibt offen.
+Der [technische Prüfstand](docs/technical-release-readiness.md) beschreibt die
+verbleibenden 18 hohen Audit-Einträge aus zwei ungepatchten Build-Abhängigkeiten
+und die Grenzen der Bundle-Prüfung.
