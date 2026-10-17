@@ -111,43 +111,39 @@ export function EntryEditorScreen() {
             onChange={(v) => vm.change('kind', v as EventState['kind'])}
           />
           <PhotoEditor photos={photos} actions={actions} />
-          {photos.length > 0 && (
-            <Card>
-              <Body strong>Zahlen im Foto erkennen</Body>
-              {photos.length > 1 && (
-                <SelectField
-                  label="Foto für die Zahlenerkennung"
-                  value={form.ocr?.photoId ?? photos[0]!.id}
-                  options={photos.map((p, i) => ({
-                    value: p.id,
-                    label: `Foto ${i + 1} · ${p.name}`,
-                  }))}
-                  disabled={vm.busy}
-                  onChange={(id) => void vm.recognize(id)}
-                />
-              )}
-              <Button
-                secondary
-                icon="manage_search_outlined"
-                title="Zahlen erneut erkennen"
-                disabled={vm.busy}
-                onPress={() => void vm.recognize(form.ocr?.photoId)}
-              />
-              {vm.candidates.map((candidate) => (
-                <Button
-                  key={formatValue(candidate.value)}
-                  secondary
-                  title={`${formatValue(candidate.value)} ${form.unit} übernehmen`}
-                  disabled={vm.busy}
-                  onPress={() => vm.selectCandidate(candidate)}
-                />
-              ))}
-              <Body muted>
-                Der Vorschlag ersetzt keine Prüfung. Maßgeblich ist der von dir
-                bestätigte Wert.
-              </Body>
-            </Card>
-          )}
+          {photos.length > 0 &&
+            (photos.length > 1 || vm.candidates.length > 0) && (
+              <Card>
+                <Body strong>Zahlen im Foto erkennen</Body>
+                {photos.length > 1 && (
+                  <SelectField
+                    label="Foto für die Zahlenerkennung"
+                    value={form.ocr?.photoId ?? photos[0]!.id}
+                    options={photos.map((p, i) => ({
+                      value: p.id,
+                      label: `Foto ${i + 1} · ${p.name}`,
+                    }))}
+                    disabled={vm.busy}
+                    onChange={(id) => void vm.recognize(id)}
+                  />
+                )}
+                {vm.candidates.map((candidate) => (
+                  <Button
+                    key={formatValue(candidate.value)}
+                    secondary
+                    title={`${formatValue(candidate.value)} ${form.unit} übernehmen`}
+                    disabled={vm.busy}
+                    onPress={() => vm.selectCandidate(candidate)}
+                  />
+                ))}
+                {vm.candidates.length > 0 && (
+                  <Body muted>
+                    Der Vorschlag ersetzt keine Prüfung. Maßgeblich ist der von
+                    dir bestätigte Wert.
+                  </Body>
+                )}
+              </Card>
+            )}
           {form.kind !== 'reading' && (
             <Card>
               <Body strong>Alter Zählerstand</Body>

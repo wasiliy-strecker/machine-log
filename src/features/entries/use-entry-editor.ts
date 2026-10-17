@@ -181,11 +181,11 @@ export function useEntryEditor(
       setNotice(
         first
           ? 'Zahlenvorschläge erkannt. Bitte Wert, Einheit und Zeitpunkt vor dem Speichern prüfen.'
-          : 'Keine eindeutige Zahl erkannt. Bitte den Stand manuell eingeben. Das Foto bleibt erhalten.',
+          : 'Keine Zahlen erkannt.',
       );
     } catch {
       setNotice(
-        'Die Zahlenerkennung ist fehlgeschlagen. Bitte erneut versuchen oder den Stand manuell eingeben. Das Foto bleibt erhalten.',
+        'Die Zahlenerkennung ist fehlgeschlagen. Bitte den Stand manuell eingeben. Das Foto bleibt erhalten.',
       );
     }
   }

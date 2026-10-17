@@ -5,7 +5,7 @@ import { EntryEditorScreen } from '../src/features/entries/entry-editor-screen';
 import { FormErrorTarget } from '../src/core/ui/form-error-target';
 import { ScrollContext } from '../src/core/ui/scroll-host';
 import { readingInput } from '../src/features/entries/reading-input';
-import { fixture, record } from './support';
+import { fixture, photo, record } from './support';
 import {
   photoExamples,
   type PhotoExample,
@@ -17,6 +17,8 @@ const ports = vi.hoisted(() => ({
   notify: vi.fn(),
   navigate: vi.fn(),
   scrollPhotos: vi.fn(),
+  pickPhoto: vi.fn(),
+  recognize: vi.fn(),
   hideKeyboard: undefined as (() => void) | undefined,
 }));
 vi.mock('react-native', () => ({
@@ -97,7 +99,12 @@ vi.mock('../src/core/ui/use-leave-guard', () => ({
   useLeaveGuard: () => (callback: () => void) => callback(),
 }));
 vi.mock('../src/core/composition', () => ({
-  useServices: () => ({ machine: f.machine, refresh: vi.fn() }),
+  useServices: () => ({
+    machine: f.machine,
+    refresh: vi.fn(),
+    media: { pick: ports.pickPhoto },
+    ocr: { recognize: ports.recognize },
+  }),
 }));
 Object.assign(globalThis, { IS_REACT_ACT_ENVIRONMENT: true });
 
@@ -293,6 +300,48 @@ it('marks an empty reading inline, reveals it on every failed save and preserves
     scale: 1,
   });
 });
+
+it.each(['Anzeige', '123'])(
+  'recognizes a selected photo automatically and confirms a manual value for OCR text %s',
+  async (text) => {
+    const attachment = await f.machine.importAttachment(
+      await photo(),
+      'photo',
+      'Anzeige.jpg',
+      'gallery',
+    );
+    ports.pickPhoto.mockResolvedValue({
+      attachments: [attachment],
+      failures: [],
+    });
+    ports.recognize.mockResolvedValue({
+      rawText: text,
+      lines: [{ text, confidence: null, height: 20, elements: [] }],
+    });
+    await mount();
+    await press('Foto aus Galerie');
+    expect(ports.recognize).toHaveBeenCalledOnce();
+    expect(ports.recognize).toHaveBeenCalledWith(f.vault.uri(attachment.file));
+    if (text === 'Anzeige') {
+      expect(
+        root().findByProps({ text: 'Keine Zahlen erkannt.' }),
+      ).toBeDefined();
+      expect(field('Zählerstand *').props.value).toBe('');
+    } else {
+      expect(field('Zählerstand *').props.value).toBe('123');
+      expect(
+        root().findByProps({ title: '123 Stück übernehmen' }),
+      ).toBeDefined();
+    }
+    expect((await f.repo.snapshot()).entries).toHaveLength(0);
+    await act(async () => field('Zählerstand *').props.onChangeText('125'));
+    await press('Bestätigen und speichern');
+    const saved = (await f.repo.snapshot()).entries[0]!;
+    expect(saved.measurement.value).toEqual({ digits: '125', scale: 0 });
+    expect(saved.attachments[0]?.sha256).toBe(attachment.sha256);
+    expect(saved.ocr?.rawText).toBe(text);
+  },
+);
 
 it('reveals general save failures at the top and retries without discarding data', async () => {
   await mount();
