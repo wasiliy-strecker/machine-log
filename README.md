@@ -24,6 +24,11 @@ eigene Arten erscheinen wieder als Vorschläge. Standardarten schlagen die passe
 Standardeinheit vor. Eine selbst eingetragene Einheit bleibt beim Wechsel erhalten.
 Eigene Arten sind auch in Suche, Sortierung und verschlüsselten Backups enthalten.
 
+Vorschläge für Zählerart und Einheit öffnen sich unter dem Eingabefeld, wenn
+dort genügend Platz ist. Andernfalls erscheinen sie darüber. Die Liste bleibt
+innerhalb des sichtbaren Formularbereichs oberhalb der Tastatur und lässt sich
+bei wenig Platz separat scrollen. Eigene Angaben bleiben frei eingebbar.
+
 Im Stammdatenformular stehen acht Maschinensymbole zur Auswahl: Maschine,
 Fertigung, Werkzeuge, Verpackung, Drucker, Pumpe, Landmaschine und Transport.
 Das gewählte Symbol erscheint in der Übersicht, den Zählerdetails, der
@@ -350,3 +355,11 @@ Funktionsdurchlauf einschließlich der alten und neuen Sicherung bleibt offen.
 Der [technische Prüfstand](docs/technical-release-readiness.md) beschreibt die
 verbleibenden 18 hohen Audit-Einträge aus zwei ungepatchten Build-Abhängigkeiten
 und die Grenzen der Bundle-Prüfung.
+
+Die automatische Platzierung der Vorschlagslisten ist am 17. Oktober 2026 mit
+96 Anwendungstests geprüft. Auf dem HONOR BVL-N49 wurden Vorschläge unter der
+Zählerart und über dem Einheitenfeld, unabhängiges Scrollen bei geöffneter
+Tastatur und die Auswahl einer weiter unten liegenden Einheit bestätigt.
+Das Formular blieb beim Scrollen der Liste stehen. Es wurde kein Testzähler
+gespeichert. Die datenbewahrend installierte Dev-Version liegt unter
+`build/dev/maschinenlog-1.0.0-dev-keyboard-suggestions-2026-10-17-final.apk`.

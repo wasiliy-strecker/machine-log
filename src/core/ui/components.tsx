@@ -18,6 +18,7 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ScrollContext } from './scroll-host';
+import { PageOverlayHost } from './page-overlay';
 import { useMaterialDateTime } from './material-date-time';
 import { localDate } from './date-time-model';
 import { light, useTheme } from './theme';
@@ -73,75 +74,77 @@ export function Page({
   const host = useMemo(() => ({ ref, offset, height, content }), []);
   return (
     <ScrollContext.Provider value={host}>
-      <KeyboardAvoidingView
-        onLayout={onStartupLayout}
-        style={{ flex: 1, backgroundColor: c.background }}
-        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-      >
-        {top}
-        {scroll ? (
-          <Component
-            ref={ref}
-            onScroll={(e) => {
-              offset.current = e.nativeEvent.contentOffset.y;
-            }}
-            scrollEventThrottle={16}
-            onLayout={(e) => {
-              height.current = e.nativeEvent.layout.height;
-            }}
-            onContentSizeChange={(_, h) => {
-              content.current = h;
-            }}
-            keyboardShouldPersistTaps="handled"
-            keyboardDismissMode="on-drag"
-            contentContainerStyle={{
-              paddingHorizontal: 16,
-              paddingTop: 8,
-              paddingBottom: fab
-                ? Math.max(112, 56 * fontScale + 48) + safe.bottom
-                : bottom
-                  ? 24
-                  : safe.bottom + 32,
-              gap: 12,
-              width: '100%',
-              maxWidth: 800,
-              alignSelf: 'center',
-              flexGrow: 1,
-            }}
-          >
-            {children}
-          </Component>
-        ) : (
-          children
-        )}
-        {!!fab && (
-          <View
-            pointerEvents="box-none"
-            style={{
-              position: 'absolute',
-              right: 16,
-              bottom: safe.bottom + 16,
-              left: 16,
-              alignItems: 'flex-end',
-            }}
-          >
-            {fab}
-          </View>
-        )}
-        {!!bottom && (
-          <View
-            style={{
-              paddingHorizontal: 16,
-              paddingTop: 8,
-              paddingBottom: safe.bottom + 16,
-              backgroundColor: c.background,
-              gap: 12,
-            }}
-          >
-            {bottom}
-          </View>
-        )}
-      </KeyboardAvoidingView>
+      <PageOverlayHost>
+        <KeyboardAvoidingView
+          onLayout={onStartupLayout}
+          style={{ flex: 1, backgroundColor: c.background }}
+          behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+        >
+          {top}
+          {scroll ? (
+            <Component
+              ref={ref}
+              onScroll={(e) => {
+                offset.current = e.nativeEvent.contentOffset.y;
+              }}
+              scrollEventThrottle={16}
+              onLayout={(e) => {
+                height.current = e.nativeEvent.layout.height;
+              }}
+              onContentSizeChange={(_, h) => {
+                content.current = h;
+              }}
+              keyboardShouldPersistTaps="handled"
+              keyboardDismissMode="on-drag"
+              contentContainerStyle={{
+                paddingHorizontal: 16,
+                paddingTop: 8,
+                paddingBottom: fab
+                  ? Math.max(112, 56 * fontScale + 48) + safe.bottom
+                  : bottom
+                    ? 24
+                    : safe.bottom + 32,
+                gap: 12,
+                width: '100%',
+                maxWidth: 800,
+                alignSelf: 'center',
+                flexGrow: 1,
+              }}
+            >
+              {children}
+            </Component>
+          ) : (
+            children
+          )}
+          {!!fab && (
+            <View
+              pointerEvents="box-none"
+              style={{
+                position: 'absolute',
+                right: 16,
+                bottom: safe.bottom + 16,
+                left: 16,
+                alignItems: 'flex-end',
+              }}
+            >
+              {fab}
+            </View>
+          )}
+          {!!bottom && (
+            <View
+              style={{
+                paddingHorizontal: 16,
+                paddingTop: 8,
+                paddingBottom: safe.bottom + 16,
+                backgroundColor: c.background,
+                gap: 12,
+              }}
+            >
+              {bottom}
+            </View>
+          )}
+        </KeyboardAvoidingView>
+      </PageOverlayHost>
     </ScrollContext.Provider>
   );
 }
