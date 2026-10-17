@@ -323,9 +323,11 @@ it.each(['Anzeige', '123'])(
     expect(ports.recognize).toHaveBeenCalledOnce();
     expect(ports.recognize).toHaveBeenCalledWith(f.vault.uri(attachment.file));
     if (text === 'Anzeige') {
-      expect(
-        root().findByProps({ text: 'Keine Zahlen erkannt.' }),
-      ).toBeDefined();
+      const notice = root().findByProps({ text: 'Keine Zahlen erkannt.' });
+      const photoBox = root().findByType('PhotoEditor' as never);
+      expect(notice.parent).toBe(photoBox.parent);
+      const siblings = photoBox.parent!.children;
+      expect(siblings.indexOf(notice)).toBe(siblings.indexOf(photoBox) + 1);
       expect(field('Zählerstand *').props.value).toBe('');
     } else {
       expect(field('Zählerstand *').props.value).toBe('123');

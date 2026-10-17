@@ -72,9 +72,9 @@ export function EntryEditorScreen() {
           <Notice error text={vm.error} />
         </FormErrorTarget>
       )}
-      <Notice text={vm.notice} />
       {vm.phase === 'choose' ? (
         <>
+          <Notice text={vm.notice} />
           <CaptureGuidance />
           <PhotoExamplesButton disabled={vm.busy} />
           <Button
@@ -111,6 +111,7 @@ export function EntryEditorScreen() {
             onChange={(v) => vm.change('kind', v as EventState['kind'])}
           />
           <PhotoEditor photos={photos} actions={actions} />
+          <Notice text={vm.notice} />
           {photos.length > 0 &&
             (photos.length > 1 || vm.candidates.length > 0) && (
               <Card>
