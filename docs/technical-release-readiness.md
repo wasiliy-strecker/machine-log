@@ -68,14 +68,16 @@ die lokale OCR allein nicht begründet. Die Play-Angaben werden im
 geführten Console-Ablauf ausgefüllt.
 
 Die früheren Fassungen vom 16. Oktober wurden nach dem ersten GitHub-Push
-mit HTTP 200 und Inhaltsgleichheit geprüft. Die aktuellen Quellen vom 18. Oktober
-benennen zusätzlich die Store-Netzwerksperre und deren Grenzen. Die öffentlichen
-Adressen bleiben:
+mit HTTP 200 und Inhaltsgleichheit geprüft. Die aktuellen Fassungen vom 18. Oktober
+benennen zusätzlich die Store-Netzwerksperre und deren Grenzen. Beide sind nach
+dem Push mit HTTP 200 erreichbar und bytegleich mit den lokalen Quellen geprüft.
+Die öffentlichen Adressen bleiben:
 [Deutsch](https://wasiliy-strecker.github.io/machine-log/datenschutz/) und
 [Englisch](https://wasiliy-strecker.github.io/machine-log/privacy/).
 Der frühere lokale Nachweis liegt unter
 `build/releases/production/maschinenlog-1.0.0-build-2-privacy-check.json`.
-Die aktualisierten Seiten werden nach dem nächsten Push erneut geprüft.
+Der aktuelle Nachweis liegt unter
+`build/releases/production/maschinenlog-1.0.0-build-3-privacy-check.json`.
 
 ## Bestätigte Geräteabnahme
 

@@ -31,6 +31,8 @@ aller Wege über Google Play-Dienste. Keine pauschale No-Freigabe im Play-Formul
 behauptet und keine SDK-Manipulation vorgenommen. Deutsche und englische
 Datenschutzseiten, README, Store-Anleitung und technischer Prüfstand unterscheiden
 die Store-Netzwerksperre von den allgemeinen SDK-Datenangaben.
+Beide öffentlichen Datenschutzseiten sind nach dem Push mit HTTP 200 erreichbar
+und bytegleich mit den lokalen Quellen geprüft. Keine Play-Veröffentlichung.
 
 AAB SHA-256:
 `18551c110e7fcf8b074e3fa8fc3c70f8d285049da7704721151beae797092397`.
