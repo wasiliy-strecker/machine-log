@@ -34,6 +34,10 @@ else
     echo 'Abbruch. In der Testversion fehlt das eingebettete JavaScript.' >&2
     exit 1
   fi
+  if rg -q "^uses-permission[^:]*: name='android\.permission\.(INTERNET|ACCESS_NETWORK_STATE)'" <<< "$badging"; then
+    echo 'Abbruch. Die eigenständige Dev-Testversion darf keine Netzwerkberechtigungen anfordern.' >&2
+    exit 1
+  fi
 fi
 rg '^package:|^application-label:|^application-debuggable' <<< "$badging"
 echo "Geprüfte Installationsart: $mode"
@@ -41,7 +45,7 @@ echo "Geprüfte Installationsart: $mode"
 installed="$("$adb" -s "$device" shell pm path "$package" | tr -d '\r' | sed -n 's/^package://p' | head -n 1 || true)"
 if [ -n "$installed" ]; then
   "$adb" -s "$device" shell pm list packages -i "$package"
-  "$adb" -s "$device" shell dumpsys package "$package" | rg 'versionCode=|versionName=|flags=|installerPackageName=' || true
+  "$adb" -s "$device" shell dumpsys package "$package" | rg 'versionCode=|versionName=|flags=|pkgFlags=|installerPackageName=' || true
   temp="$(mktemp -d -t maschinenlog-cert-XXXXXXXX)"
   trap 'rm -rf "$temp"' EXIT
   "$adb" -s "$device" pull "$installed" "$temp/installed.apk" >/dev/null
@@ -57,7 +61,7 @@ else
 fi
 "$adb" -s "$device" install -r -t -g --no-streaming "$apk"
 "$adb" -s "$device" shell pm list packages -i "$package"
-"$adb" -s "$device" shell dumpsys package "$package" | rg 'versionCode=|versionName=|flags=|installerPackageName=' || true
+"$adb" -s "$device" shell dumpsys package "$package" | rg 'versionCode=|versionName=|flags=|pkgFlags=|installerPackageName=' || true
 if [ "$mode" = 'debug' ]; then
   "$adb" -s "$device" reverse tcp:8084 tcp:8084
   "$adb" -s "$device" shell am start -a android.intent.action.VIEW -d 'exp+maschinenlog://expo-development-client/?url=http%3A%2F%2F127.0.0.1%3A8084' "$package"

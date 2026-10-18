@@ -8,7 +8,8 @@ Paket `com.appfactory.maschinenlog`.
 Der Store-Manifest-Overlay entfernt `INTERNET` und `ACCESS_NETWORK_STATE` auch
 aus Abhängigkeitsmanifesten. Das app-lokale Expo-Plugin erzeugt den Overlay bei
 Prebuild erneut. Die beiden Rechte fehlen in der tatsächlich signierten AAB.
-Die Dev-Varianten behalten ihre bisherigen Rechte und Metro-Verbindungen.
+Die eigenständige Dev-Preview verwendet inzwischen dieselbe Sperre. Dev-Debug
+behält den Netzwerkzugriff für Metro.
 ML Kit und sein mitgeliefertes OCR-Modell wurden nicht ausgetauscht.
 
 Der Release-Prüfer verwirft eine AAB mit einer der beiden Berechtigungen.
@@ -46,6 +47,35 @@ Probe-Quelltext, Test-APK, Ergebnis und gefiltertes SDK-Log liegen ignoriert unt
 `build/validation/offline-ocr/`. Es wurden ausschließlich synthetische Testbilder
 verwendet. Keine echten Ablesungen, Fotos, Backup-Passwörter oder SDK-Kennungswerte
 wurden als Testdaten aufgezeichnet.
+
+## Anschließende Dev-Installation auf dem Smartphone
+
+Die eigenständige Dev-Preview wurde am 18. Oktober 2026 ebenfalls mit diesem
+Manifest-Overlay gebaut. Das Expo-Plugin erhält den Overlay für `devRelease`,
+während das erzeugte Dev-Debug-Manifest weiterhin `INTERNET` für Metro enthält.
+Der Dev-Installationshelfer verwirft eigenständige APKs mit Netzwerkrechten.
+Die Gegenprobe mit der alten Dev-APK scheitert bereits vor dem Gerätezugriff.
+
+Auf dem HONOR BVL-N49 wurde ausschließlich `com.appfactory.maschinenlog.dev`
+von Code 1 auf Code 3 aktualisiert. Vorher waren Version 1.0.0, fehlendes
+Debug-Flag und Installer `null` geprüft. Vorhandene und neue Dev-Signatur stimmen
+überein. `adb install -r -t -g --no-streaming` erhielt die Installation.
+App-UID und Erstinstallationszeit sind unverändert. Beide Netzwerkrechte fehlen
+auch im installierten Paket. Die installierte APK besitzt die identische
+Dateiprüfsumme der benannten Dev-Auslieferung. Der App-Prozess wurde gestartet,
+ohne beobachtete AndroidRuntime-/ReactNativeJS-/Expo-Startfehler. Das Store-Paket
+ist auf dem Smartphone nicht installiert.
+
+Auslieferung:
+`build/dev/maschinenlog-1.0.0-dev-build-3-offline-2026-10-18.apk`.
+Daneben liegen Metadaten und ein lokaler Installationsnachweis.
+
+SHA-256:
+`bcaca8791381b37bdc26460d5cef6be013e91a7d7af008d9dfd6cd7d75f93583`.
+
+Der neue Smartphone-Stand kann nun mit Kamera-/Galerie-OCR, Flugmodus, einem
+Bild ohne Zahlen und dem externen Datenschutz-Link manuell geprüft werden.
+Der bisherige Emulator-Nachweis und seine Grenzen bleiben davon getrennt.
 
 ## Grenze der Aussage zur SDK-Telemetrie
 

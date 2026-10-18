@@ -13,6 +13,8 @@ Datenbanktransaktionen gehen der referenzgeprüften Dateibereinigung voraus.
 Keine Server-KI und keine eigene Telemetrie.
 
 Die normale Smartphone-Version ist `npm run build:preview` mit eingebettetem JavaScript.
+Dev-Preview (`devRelease`) verwendet dieselbe Netzwerksperre wie Store.
+Nur Dev-Debug behält die Netzwerkberechtigung für Metro.
 `npm run install:preview -- DEVICE` prüft Paket und Signatur und installiert datenbewahrend.
 Dev: `com.appfactory.maschinenlog.dev`, Name `MaschinenLog Dev`.
 Store: `com.appfactory.maschinenlog`. Store-Debug ist deaktiviert.

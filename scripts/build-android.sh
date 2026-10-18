@@ -18,5 +18,8 @@ if [ ! -f .local/maschinenlog-dev.keystore ]; then
   "$keytool_bin" -genkeypair -keystore .local/maschinenlog-dev.keystore -storepass android -keypass android -alias androiddebugkey -dname 'CN=MaschinenLog Local Development' -keyalg RSA -keysize 2048 -validity 10000 -noprompt
 fi
 npx expo prebuild --platform android --no-install
+if [ "$variant" = 'devRelease' ]; then
+  cmp plugins/store-AndroidManifest.xml android/app/src/devRelease/AndroidManifest.xml
+fi
 cd android
 ./gradlew :app:"$task" -PreactNativeArchitectures=arm64-v8a,x86_64 --max-workers=4 "$@"

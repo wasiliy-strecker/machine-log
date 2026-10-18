@@ -184,7 +184,8 @@ werden wie bei ZählerstandLog über GitHub Pages bereitgestellt.
 - Die Zahlen-OCR verwendet ein mitgeliefertes ML-Kit-Modell.
   Ab Store-Code 3 entfernt der Store-Manifest-Overlay `INTERNET` und
   `ACCESS_NETWORK_STATE`. Eigene Netzwerkverbindungen der Store-App sind damit
-  gesperrt. Dev behält die für Metro benötigte Internetberechtigung.
+  gesperrt. Dev-Preview verwendet dieselbe Sperre. Dev-Debug behält die für
+  Metro benötigte Internetberechtigung.
   Die allgemeinen Herstellerangaben der Google-Bibliotheken beschreiben
   technische Leistungs- und Nutzungsmetriken.
   Bilder, erkannte Texte und Dokumenteninhalte werden dadurch nicht an Google
@@ -230,7 +231,12 @@ Installation die Signatur. Er verwendet ausschließlich `adb install -r -t -g
 --no-streaming`. Niemals deinstallieren oder Daten löschen, um einen Signaturkonflikt
 zu umgehen.
 
-Die normale Dev-Testversion enthält JavaScript und läuft ohne Metro. Sie liegt
+Die normale Dev-Testversion enthält JavaScript und läuft ohne Metro. Wie Store
+fordert sie weder `INTERNET` noch `ACCESS_NETWORK_STATE` an. Der
+Installationshelfer verweigert eigenständige Dev-APKs mit diesen Rechten.
+Die gemeinsame app-lokale Manifest-Vorlage wird durch das Expo-Plugin für Store
+und `devRelease` erzeugt. Dev-Debug behält den Netzwerkzugriff für Metro.
+Die Dev-Testversion liegt
 unter `android/app/build/outputs/apk/dev/release/app-dev-release.apk`. Änderungen
 an dieser installierten Version benötigen ein APK-Update. Der eigene lokale
 Dev-Schlüssel liegt ignoriert unter `.local/maschinenlog-dev.keystore` außerhalb
