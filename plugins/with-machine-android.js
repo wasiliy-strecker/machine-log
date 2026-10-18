@@ -23,17 +23,8 @@ module.exports = function withMachineAndroid(config) {
     const app = styles.find((style) => style.$.name === 'AppTheme');
     if (!splash || !app)
       throw new Error('MaschinenLog: Android start themes missing.');
-    // Explicitly suppress Android's default launcher icon, including API 31+.
-    setItem(
-      splash,
-      'windowSplashScreenAnimatedIcon',
-      '@drawable/maschinenlog_splash_empty',
-    );
-    setItem(
-      splash,
-      'android:windowBackground',
-      '@color/splashscreen_background',
-    );
+    // Keep Expo's logo and the compat theme's window background. Replacing
+    // either with a plain color would hide the icon on older Android versions.
     setItem(splash, 'android:windowLightStatusBar', 'false');
     setItem(splash, 'android:windowLightNavigationBar', 'false');
     setItem(splash, 'android:statusBarColor', '@color/splashscreen_background');
@@ -161,16 +152,6 @@ ${startup}`,
       );
       await fs.mkdir(path.join(res, 'anim'), { recursive: true });
       await fs.mkdir(path.join(res, 'values'), { recursive: true });
-      await fs.mkdir(path.join(res, 'drawable'), { recursive: true });
-      await fs.writeFile(
-        path.join(res, 'drawable/maschinenlog_splash_empty.xml'),
-        `<?xml version="1.0" encoding="utf-8"?>
-<shape xmlns:android="http://schemas.android.com/apk/res/android" android:shape="rectangle">
-    <solid android:color="@android:color/transparent" />
-    <size android:width="1dp" android:height="1dp" />
-</shape>
-`,
-      );
       await fs.writeFile(
         path.join(res, 'values/maschinenlog_navigation.xml'),
         `<?xml version="1.0" encoding="utf-8"?>

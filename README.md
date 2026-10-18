@@ -4,6 +4,12 @@ Eigenständige Android-App mit React Native, TypeScript strict, Expo und SQLite.
 MaschinenLog dokumentiert Produktionszähler mit lokaler Zahlen-OCR, bestätigten
 Ablesungen, nachvollziehbaren Korrekturen und Produktionsprotokollen als PDF.
 
+Beim Öffnen erscheint das vorhandene Zahnrad-Icon mittig auf dem türkisen
+Markenhintergrund. Android-Startbildschirm und Ladeansicht verwenden dasselbe
+Motiv, auch im Dunkelmodus. Sobald Schriften, Daten und die erste Ansicht bereit
+sind, blendet die App in 180 Millisekunden über. Es gibt keine zusätzliche
+Mindestwartezeit. Die Splash-Konfiguration bleibt beim Expo-Prebuild erhalten.
+
 ## Funktionen
 
 Jeder Listeneintrag steht für genau einen Produktionszähler für Stückzahlen,
@@ -293,6 +299,14 @@ Erinnerungen, PDF-Teilen sowie alte und neue Sicherungen gelten damit als vom
 Nutzer abgenommen. Das ist die Nutzerbestätigung und keine nachträglich behauptete
 automatisierte Geräteprüfung. Die folgenden datierten Absätze beschreiben den
 jeweiligen früheren Prüfstand.
+
+Der überarbeitete Startbildschirm wurde am 18. Oktober 2026 mit der eigenständigen
+Dev-APK in isolierten Emulatoren auf Android 7 und Android 15 geprüft. Das Logo
+bleibt bis zur fertigen Übersicht sichtbar, auf Android 15 auch im Dunkelmodus.
+Aufzeichnungen liegen lokal unter `build/validation/splash/`. Ein physisches
+Telefon war für diese Änderung nicht verbunden. Die APK liegt unter
+`build/dev/maschinenlog-1.0.0-dev-start-icon-2026-10-18.apk`.
+Der zuvor ausgelieferte Store-Build 3 enthält diese spätere Änderung noch nicht.
 
 Die kurze automatisierte Suite prüft exakte Zahlen, OCR-Kandidaten, getrennte Altzähler,
 Nachträge, Rücksetzungen, Wechsel, Korrekturen, SQLite-Neuöffnung und einen vollständigen

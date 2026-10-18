@@ -41,6 +41,10 @@ const config: ExpoConfig = {
     [
       'expo-splash-screen',
       {
+        image: './assets/icon-foreground.png',
+        // The existing adaptive icon includes safe space around the gear.
+        imageWidth: 288,
+        resizeMode: 'contain',
         backgroundColor: '#006B63',
         dark: { backgroundColor: '#006B63' },
       },
