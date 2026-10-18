@@ -1,7 +1,7 @@
 # Technischer Prüfstand
 
 Stand: 18. Oktober 2026. Die Store-AAB für `com.appfactory.maschinenlog`,
-Version `1.0.0`, Code `3`, ist lokal gebaut, signiert und geprüft.
+Version `1.0.0`, Code `4`, ist lokal gebaut, signiert und geprüft.
 Die Nutzerabnahme der zuletzt installierten Dev-Version ist bestätigt.
 Die App ist in der Play Console angelegt. Der Agent hat weder einen Upload
 noch eine Veröffentlichung durchgeführt.
@@ -88,6 +88,13 @@ Erinnerungszustellung, PDF-Teilen sowie alte und neue Backups als Nutzerabnahme
 abgeschlossen. Es handelt sich um die Nutzerbestätigung, nicht um einen vom
 Agenten beobachteten vollständigen Durchlauf oder eine neue visuelle Testreihe.
 
+Den anschließend ergänzten Startbildschirm mit dem vorhandenen Zahnrad-Icon
+hat der Nutzer auf dem HONOR BVL-N49 ebenfalls bestätigt und danach den neuen
+Store-Build 4 beauftragt. Der native Start und der Ladezustand verwenden dasselbe
+Motiv. Die fertige App blendet in 180 Millisekunden ein. Zuvor wurden Kaltstarts
+auf isolierten Android-7- und Android-15-Emulatoren sowie Android 15 im Dunkelmodus
+geprüft. Die installierte Dev-Version enthält bereits genau diese Änderung.
+
 Die damaligen Hinweise vom 16. Oktober beschrieben ein gesperrtes Smartphone und
 fehlende manuelle Prüfungen zu diesem Zeitpunkt. Sie sind kein aktueller offener
 Release-Blocker mehr. Die historischen Dev-Installationen stehen weiterhin in
@@ -147,7 +154,7 @@ Datensicherheitsformular. Einzelheiten und lokale Nachweise:
 ## Geprüfte Store-Datei
 
 Benannte Auslieferung:
-`build/releases/production/maschinenlog-1.0.0-build-3-production.aab`.
+`build/releases/production/maschinenlog-1.0.0-build-4-production.aab`.
 Daneben liegt die JSON-Prüfdatei. Reproduktionsanleitung:
 [Android Store-Auslieferung](ANDROID_RELEASES.md).
 
@@ -155,7 +162,7 @@ Daneben liegt die JSON-Prüfdatei. Reproduktionsanleitung:
 | -------------------- | -------------------------------------------------------------------------------------------- |
 | Paketkennung         | `com.appfactory.maschinenlog`                                                                |
 | App-Name             | `MaschinenLog`                                                                               |
-| Version              | `1.0.0` mit Code `3`                                                                         |
+| Version              | `1.0.0` mit Code `4`                                                                         |
 | Android              | Minimum API 24, Target API 36                                                                |
 | Debug/Test-only      | Deaktiviert                                                                                  |
 | Android-Systembackup | Deaktiviert                                                                                  |
@@ -166,15 +173,21 @@ Daneben liegt die JSON-Prüfdatei. Reproduktionsanleitung:
 | Zahlen-OCR           | Lateinisches ML-Kit-Modell im Bundle enthalten                                               |
 
 SHA-256 der AAB:
-`18551c110e7fcf8b074e3fa8fc3c70f8d285049da7704721151beae797092397`.
+`5e6d4e8320e35d0b31142d6a15feb21648794173f0ab52e685ee636c9e6287f6`.
 
 SHA-256 des öffentlichen Upload-Zertifikats:
 `567749b56beef37de6f131f8410377ccd977d1b8add7e60052ccd389a8acb714`.
 
-Die Store-Source-Map enthält 2117 Quellen. Für
+Die Store-Source-Map enthält 2118 Quellen. Für
 `node_modules/shell-quote/`, `source-map-js/`, `node-forge/` und `braces/`
 ist jeweils keine Quelle enthalten. Geprüfte Datei:
 `android/app/build/intermediates/sourcemaps/react/storeRelease/index.android.bundle.packager.map`.
+
+Die fünf Startbild-Ressourcen in der signierten AAB stimmen pixelgenau mit den
+geprüften Dev-Ressourcen überein. Das frühere transparente Ersatzmotiv ist nicht
+mehr enthalten. Die Auslieferungen mit Code 2 und 3 wurden über ihre SHA-256-
+Prüfsummen als unverändert bestätigt. Lokale Nachweise und Audit-Berichte dieses
+Builds liegen unter `build/validation/release-4/`.
 
 Die Target-API wurde aus der konkreten AAB gelesen und entspricht den
 [aktuellen Play-Vorgaben für neue Android-Apps](https://support.google.com/googleplay/android-developer/answer/11926878?hl=en).

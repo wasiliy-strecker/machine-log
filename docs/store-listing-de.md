@@ -1,6 +1,6 @@
 # Store-Texte Deutsch
 
-Vorbereitet für den ersten Store-Upload von MaschinenLog 1.0.0, Versionscode 3.
+Vorbereitet für den Store-Upload von MaschinenLog 1.0.0, Versionscode 4.
 Diese Texte sind noch keine Veröffentlichung oder abgeschlossene Play-Freigabe.
 Die Feldinhalte können direkt kopiert werden.
 
@@ -58,25 +58,24 @@ https://wasiliy-strecker.github.io/machine-log/datenschutz/
 ## Interner Release-Titel
 
 ```text
-1.0.0 (3) – Erste Store-Version
+1.0.0 (4) – Neuer Startbildschirm
 ```
 
 ## Versionshinweise
 
 ```text
 <de-DE>
-Erste Version von MaschinenLog. Produktionszähler manuell oder per Foto erfassen, Zählerverläufe dokumentieren, Erinnerungen einrichten und PDF-Protokolle erstellen. Passwortgeschützte Backups sichern deine Daten und Fotos.
+Neuer Startbildschirm mit MaschinenLog-Icon und sanftem Übergang zur App. Passende Darstellung im Hell- und Dunkelmodus.
 </de-DE>
 ```
 
 ## Nächster Console-Schritt
 
-App in der Play Console erstellen. App-Name MaschinenLog, Standardsprache Deutsch
-(Deutschland), Typ App. Preisentscheidung und rechtliche Erklärungen trifft der
-Kontoinhaber. Die Paketkennung wird mit dem ersten AAB-Upload festgelegt.
-Danach die tatsächlichen Console-Aufgaben gemeinsam abarbeiten. Store-Grafiken,
-Screenshots, Zielgruppe, Inhaltsbewertung, Datensicherheit, Kontaktangaben,
-Testzugang und Veröffentlichung sind dadurch noch nicht erledigt.
+Die App ist in der Play Console angelegt. Für den nächsten Upload die geprüfte
+AAB mit Code 4 verwenden. Die Store-Grafiken liegen unter
+`build/store-assets/de-DE/build-3/` und zeigen die weiterhin gültigen App-Ansichten.
+Danach die noch offenen Console-Aufgaben anhand des tatsächlichen Console-Stands
+abarbeiten. Rechtliche Erklärungen und Veröffentlichung bleiben beim Kontoinhaber.
 
 Die Textgrenzen betragen 30 Zeichen für den Namen, 80 für die kurze und 4000 für
 die vollständige Beschreibung. Quelle:

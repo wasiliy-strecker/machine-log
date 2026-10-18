@@ -311,7 +311,9 @@ Der zuvor ausgelieferte Store-Build 3 enthält diese spätere Änderung noch nic
 Die Dev-APK mit dem Start-Icon wurde anschließend am 18. Oktober 2026 auf dem
 wieder verbundenen HONOR BVL-N49 nach Signaturvergleich datenbewahrend installiert
 und gestartet. Die Prüfsumme der installierten APK entspricht der Auslieferung.
-Die visuelle Abnahme auf diesem Smartphone führt der Nutzer durch.
+Der Nutzer hat den neuen Startbildschirm auf diesem Smartphone bestätigt. Die
+anschließend beauftragte, signierte und geprüfte Store-Auslieferung liegt unter
+`build/releases/production/maschinenlog-1.0.0-build-4-production.aab`.
 
 Die kurze automatisierte Suite prüft exakte Zahlen, OCR-Kandidaten, getrennte Altzähler,
 Nachträge, Rücksetzungen, Wechsel, Korrekturen, SQLite-Neuöffnung und einen vollständigen
