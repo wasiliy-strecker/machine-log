@@ -24,8 +24,9 @@ Die Bewertung bleibt ausdrücklich dokumentiert.
 
 Release-Anleitung, technische Abnahme und direkt kopierbare deutsche Store-Texte
 ergänzt. Der beauftragte GitHub-Push veröffentlicht auch die zuvor ergänzten
-SDK-Datenangaben der beiden Datenschutzseiten. Die öffentlichen Fassungen werden
-anschließend gegen die lokalen HTML-Dateien geprüft. Kein Play-Upload und keine
+SDK-Datenangaben der beiden Datenschutzseiten. Beide öffentlichen Fassungen sind
+mit HTTP 200 erreichbar und bytegleich mit den lokalen HTML-Dateien geprüft.
+Kein Play-Upload und keine
 Veröffentlichung der App. Der weitere Console-Ablauf erfolgt mit dem Nutzer.
 
 Auslieferung:

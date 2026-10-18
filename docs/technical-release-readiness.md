@@ -64,10 +64,15 @@ dokumentiert. Quellen am 18. Oktober 2026 erneut geprüft.
 Diese SDK-Verarbeitung muss auch bei der späteren Play-Datensicherheitsangabe
 berücksichtigt werden. Eine pauschale Angabe ohne jede Datenerhebung ist durch
 die lokale OCR allein nicht begründet. Die Play-Angaben werden im
-geführten Console-Ablauf ausgefüllt. Die geänderten Webseiten werden mit dem
-Push der Store-Vorbereitung über die vorhandene GitHub-Pages-Konfiguration
-veröffentlicht. Ihre öffentlichen URLs werden anschließend gegen die lokalen
-HTML-Fassungen geprüft.
+geführten Console-Ablauf ausgefüllt.
+
+Beide öffentlichen Fassungen sind nach dem GitHub-Push am 18. Oktober 2026 mit
+HTTP 200 erreichbar und bytegleich mit den lokalen HTML-Dateien geprüft.
+Die ergänzten SDK-Datenangaben und der Link zur GitHub-README sind enthalten:
+[Deutsch](https://wasiliy-strecker.github.io/machine-log/datenschutz/) und
+[Englisch](https://wasiliy-strecker.github.io/machine-log/privacy/).
+Der lokale Nachweis mit Inhaltsprüfsummen liegt neben der AAB unter
+`build/releases/production/maschinenlog-1.0.0-build-2-privacy-check.json`.
 
 ## Bestätigte Geräteabnahme
 
