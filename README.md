@@ -182,11 +182,17 @@ werden wie bei ZählerstandLog über GitHub Pages bereitgestellt.
 - Es gibt kein Konto, keine Cloud-Synchronisation, keine Server-KI, keine Werbung
   und keine eigene Analyse des Nutzungsverhaltens.
 - Die Zahlen-OCR verwendet ein mitgeliefertes ML-Kit-Modell.
-  Google-Bibliotheken verarbeiten technische Leistungs- und Nutzungsmetriken.
+  Ab Store-Code 3 entfernt der Store-Manifest-Overlay `INTERNET` und
+  `ACCESS_NETWORK_STATE`. Eigene Netzwerkverbindungen der Store-App sind damit
+  gesperrt. Dev behält die für Metro benötigte Internetberechtigung.
+  Die allgemeinen Herstellerangaben der Google-Bibliotheken beschreiben
+  technische Leistungs- und Nutzungsmetriken.
   Bilder, erkannte Texte und Dokumenteninhalte werden dadurch nicht an Google
   übertragen. Details stehen in den [ML-Kit-Datenschutzhinweisen](https://developers.google.com/ml-kit/terms)
   und den [Android-SDK-Datenangaben](https://developers.google.com/ml-kit/android-data-disclosure).
-  Beide Datenschutzerklärungen erläutern die technischen Datenkategorien.
+  Beide Datenschutzerklärungen erläutern die technischen Datenkategorien und
+  die Beschränkung der Store-Version. Die Berechtigungssperre ist kein offizieller
+  Schalter zum vollständigen Abschalten sämtlicher SDK-Telemetriewege.
 - Android-Systembackups sind deaktiviert. Manuelle Backups sind verschlüsselt.
 - PDFs und verschlüsselte Backups verlassen die private App-Ablage nur durch
   eine bewusste Speicher- oder Teilen-Aktion. Speicherort und Empfänger bestimmen Sie.
@@ -234,7 +240,9 @@ sichern. Sie wird nicht eingecheckt. Store-Debug ist deaktiviert.
 Die Store-Version verwendet einen getrennten privaten Upload-Schlüssel und wird
 mit `npm run build:store` erstellt. Der Helfer prüft die tatsächliche Signatur,
 Identität, Version, JavaScript, OCR-Modell und native 16-KB-Ausrichtung vor der
-benannten Auslieferung. Er installiert nichts. Anleitung und Schlüsselablage:
+benannten Auslieferung. Ab Code 3 verwirft er auch Netzwerkberechtigungen in der
+fertigen AAB. `npm run check:store` prüft diese Sperre mit fünf gezielten Tests.
+Er installiert nichts. Anleitung und Schlüsselablage:
 [Android Store-Auslieferung](docs/ANDROID_RELEASES.md). Vorbereitete kopierbare
 Feldinhalte: [Store-Texte Deutsch](docs/store-listing-de.md).
 

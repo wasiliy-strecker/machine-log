@@ -123,6 +123,15 @@ ${startup}`,
         path.join(__dirname, 'key.properties.example'),
         path.join(mod.modRequest.platformProjectRoot, 'key.properties.example'),
       );
+      const storeSource = path.join(
+        mod.modRequest.platformProjectRoot,
+        'app/src/store',
+      );
+      await fs.mkdir(storeSource, { recursive: true });
+      await fs.copyFile(
+        path.join(__dirname, 'store-AndroidManifest.xml'),
+        path.join(storeSource, 'AndroidManifest.xml'),
+      );
       // Expo may recreate android/. The private key stays outside that tree.
       const privateProperties = path.join(
         os.homedir(),

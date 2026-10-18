@@ -1,9 +1,10 @@
 # Technischer Prüfstand
 
 Stand: 18. Oktober 2026. Die Store-AAB für `com.appfactory.maschinenlog`,
-Version `1.0.0`, Code `2`, ist lokal gebaut, signiert und geprüft.
+Version `1.0.0`, Code `3`, ist lokal gebaut, signiert und geprüft.
 Die Nutzerabnahme der zuletzt installierten Dev-Version ist bestätigt.
-Play-Console-Einrichtung, Upload und Veröffentlichung sind noch nicht erfolgt.
+Die App ist in der Play Console angelegt. Der Agent hat weder einen Upload
+noch eine Veröffentlichung durchgeführt.
 
 ## Abhängigkeiten
 
@@ -66,13 +67,15 @@ berücksichtigt werden. Eine pauschale Angabe ohne jede Datenerhebung ist durch
 die lokale OCR allein nicht begründet. Die Play-Angaben werden im
 geführten Console-Ablauf ausgefüllt.
 
-Beide öffentlichen Fassungen sind nach dem GitHub-Push am 18. Oktober 2026 mit
-HTTP 200 erreichbar und bytegleich mit den lokalen HTML-Dateien geprüft.
-Die ergänzten SDK-Datenangaben und der Link zur GitHub-README sind enthalten:
+Die früheren Fassungen vom 16. Oktober wurden nach dem ersten GitHub-Push
+mit HTTP 200 und Inhaltsgleichheit geprüft. Die aktuellen Quellen vom 18. Oktober
+benennen zusätzlich die Store-Netzwerksperre und deren Grenzen. Die öffentlichen
+Adressen bleiben:
 [Deutsch](https://wasiliy-strecker.github.io/machine-log/datenschutz/) und
 [Englisch](https://wasiliy-strecker.github.io/machine-log/privacy/).
-Der lokale Nachweis mit Inhaltsprüfsummen liegt neben der AAB unter
+Der frühere lokale Nachweis liegt unter
 `build/releases/production/maschinenlog-1.0.0-build-2-privacy-check.json`.
+Die aktualisierten Seiten werden nach dem nächsten Push erneut geprüft.
 
 ## Bestätigte Geräteabnahme
 
@@ -117,10 +120,32 @@ Offsets. Die zusätzlichen Gegenproben verwerfen eine falsche Version und ein
 abweichendes Zertifikat. Ein erneuter Helferaufruf verweigert die vorhandene
 benannte Auslieferung bereits vor Gradle. Ihre Prüfsumme bleibt unverändert.
 
+## Store-Netzwerksperre und OCR
+
+Code 3 entfernt `INTERNET` und `ACCESS_NETWORK_STATE` nur im Store-Flavor.
+Die Berechtigungen fehlen nachweislich in der signierten AAB. Die unveränderte
+frühere AAB mit Code 2 wird vom erweiterten Release-Prüfer abgelehnt.
+`npm run check:store` besteht fünf gezielte Regressionstests.
+
+Aus der ausgelieferten AAB wurde mit Bundletool eine gleich signierte Universal-
+APK erzeugt und ausschließlich in einem temporären schreibgeschützten Emulator
+mit Android API 35 geprüft. Die echte native Funktion `recognizeCounter`
+erkannte ein synthetisches Foto mit `123456`. Ein leeres Foto lieferte ein leeres
+Ergebnis. Beide Netzwerkrechte waren verweigert, der App-UID-Zähler blieb bei
+0 gesendeten Bytes. Der SDK-Transport meldete fehlendes `ACCESS_NETWORK_STATE`.
+Es wurde keine Smartphone-App installiert oder verändert.
+
+Die SDK-Bytecodeprüfung zeigt weiterhin einen `TelemetryLoggingClient`-Aufruf
+in der Texterkennung. Die Messung am App-UID beweist keine vollständige
+Abschaltung möglicher Wege über Google Play-Dienste. Deshalb ist das Entfernen
+der Berechtigungen allein keine Freigabe für eine pauschale No-Angabe im
+Datensicherheitsformular. Einzelheiten und lokale Nachweise:
+[Store-Netzwerksperre und OCR-Prüfung](store-offline-verification.md).
+
 ## Geprüfte Store-Datei
 
 Benannte Auslieferung:
-`build/releases/production/maschinenlog-1.0.0-build-2-production.aab`.
+`build/releases/production/maschinenlog-1.0.0-build-3-production.aab`.
 Daneben liegt die JSON-Prüfdatei. Reproduktionsanleitung:
 [Android Store-Auslieferung](ANDROID_RELEASES.md).
 
@@ -128,7 +153,7 @@ Daneben liegt die JSON-Prüfdatei. Reproduktionsanleitung:
 | -------------------- | -------------------------------------------------------------------------------------------- |
 | Paketkennung         | `com.appfactory.maschinenlog`                                                                |
 | App-Name             | `MaschinenLog`                                                                               |
-| Version              | `1.0.0` mit Code `2`                                                                         |
+| Version              | `1.0.0` mit Code `3`                                                                         |
 | Android              | Minimum API 24, Target API 36                                                                |
 | Debug/Test-only      | Deaktiviert                                                                                  |
 | Android-Systembackup | Deaktiviert                                                                                  |
@@ -139,7 +164,7 @@ Daneben liegt die JSON-Prüfdatei. Reproduktionsanleitung:
 | Zahlen-OCR           | Lateinisches ML-Kit-Modell im Bundle enthalten                                               |
 
 SHA-256 der AAB:
-`5f78a58f4c01ea896ecd9d31508d37ace1cd10e1012f470badfb8bb393c8e328`.
+`18551c110e7fcf8b074e3fa8fc3c70f8d285049da7704721151beae797092397`.
 
 SHA-256 des öffentlichen Upload-Zertifikats:
 `567749b56beef37de6f131f8410377ccd977d1b8add7e60052ccd389a8acb714`.
@@ -158,8 +183,8 @@ mit 16-KB-Speicherseiten.
 
 ## Verbleibende Console-Schritte
 
-Die technische Store-Datei liegt vor. Vor Veröffentlichung folgen App-Anlage,
-Store-Eintrag mit Grafiken und Screenshots, die tatsächlichen Console-Formulare,
+Die technische Store-Datei liegt vor und die App wurde angelegt. Vor
+Veröffentlichung folgen Store-Eintrag mit Grafiken und Screenshots, die tatsächlichen Console-Formulare,
 Play App Signing, Testzugang und Upload. Der erste Play-Test prüft zusätzlich
 Installation und Start der von Play erzeugten Store-App mit eigener Identität.
 Die Dev-App bleibt parallel bestehen.

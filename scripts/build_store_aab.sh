@@ -30,6 +30,7 @@ if [ -e "$delivery" ] || [ -e "${delivery%.aab}.json" ]; then
   exit 1
 fi
 cmp plugins/store-signing.gradle android/app/store-signing.gradle
+cmp plugins/store-AndroidManifest.xml android/app/src/store/AndroidManifest.xml
 (
   cd android
   ./gradlew :app:bundleStoreRelease \

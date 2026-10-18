@@ -51,6 +51,22 @@ def verify_elf(data, name):
     require(loads > 0, f"ELF has no load segments: {name}")
 
 
+def verify_network_permissions(manifest):
+    permissions = {
+        item.get(ANDROID + "name")
+        for tag in ("uses-permission", "uses-permission-sdk-23")
+        for item in manifest.findall(tag)
+    }
+    require(
+        not permissions & {
+            "android.permission.INTERNET",
+            "android.permission.ACCESS_NETWORK_STATE",
+        },
+        "Store bundle must not request network permissions",
+    )
+    return permissions
+
+
 def verify(bundle, version_name, version_code, certificate):
     bundletool = Path(
         os.environ.get(
@@ -97,9 +113,7 @@ def verify(bundle, version_name, version_code, certificate):
         )
     else:
         require(label == "MaschinenLog", "Wrong Store label")
-    permissions = {
-        item.get(ANDROID + "name") for item in manifest.findall("uses-permission")
-    }
+    permissions = verify_network_permissions(manifest)
     require(
         not permissions & {
             "android.permission.RECORD_AUDIO",
@@ -176,6 +190,7 @@ def verify(bundle, version_name, version_code, certificate):
         "minSdk": int(sdk.get(ANDROID + "minSdkVersion")),
         "targetSdk": 36,
         "debuggable": False,
+        "networkPermissions": [],
         "uploadCertificateSha256": hashlib.sha256(actual_der).hexdigest(),
         "sha256": hashlib.sha256(bundle.read_bytes()).hexdigest(),
         "abis": ["arm64-v8a", "x86_64"],

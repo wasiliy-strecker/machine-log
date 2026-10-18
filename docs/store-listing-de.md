@@ -1,6 +1,6 @@
 # Store-Texte Deutsch
 
-Vorbereitet für den ersten Store-Upload von MaschinenLog 1.0.0, Versionscode 2.
+Vorbereitet für den ersten Store-Upload von MaschinenLog 1.0.0, Versionscode 3.
 Diese Texte sind noch keine Veröffentlichung oder abgeschlossene Play-Freigabe.
 Die Feldinhalte können direkt kopiert werden.
 
@@ -58,7 +58,7 @@ https://wasiliy-strecker.github.io/machine-log/datenschutz/
 ## Interner Release-Titel
 
 ```text
-1.0.0 (2) – Erste Store-Version
+1.0.0 (3) – Erste Store-Version
 ```
 
 ## Versionshinweise

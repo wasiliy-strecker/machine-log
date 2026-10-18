@@ -42,7 +42,7 @@
           Auf Ihrem Gerät gespeichert. Unter Ihrer Kontrolle.
         </p>
         <h1>Datenschutzerklärung</h1>
-        <p class="meta">Stand: 16. Oktober 2026</p>
+        <p class="meta">Stand: 18. Oktober 2026</p>
       </header>
       <aside class="notice" aria-label="Kurzfassung">
         MaschinenLog verarbeitet und speichert Ihre Maschinen- und Zählerdaten
@@ -119,11 +119,14 @@
           gemeinsamen Altprotokolle bleiben erhalten.
         </p>
         <p>
-          Die Android-App enthält eine Internetberechtigung für die verwendeten
-          Plattform- und Google-Bibliotheken. Die eigenständige App benötigt
-          keinen AppFabrik-Server. Der optionale Entwicklungsmodus verwendet
-          eine lokale Verbindung zum Entwicklungswerkzeug Metro und gehört nicht
-          zum normalen Betrieb der eigenständigen Testversion.
+          Die Store-Version besitzt ab Version 1.0.0 mit Versionscode 3 weder
+          eine Internetberechtigung noch die Berechtigung zum Abfragen des
+          Netzwerkstatus. Eigene Netzwerkverbindungen der Store-App sind damit
+          gesperrt. Das OCR-Modell ist mitgeliefert und benötigt keinen
+          Download. Die getrennte Dev-Version behält die Internetberechtigung,
+          unter anderem für eine lokale Verbindung zum Entwicklungswerkzeug
+          Metro. Die App benötigt keinen AppFabrik-Server. Bewusst geöffnete
+          Webseiten werden durch den externen Browser aufgerufen.
         </p>
 
         <h2>Kamera, Fotos und Texterkennung</h2>
@@ -147,18 +150,18 @@
           die frühere Fotoversion in der Korrekturhistorie erhalten.
         </p>
         <p>
-          Die Google-ML-Kit-Bibliotheken können Google-Server für
-          Aktualisierungen und Kompatibilitätsinformationen kontaktieren und
-          senden technische Leistungs- und Nutzungsmetriken an Google. Dazu
-          gehören Gerätehersteller und -modell, Betriebssystem- und
-          App-Versionen, installationsbezogene Kennungen, Laufzeiten, Bildformat
-          und -auflösung, Ein- und Ausgabegrößen, Funktionsversionen,
-          Ereignistypen und Fehlercodes. Die Kennungen sollen keine Person oder
-          ein physisches Gerät eindeutig identifizieren. Google verwendet diese
-          Daten für Diagnose und Nutzungsanalyse. Die Übertragung erfolgt per
-          HTTPS. Eingabebilder, Texte und Erkennungsergebnisse werden durch ML
-          Kit nicht an Google-Server gesendet. Weitere Informationen finden Sie
-          in den
+          Nach den allgemeinen Herstellerangaben können
+          Google-ML-Kit-Bibliotheken Google-Server für Aktualisierungen und
+          Kompatibilitätsinformationen kontaktieren und technische Leistungs-
+          und Nutzungsmetriken an Google senden. Dazu gehören Gerätehersteller
+          und -modell, Betriebssystem- und App-Versionen, installationsbezogene
+          Kennungen, Laufzeiten, Bildformat und -auflösung, Ein- und
+          Ausgabegrößen, Funktionsversionen, Ereignistypen und Fehlercodes. Die
+          Kennungen sollen keine Person oder ein physisches Gerät eindeutig
+          identifizieren. Google verwendet diese Daten für Diagnose und
+          Nutzungsanalyse. Die Übertragung erfolgt per HTTPS. Eingabebilder,
+          Texte und Erkennungsergebnisse werden durch ML Kit nicht an
+          Google-Server gesendet. Weitere Informationen finden Sie in den
           <a href="https://developers.google.com/ml-kit/terms"
             >ML-Kit-Datenschutzhinweisen</a
           >, den
@@ -169,6 +172,13 @@
           <a href="https://policies.google.com/privacy"
             >Datenschutzerklärung von Google</a
           >.
+        </p>
+        <p>
+          Die Berechtigungssperre der Store-Version beschränkt deren eigene
+          Netzwerkverbindungen. Sie ist kein von Google bereitgestellter
+          Schalter zum vollständigen Abschalten der SDK-Telemetrie. Aus ihr
+          allein lässt sich keine Zusage über sämtliche internen
+          Übertragungswege des SDKs über Google Play-Dienste ableiten.
         </p>
         <p>
           Die SHA-256-Prüfwerte beziehen sich auf die in der App gespeicherten

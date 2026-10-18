@@ -11,10 +11,11 @@ aber den eigenen Gradle-Build. Nachbarprojekte und deren Schlüssel bleiben unve
 | Dev      | `com.appfactory.maschinenlog.dev` | MaschinenLog Dev | Lokale Tests und datenbewahrende APK-Updates |
 | Store    | `com.appfactory.maschinenlog`     | MaschinenLog     | Interne Play-Tests und Produktion            |
 
-Der erste vorbereitete Upload verwendet Version `1.0.0`, Versionscode `2`.
-Der Nutzer bestätigte am 18. Oktober 2026, dass die App noch nicht in der Play
-Console angelegt wurde und bisher keine AAB hochgeladen wurde. Ein Console-Abgleich
-war deshalb nicht möglich und ein Upload ist noch nicht erfolgt.
+Die aktuelle Auslieferung verwendet Version `1.0.0`, Versionscode `3`.
+Die frühere benannte Auslieferung mit Code `2` bleibt unverändert erhalten.
+Die App wurde inzwischen vom Nutzer in der Play Console angelegt. Ein Upload
+oder eine Veröffentlichung durch den Agenten ist nicht erfolgt. Vor einem
+weiteren Upload den tatsächlichen Console-Stand prüfen.
 
 Store-Debug ist deaktiviert. Die Store-Version benötigt einen eigenen privaten
 Upload-Schlüssel. Es gibt keinen Rückfall auf Debug-Signierung oder unsignierte
@@ -60,6 +61,7 @@ in App-Konfiguration, Gradle und npm-Metadaten ändern.
 npm ci
 npm run check
 npm run check:native
+npm run check:store
 npx expo install --check
 npx expo-doctor
 npm audit
@@ -84,6 +86,10 @@ und installiert keine APK. Zusätzliche Gradle-Argumente sind nicht zugelassen.
 `scripts/verify_store_aab.py` prüft mit Bundletool und Jarsigner die konkrete AAB.
 Er kontrolliert Paket, Version, Store-Name, Target API 36, fehlende Debug-/Testflags,
 deaktiviertes Systembackup und das eigene öffentliche Upload-Zertifikat.
+Ab Code 3 müssen außerdem `INTERNET` und `ACCESS_NETWORK_STATE` fehlen, auch
+bei SDK-spezifischen Berechtigungsdeklarationen. Das Expo-Plugin erhält den
+Overlay unter `android/app/src/store/AndroidManifest.xml`. Dev bleibt unverändert.
+Der Helfer vergleicht den Overlay mit seiner Vorlage unter `plugins/`.
 JavaScript und das gebündelte OCR-Modell müssen enthalten sein. Die Bundle-
 Konfiguration muss 16-KB-ZIP-Ausrichtung verlangen und alle enthaltenen nativen
 Bibliotheken müssen entsprechend ausgerichtete ELF-Ladesegmente besitzen.
@@ -96,7 +102,7 @@ Sicherheitsbewertung sämtlicher nativer Bibliotheken.
 Erst danach legt der Helfer die benannte Auslieferung an:
 
 ```text
-build/releases/production/maschinenlog-1.0.0-build-2-production.aab
+build/releases/production/maschinenlog-1.0.0-build-3-production.aab
 ```
 
 Daneben liegt eine JSON-Prüfdatei mit SHA-256, Upload-Zertifikat-Fingerabdruck,
@@ -113,7 +119,9 @@ Die Datenschutzerklärung ist
 Bei der Datensicherheit die tatsächlichen technischen SDK-Daten aus den
 [ML-Kit-Datenangaben](https://developers.google.com/ml-kit/android-data-disclosure)
 berücksichtigen. Lokale Verarbeitung der Fotos bedeutet keine pauschale
-Abwesenheit jeder SDK-Datenübertragung.
+Abwesenheit jeder SDK-Datenübertragung. Der konkrete OCR-Lauf ohne
+Netzwerkberechtigung und die Grenzen der Telemetrieprüfung stehen in
+[Store-Netzwerksperre und OCR-Prüfung](store-offline-verification.md).
 
 Die Nutzerabnahme gilt für die zuletzt installierte Dev-Version. Der Store-Build
 verwendet dieselbe Fachlogik, aber eine eigene Identität und Signatur. Ein erster
