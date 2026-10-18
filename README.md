@@ -308,6 +308,11 @@ Telefon war für diese Änderung nicht verbunden. Die APK liegt unter
 `build/dev/maschinenlog-1.0.0-dev-start-icon-2026-10-18.apk`.
 Der zuvor ausgelieferte Store-Build 3 enthält diese spätere Änderung noch nicht.
 
+Die Dev-APK mit dem Start-Icon wurde anschließend am 18. Oktober 2026 auf dem
+wieder verbundenen HONOR BVL-N49 nach Signaturvergleich datenbewahrend installiert
+und gestartet. Die Prüfsumme der installierten APK entspricht der Auslieferung.
+Die visuelle Abnahme auf diesem Smartphone führt der Nutzer durch.
+
 Die kurze automatisierte Suite prüft exakte Zahlen, OCR-Kandidaten, getrennte Altzähler,
 Nachträge, Rücksetzungen, Wechsel, Korrekturen, SQLite-Neuöffnung und einen vollständigen
 PDF-/Backup-Ablauf. Die Entschlüsselung wird unabhängig mit Node Crypto geprüft.
