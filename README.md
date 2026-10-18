@@ -252,6 +252,11 @@ Er installiert nichts. Anleitung und Schlüsselablage:
 [Android Store-Auslieferung](docs/ANDROID_RELEASES.md). Vorbereitete kopierbare
 Feldinhalte: [Store-Texte Deutsch](docs/store-listing-de.md).
 
+Die [Store-Bilder-Werkzeuge](scripts/store_assets/README.md) erzeugen das deutsche
+Paket mit Icon, Feature-Grafik, vier Smartphone-Bildern und jeweils zwei echten
+Tablet-Aufnahmen. Die Lieferung für Version 1.0.0 (3) liegt unter
+`build/store-assets/de-DE/build-3/` mit Vorschau und Upload-Zuordnung.
+
 Für optionales Fast Refresh stehen `npm run build:dev`, `npm start` auf Port 8084
 und `bash scripts/install-dev.sh DEVICE` zur Verfügung. Dev-Debug und Dev-Preview
 verwenden dieselbe Paketkennung und Signatur. Ein Moduswechsel ersetzt die bisherige
