@@ -1,0 +1,35 @@
+// Credentials belong to the ignored android/key.properties, never to Git.
+def storePropertiesFile = rootProject.file('key.properties')
+def storeProperties = new Properties()
+if (storePropertiesFile.isFile()) {
+    storePropertiesFile.withInputStream { storeProperties.load(it) }
+    if (['storeFile', 'storePassword', 'keyAlias', 'keyPassword'].any {
+        !storeProperties.getProperty(it)?.trim()
+    }) {
+        throw new GradleException('MaschinenLog: incomplete private Store signing configuration.')
+    }
+    def uploadKeystore = file(storeProperties.getProperty('storeFile'))
+    if (!uploadKeystore.isFile()) {
+        throw new GradleException('MaschinenLog: private Store upload keystore missing.')
+    }
+    android.signingConfigs.create('store') {
+        storeFile uploadKeystore
+        storePassword storeProperties.getProperty('storePassword')
+        keyAlias storeProperties.getProperty('keyAlias')
+        keyPassword storeProperties.getProperty('keyPassword')
+        storeType 'PKCS12'
+    }
+    android.productFlavors.getByName('store').signingConfig = android.signingConfigs.getByName('store')
+}
+
+// Dev builds remain available without the private Store key. Every Store task
+// fails closed, including abbreviated or aggregate Gradle invocations.
+tasks.configureEach { task ->
+    if (task.name.contains('StoreRelease')) {
+        task.doFirst {
+            if (!storePropertiesFile.isFile()) {
+                throw new GradleException('MaschinenLog: Store signing requires private android/key.properties. See docs/ANDROID_RELEASES.md.')
+            }
+        }
+    }
+}

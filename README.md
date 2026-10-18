@@ -163,7 +163,7 @@ Fehler bei der Erinnerungsplanung werden getrennt gemeldet.
 | Variante | Paketkennung                      | Verwendung                                           |
 | -------- | --------------------------------- | ---------------------------------------------------- |
 | Dev      | `com.appfactory.maschinenlog.dev` | Entwicklung und eigenständige Smartphone-Testversion |
-| Store    | `com.appfactory.maschinenlog`     | Vorbereitete, unsignierte Release-Identität          |
+| Store    | `com.appfactory.maschinenlog`     | Signierte AAB für Play-Tests und Veröffentlichung    |
 
 Die vorhandene Flutter-App unter `production_counter_log` und Hausakte bleiben
 unverändert. Es gibt keine gemeinsame Runtime-Bibliothek, keine Datenmigration,
@@ -198,7 +198,7 @@ den Ordner `/docs` aus `main` über „Deploy from a branch“. `.nojekyll` deak
 die Jekyll-Verarbeitung. HTML und CSS benötigen keine externen Assets, Skripte
 oder Build-Abhängigkeiten. App-Daten werden dort nicht abgelegt.
 
-Die App öffnet die deutsche URL. Für einen späteren Store-Release in der
+Die App öffnet die deutsche URL. Für den Store-Eintrag in der
 Play Console dieselbe URL als Datenschutzerklärung hinterlegen.
 Änderungen künftig in beiden Sprachfassungen pflegen und das
 Aktualisierungsdatum anpassen. [PRIVACY.md](PRIVACY.md) verweist ebenfalls auf
@@ -229,8 +229,14 @@ unter `android/app/build/outputs/apk/dev/release/app-dev-release.apk`. Änderung
 an dieser installierten Version benötigen ein APK-Update. Der eigene lokale
 Dev-Schlüssel liegt ignoriert unter `.local/maschinenlog-dev.keystore` außerhalb
 des von Expo regenerierten Android-Verzeichnisses. Diese Datei behalten und privat
-sichern. Sie wird nicht eingecheckt. Store-Debug ist deaktiviert. Ein Store-Build,
-Store-Signierung oder Upload gehört nicht zu diesem Projektauftrag.
+sichern. Sie wird nicht eingecheckt. Store-Debug ist deaktiviert.
+
+Die Store-Version verwendet einen getrennten privaten Upload-Schlüssel und wird
+mit `npm run build:store` erstellt. Der Helfer prüft die tatsächliche Signatur,
+Identität, Version, JavaScript, OCR-Modell und native 16-KB-Ausrichtung vor der
+benannten Auslieferung. Er installiert nichts. Anleitung und Schlüsselablage:
+[Android Store-Auslieferung](docs/ANDROID_RELEASES.md). Vorbereitete kopierbare
+Feldinhalte: [Store-Texte Deutsch](docs/store-listing-de.md).
 
 Für optionales Fast Refresh stehen `npm run build:dev`, `npm start` auf Port 8084
 und `bash scripts/install-dev.sh DEVICE` zur Verfügung. Dev-Debug und Dev-Preview
@@ -261,6 +267,14 @@ Rollenziffern anhand ihrer Positionen. Siehe [NOTICE.md](NOTICE.md).
 Der [technische Prüfstand](docs/technical-release-readiness.md) hält die aktuellen
 Paketprüfungen, verbleibende Sicherheitsmeldungen und die Geräteabnahme fest.
 
+Aktueller Abnahmestand vom 18. Oktober 2026: Der Nutzer hat bestätigt, alle
+Funktionen auf dem Smartphone getestet zu haben, und die App für den Store-Auftrag
+freigegeben. Die zuvor offenen Abläufe für Kamera-/Galerie-OCR, Berechtigungen,
+Erinnerungen, PDF-Teilen sowie alte und neue Sicherungen gelten damit als vom
+Nutzer abgenommen. Das ist die Nutzerbestätigung und keine nachträglich behauptete
+automatisierte Geräteprüfung. Die folgenden datierten Absätze beschreiben den
+jeweiligen früheren Prüfstand.
+
 Die kurze automatisierte Suite prüft exakte Zahlen, OCR-Kandidaten, getrennte Altzähler,
 Nachträge, Rücksetzungen, Wechsel, Korrekturen, SQLite-Neuöffnung und einen vollständigen
 PDF-/Backup-Ablauf. Die Entschlüsselung wird unabhängig mit Node Crypto geprüft.
@@ -268,15 +282,15 @@ PDF-/Backup-Ablauf. Die Entschlüsselung wird unabhängig mit Node Crypto geprü
 Native JVM-Tests und Lint prüfen das eigene Android-Modul. Wie bei Hausakte werden
 zwei bekannte, abstürzende Lint-Analysetasks der SDK-57-Abhängigkeiten ausgenommen.
 
-Bei der Erstumsetzung war kein Android-Gerät verbunden. Deshalb sind echte
+Bei der Erstumsetzung war kein Android-Gerät verbunden. Deshalb waren echte
 Kamera-/Galerie-OCR, Berechtigungsdialoge, Reminder-Zustellung und
-der sichtbare App-Start noch auf einem Gerät abzunehmen. Es wurden keine
+der sichtbare App-Start damals noch auf einem Gerät abzunehmen. Es wurden keine
 aufwendigen visuellen Testreihen durchgeführt.
 
 Am 12. Oktober 2026 wurde die eigenständige Dev-Version auf einem HONOR BVL-N49
 mit Android 16 installiert und per Launcher gestartet. Die JavaScript-Laufzeit
 startete erfolgreich, ohne JavaScript-Fehler oder Android-Absturzmeldungen.
-Die oben genannten Funktionsabläufe bleiben zur manuellen Geräteabnahme offen.
+Die oben genannten Funktionsabläufe waren zu diesem Zeitpunkt noch offen.
 
 Kurzer manueller Ablauf nach Installation: Zwei getrennte Zähler für Stückzahl und
 Betriebsstunden anlegen, einen Stand manuell und einen per Foto bestätigen, einen Nachtrag und
@@ -299,7 +313,7 @@ Dev-Version 1.0.0 mit Code 1 auf dem HONOR BVL-N49 datenbewahrend installiert.
 Die benannte APK liegt unter
 `build/dev/maschinenlog-1.0.0-dev-counter-flow-2026-10-12-final.apk`.
 Der Bildschirm war nach dem Update gesperrt. Die sichtbare Oberfläche und echte
-Kamera-/OCR-Abläufe bleiben zur kurzen Nutzerabnahme offen.
+Kamera-/OCR-Abläufe waren zu diesem Zeitpunkt noch offen.
 
 Die an ZählerstandLog angeglichene Ableseerinnerung ist mit 32 Anwendungstests,
 45 nativen JVM-Tests und Android-Lint geprüft. Die eigene Dev-APK liegt unter
@@ -328,7 +342,7 @@ Die Backup-Optimierung wird lokal mit einer festen synthetischen Sicherung des
 bisherigen Codecs, den echten Expo-JavaScript-Schnittstellen an einer durch
 Node/OpenSSL ersetzten nativen Grenze und unabhängigen Kompatibilitätsprüfungen
 getestet. Die tatsächliche Dauer über die Android-Schnittstellen und die sichtbare
-Fortschrittsanzeige müssen beim nächsten Gerätetest geprüft werden. Die
+Fortschrittsanzeige waren beim nachfolgenden Gerätetest zu prüfen. Die
 optimierte Dev-Version wurde am 16. Oktober 2026 nach erneutem Anschließen
 datenbewahrend auf dem HONOR BVL-N49 installiert. Die APK liegt unter
 `build/dev/maschinenlog-1.0.0-dev-backup-optimization-2026-10-16.apk`.
@@ -341,7 +355,7 @@ Kopien ist mit 90 Anwendungstests geprüft und ebenfalls datenbewahrend installi
 Die aktuelle APK liegt unter
 `build/dev/maschinenlog-1.0.0-dev-backup-restore-file-wait-2026-10-16.apk`.
 Die Einstellungen mit „Backup wiederherstellen“ wurden auf dem entsperrten
-Smartphone geöffnet. Die Wiederherstellung der echten alten Sicherung benötigt
+Smartphone geöffnet. Die Wiederherstellung der echten alten Sicherung benötigte
 die Passworteingabe durch den Nutzer direkt auf dem Gerät.
 
 Die anschließende technische Prüfung am 16. Oktober 2026 aktualisiert kompatible
@@ -351,7 +365,7 @@ und Android-Lint sind erfolgreich. Die neue eigenständige Dev-APK liegt unter
 `build/dev/maschinenlog-1.0.0-dev-sdk57-check-2026-10-16.apk` und wurde
 datenbewahrend installiert. Signatur, installierte Datei-Prüfsumme und
 Prozessstart wurden geprüft. Das Smartphone war gesperrt. Der reale
-Funktionsdurchlauf einschließlich der alten und neuen Sicherung bleibt offen.
+Funktionsdurchlauf einschließlich der alten und neuen Sicherung war damals offen.
 Der [technische Prüfstand](docs/technical-release-readiness.md) beschreibt die
 verbleibenden 18 hohen Audit-Einträge aus zwei ungepatchten Build-Abhängigkeiten
 und die Grenzen der Bundle-Prüfung.

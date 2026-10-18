@@ -15,8 +15,10 @@ Keine Server-KI und keine eigene Telemetrie.
 Die normale Smartphone-Version ist `npm run build:preview` mit eingebettetem JavaScript.
 `npm run install:preview -- DEVICE` prüft Paket und Signatur und installiert datenbewahrend.
 Dev: `com.appfactory.maschinenlog.dev`, Name `MaschinenLog Dev`.
-Store: `com.appfactory.maschinenlog`. Store-Debug ist deaktiviert, Release bleibt unsigniert.
-Kein Store-Build oder Push ohne neuen Auftrag. Keine fremden Schlüssel kopieren.
+Store: `com.appfactory.maschinenlog`. Store-Debug ist deaktiviert.
+`npm run build:store` baut und prüft die signierte AAB gemäß `docs/ANDROID_RELEASES.md`.
+Private Upload-Schlüssel bleiben außerhalb von Git und des regenerierten Android-Ordners.
+Kein Store-Build oder Push ohne ausdrücklichen Auftrag. Keine fremden Schlüssel kopieren.
 Optionales Fast Refresh verwendet Dev-Debug und Metro auf Port 8084.
 Ein Wechsel des installierten Dev-Modus wird ausdrücklich benannt.
 
@@ -24,4 +26,4 @@ Ein Wechsel des installierten Dev-Modus wird ausdrücklich benannt.
 Gezielte Tests für Berechnung, OCR, Revisionen, SQLite, PDFs und Backups genügen.
 Keine aufwendigen visuellen Testreihen. Tatsächliche Gerätegrenzen in README dokumentieren.
 Changelog unter Workspace `CODEX/changelog/` mit Kopie unter `docs/changelog/`.
-Nach erfolgreichen Prüfungen nur dieses Projekt lokal committen. Nicht pushen.
+Nach erfolgreichen Prüfungen nur dieses Projekt lokal committen. Nur auf ausdrücklichen Auftrag pushen.

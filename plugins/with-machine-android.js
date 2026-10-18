@@ -8,6 +8,7 @@ const {
 } = require('expo/config-plugins');
 const fs = require('node:fs/promises');
 const path = require('node:path');
+const os = require('node:os');
 
 module.exports = function withMachineAndroid(config) {
   config = withAndroidStyles(config, (mod) => {
@@ -111,6 +112,37 @@ ${startup}`,
   config = withDangerousMod(config, [
     'android',
     async (mod) => {
+      await fs.copyFile(
+        path.join(__dirname, 'store-signing.gradle'),
+        path.join(
+          mod.modRequest.platformProjectRoot,
+          'app/store-signing.gradle',
+        ),
+      );
+      await fs.copyFile(
+        path.join(__dirname, 'key.properties.example'),
+        path.join(mod.modRequest.platformProjectRoot, 'key.properties.example'),
+      );
+      // Expo may recreate android/. The private key stays outside that tree.
+      const privateProperties = path.join(
+        os.homedir(),
+        '.local/share/app-factory/signing/maschinenlog/key.properties',
+      );
+      const localProperties = path.join(
+        mod.modRequest.platformProjectRoot,
+        'key.properties',
+      );
+      try {
+        await fs.access(privateProperties);
+        try {
+          await fs.lstat(localProperties);
+        } catch (error) {
+          if (error.code !== 'ENOENT') throw error;
+          await fs.symlink(privateProperties, localProperties);
+        }
+      } catch (error) {
+        if (error.code !== 'ENOENT') throw error;
+      }
       const res = path.join(
         mod.modRequest.platformProjectRoot,
         'app/src/main/res',
@@ -207,7 +239,7 @@ androidComponents {
     }
     if (!source.includes('// MaschinenLog standalone Dev preview')) {
       source += `
-// MaschinenLog standalone Dev preview. Store releases remain unsigned.
+// MaschinenLog standalone Dev preview.
 android.productFlavors.dev.signingConfig = android.signingConfigs.debug
 `;
     }
@@ -220,6 +252,16 @@ android {
 dependencies {
     coreLibraryDesugaring 'com.android.tools:desugar_jdk_libs:2.1.5'
 }
+`;
+    }
+    source = source.replace(
+      '// MaschinenLog standalone Dev preview. Store releases remain unsigned.',
+      '// MaschinenLog standalone Dev preview.',
+    );
+    if (!source.includes('// MaschinenLog private Store upload signing.')) {
+      source += `
+// MaschinenLog private Store upload signing.
+apply from: file('store-signing.gradle')
 `;
     }
     mod.modResults.contents = source;

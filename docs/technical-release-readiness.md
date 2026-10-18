@@ -1,8 +1,9 @@
 # Technischer Prüfstand
 
-Stand: 16. Oktober 2026. Dieser Stand betrifft die eigenständige Dev-Version
-`com.appfactory.maschinenlog.dev`, Version `1.0.0`, Code `1`.
-Er ist keine abgeschlossene Store-Freigabe.
+Stand: 18. Oktober 2026. Die Store-AAB für `com.appfactory.maschinenlog`,
+Version `1.0.0`, Code `2`, ist lokal gebaut, signiert und geprüft.
+Die Nutzerabnahme der zuletzt installierten Dev-Version ist bestätigt.
+Play-Console-Einrichtung, Upload und Veröffentlichung sind noch nicht erfolgt.
 
 ## Abhängigkeiten
 
@@ -20,8 +21,8 @@ der tatsächlich gebauten Paketkennung, Version und Signatur.
 
 ## Sicherheitsprüfung
 
-Vor der Aktualisierung meldete `npm audit --omit=dev` einen kritischen und
-20 hoch eingestufte Paketeinträge. Danach melden sowohl `npm audit` als auch
+Vor der Abhängigkeitsaktualisierung am 16. Oktober meldete `npm audit --omit=dev` einen kritischen und
+20 hoch eingestufte Paketeinträge. Bei der erneuten Prüfung am 18. Oktober melden sowohl `npm audit` als auch
 `npm audit --omit=dev` keinen kritischen und 18 hoch eingestufte Einträge.
 Der Audit-Befehl endet wegen dieser verbleibenden Meldungen weiterhin mit Code 1.
 Diese Einträge enthalten die übergeordneten Pakete der betroffenen
@@ -36,11 +37,12 @@ Sicherheitslücken. Es gibt keine Audit-Unterdrückung.
 | `braces@3.0.3`, [GHSA-vfj7-8cjw-p6xm](https://github.com/advisories/GHSA-vfj7-8cjw-p6xm)     | Offen. Am Prüftag keine gepatchte Version veröffentlicht.          | Unter anderem `expo → @expo/metro → metro-file-map → micromatch → braces`. Tief verschachtelte Glob-Muster können den Node-Prozess beenden. Das betrifft Musterverarbeitung beim Bauen und Entwickeln. Die App verarbeitet keine Zählereingaben als solche Build-Muster.                                                                                                        |
 
 Die Einordnung als Build-Werkzeuge ergibt sich aus dem installierten
-Abhängigkeitsbaum und den Aufrufstellen. Die Abwesenheit im neu erzeugten
-Dev-JavaScript-Bundle wird zusätzlich anhand seiner Source Map geprüft und unten
+Abhängigkeitsbaum und den Aufrufstellen. Die Abwesenheit im tatsächlich erzeugten
+Store-JavaScript-Bundle ist zusätzlich anhand seiner Source Map geprüft und unten
 festgehalten. Das ist keine allgemeine Entwarnung für die Entwicklungsumgebung
-oder eine künftige Store-Datei. Die offenen Meldungen müssen vor dem späteren
-Store-Build erneut bewertet und verfügbare kompatible Patches übernommen werden.
+oder sämtliche nativen Bibliotheken. Auch am 18. Oktober liefern npm und die
+Advisories keine gepatchte Version für die beiden verbleibenden Ursachen.
+Vor künftigen Uploads erneut prüfen und verfügbare kompatible Patches übernehmen.
 
 Die von npm vorgeschlagenen erzwungenen Wechsel auf Expo 44 beziehungsweise
 ältere React-Native-Pakete werden nicht angewendet. Sie sind keine kompatible
@@ -57,80 +59,107 @@ Die Aussage zur lokalen Verarbeitung der Bilder und Ergebnisse folgt den
 [ML-Kit-Datenschutzhinweisen](https://developers.google.com/ml-kit/terms).
 Die konkrete gebündelte Integration ist in der
 [Android-Anleitung](https://developers.google.com/ml-kit/vision/text-recognition/v2/android)
-dokumentiert. Quellen am 16. Oktober 2026 geprüft.
+dokumentiert. Quellen am 18. Oktober 2026 erneut geprüft.
 
 Diese SDK-Verarbeitung muss auch bei der späteren Play-Datensicherheitsangabe
 berücksichtigt werden. Eine pauschale Angabe ohne jede Datenerhebung ist durch
-die lokale OCR allein nicht begründet. Die Play-Angaben werden erst im
-Store-Auftrag ausgefüllt. Die geänderten Webseiten werden nach einem späteren
-Push über die vorhandene GitHub-Pages-Konfiguration veröffentlicht.
+die lokale OCR allein nicht begründet. Die Play-Angaben werden im
+geführten Console-Ablauf ausgefüllt. Die geänderten Webseiten werden mit dem
+Push der Store-Vorbereitung über die vorhandene GitHub-Pages-Konfiguration
+veröffentlicht. Ihre öffentlichen URLs werden anschließend gegen die lokalen
+HTML-Fassungen geprüft.
 
-## Lokale Prüfung und Installation
+## Bestätigte Geräteabnahme
 
-- `npm run check` erfolgreich. Prettier, ESLint und TypeScript bestanden,
-  90 Anwendungstests in zwölf Testdateien erfolgreich.
-- `npm run check:native` erfolgreich. 51 JVM-Tests in fünf Klassen erfolgreich,
-  eigenes Android-Lint ohne Fehler und mit 33 Warnungen. Dazu gehören
-  Aktualisierungshinweise und Warnungen zu Alarmberechtigungen. Das App-Manifest
-  enthält `SCHEDULE_EXACT_ALARM`, die normale Planung prüft `canScheduleExact()`
-  und fängt Planungsfehler ab. Der ältere Ablauf für das Ausblenden einer
-  Testmeldung ist auf Android-Versionen vor API 26 begrenzt. Es wurden keine
-  weiteren Lint-Ausnahmen ergänzt. Die zwei bestehenden Ausschlüsse für
-  abstürzende Analyse-Tasks von Worklets und Expo Modules Core bleiben bestehen.
-- Die Source Map des neu erzeugten `devRelease`-Bundles enthält 2115 Quellen.
-  Für `node_modules/shell-quote/`, `source-map-js/`, `node-forge/` und `braces/`
-  ist jeweils keine Quelle enthalten. Geprüfte Datei:
-  `android/app/build/intermediates/sourcemaps/react/devRelease/index.android.bundle.packager.map`.
-- Beide Datenschutz-HTML-Dateien geparst, relative Links und Verweise auf die
-  GitHub-README sowie Googles SDK-Datenangaben geprüft. Prettier und
-  `git diff --check` bestanden.
+Der Nutzer bestätigte vor der Store-Beauftragung, alle Funktionen auf dem
+Smartphone getestet zu haben und die App als fertig anzusehen. Damit sind die
+zuvor offenen Abläufe für Kamera-/Galerie-OCR, Berechtigungen, tatsächliche
+Erinnerungszustellung, PDF-Teilen sowie alte und neue Backups als Nutzerabnahme
+abgeschlossen. Es handelt sich um die Nutzerbestätigung, nicht um einen vom
+Agenten beobachteten vollständigen Durchlauf oder eine neue visuelle Testreihe.
 
-Der direkte Gradle-Aufruf `:app:assembleDevRelease` mit
-`-PreactNativeArchitectures=arm64-v8a,x86_64 --max-workers=4` war erfolgreich.
-Es wurde kein Expo-Prebuild ausgeführt und die versionierte native Konfiguration
-blieb unverändert. Die neue eigenständige APK liegt unter
-`build/dev/maschinenlog-1.0.0-dev-sdk57-check-2026-10-16.apk` und enthält das
-JavaScript-Bundle. Vorhandene benannte APKs wurden nicht überschrieben.
+Die damaligen Hinweise vom 16. Oktober beschrieben ein gesperrtes Smartphone und
+fehlende manuelle Prüfungen zu diesem Zeitpunkt. Sie sind kein aktueller offener
+Release-Blocker mehr. Die historischen Dev-Installationen stehen weiterhin in
+der README. Bei diesem Store-Auftrag wurde die Dev-App nicht verändert, gestartet,
+neu installiert oder gelöscht. Es wurden keine Gerätedaten übernommen.
 
-SHA-256 der APK:
-`404787b5f8686cf3a95b9eb438366edf12c11775060e8fe618a9ecc13bccf953`.
+## Lokale Release-Prüfungen
 
-Die APK wurde auf dem HONOR datenbewahrend mit dem app-eigenen
-`install:preview`-Helfer installiert. Vorher wurden Dev-Paket, Version, fehlendes
-Debug-Flag, Installer `null` und das zur vorhandenen Installation passende
-Zertifikat geprüft. Das Zertifikat besitzt den SHA-256-Fingerabdruck
-`a3b1f2a1dd55ba47f87f8735b6ed3490d4b9d57df1ac116ab7122f894174643b`.
-Die installierte APK hat die oben genannte identische Datei-Prüfsumme.
-Die genaue Dev-Activity wurde gestartet, der neue Prozess lief und sein
-AndroidRuntime-/ReactNativeJS-/Expo-Fehlerlog enthielt bei der Startkontrolle keine
-Fehler. Ein solcher Startcheck bestätigt keinen vollständigen Funktionsdurchlauf.
+`npm run check` erfolgreich. Prettier, ESLint und TypeScript bestanden.
+98 Anwendungstests in 13 Testdateien erfolgreich.
 
-## Kurze Geräteabnahme
+`npm run check:native` erfolgreich. 51 JVM-Tests in fünf Klassen bestanden.
+Das eigene Android-Lint meldet 0 Fehler und 33 Warnungen. Dazu gehören
+Aktualisierungshinweise und Alarmberechtigungen. Die vorhandenen zwei Ausschlüsse
+für abstürzende Debug-Analysetasks von Worklets und Expo Modules Core bleiben
+unverändert. Es wurden keine neuen Lint-Ausnahmen ergänzt.
 
-Das angeschlossene HONOR BVL-N49 mit Android 16 war während der Prüfung und
-nach dem Update gesperrt. Deshalb wurden keine UI-Aktionen oder realen
-Funktionsdurchläufe ausgeführt. Kamera und Benachrichtigungen waren laut
-Paketstatus bereits vor dem Update erlaubt und sind danach weiterhin erlaubt.
-Das bestätigt weder die erstmaligen Dialoge noch die tatsächliche Zustellung.
-Es wurden keine Nutzerdaten gelöscht und keine Berechtigungen zurückgesetzt.
-Die folgenden kurzen Schritte bleiben zur Geräteabnahme offen.
+Der tatsächliche Store-Build `:app:bundleStoreRelease` einschließlich
+`lintVitalStoreRelease` ist ohne zusätzliche Task-Ausschlüsse erfolgreich.
+Der Helfer baut direkt mit Produktions-JavaScript für `arm64-v8a` und `x86_64`.
 
-| Ablauf         | Nachweis für die Abnahme                                                                                                                                                                       |
-| -------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Kamera-OCR     | Zähler aufnehmen, erkannte Zahl prüfen, vor dem Speichern bestätigen.                                                                                                                          |
-| Galerie-OCR    | Ein vorhandenes Foto auswählen, Vorschlag prüfen und bestätigen. Bei fehlender Erkennung muss manuelle Eingabe möglich bleiben.                                                                |
-| Berechtigungen | Kamera und Benachrichtigungen prüfen. Ein bereits erteilter Zugriff ist kein Test des erstmaligen Berechtigungsdialogs.                                                                        |
-| Erinnerung     | „Erinnerung jetzt testen“ muss eine sichtbare Android-Meldung zustellen. Eine geplante Erinnerung zusätzlich zu ihrem Termin prüfen.                                                           |
-| PDF            | Ein Protokoll öffnen und das Android-Teilen-Menü prüfen. Nur aktuelle Fotos dürfen enthalten sein.                                                                                             |
-| Alte Sicherung | Vorhandene alte `.mlbackup` in den Einstellungen wiederherstellen. Das reale Passwort wird ausschließlich vom Nutzer am Smartphone eingegeben. Danach Einträge, frühere Fotos und PDFs prüfen. |
-| Neue Sicherung | Backup speichern, anschließend wiederherstellen und unveränderte Einträge sowie Dateien prüfen. Ende-zu-Ende-Dauer und Fortschrittsanzeige beobachten.                                         |
+Die Expo-Neuerzeugung wurde geprüft. App-Kennung, Version, Flavor-Trennung,
+Store-Signierungsdatei und Beispielkonfiguration bleiben erhalten. Der ignorierte
+Link zur privaten Konfiguration wird aus dem app-eigenen externen Standardpfad
+wiederhergestellt. Im generierten App-Gradle steht genau ein Store-Signierungshook.
+Eine temporär ausgeblendete private Konfiguration blockiert Store-Tasks wie
+vorgesehen. Der Link wurde anschließend wiederhergestellt.
 
-Die lokalen Tests mit einer festen alten synthetischen Sicherung und verzögerten
-Dateioperationen ersetzen die Wiederherstellung der echten Nutzerdatei auf dem
-Smartphone nicht.
+Die numerische ELF-Prüfung akzeptiert 16-KB-Ladesegmente und verwirft 4-KB-
+Ausrichtung, Null-Ausrichtung sowie nicht zueinander passende Datei-/Speicher-
+Offsets. Die zusätzlichen Gegenproben verwerfen eine falsche Version und ein
+abweichendes Zertifikat. Ein erneuter Helferaufruf verweigert die vorhandene
+benannte Auslieferung bereits vor Gradle. Ihre Prüfsumme bleibt unverändert.
 
-## Späterer Store-Auftrag
+## Geprüfte Store-Datei
 
-Store-Signierung, AAB, hochgeladene Versionscodes, Play Console, Inhaltsbewertung,
-Testerzugang, Store-Texte und Screenshots bleiben offen. Der Dev-Auftrag verändert
-keine Store-Installation und führt keinen Upload oder Push aus.
+Benannte Auslieferung:
+`build/releases/production/maschinenlog-1.0.0-build-2-production.aab`.
+Daneben liegt die JSON-Prüfdatei. Reproduktionsanleitung:
+[Android Store-Auslieferung](ANDROID_RELEASES.md).
+
+| Eigenschaft          | Ergebnis                                                                                     |
+| -------------------- | -------------------------------------------------------------------------------------------- |
+| Paketkennung         | `com.appfactory.maschinenlog`                                                                |
+| App-Name             | `MaschinenLog`                                                                               |
+| Version              | `1.0.0` mit Code `2`                                                                         |
+| Android              | Minimum API 24, Target API 36                                                                |
+| Debug/Test-only      | Deaktiviert                                                                                  |
+| Android-Systembackup | Deaktiviert                                                                                  |
+| Signatur             | App-eigener privater RSA-4096-Upload-Schlüssel, Bundletool und Jarsigner erfolgreich         |
+| Native Plattformen   | ARM64 und x86_64                                                                             |
+| Native 16-KB-Prüfung | Alle 46 Bibliotheken besitzen passende ELF-Ladesegmente. Bundle fordert `PAGE_ALIGNMENT_16K` |
+| JavaScript           | Im Store-Bundle enthalten                                                                    |
+| Zahlen-OCR           | Lateinisches ML-Kit-Modell im Bundle enthalten                                               |
+
+SHA-256 der AAB:
+`5f78a58f4c01ea896ecd9d31508d37ace1cd10e1012f470badfb8bb393c8e328`.
+
+SHA-256 des öffentlichen Upload-Zertifikats:
+`567749b56beef37de6f131f8410377ccd977d1b8add7e60052ccd389a8acb714`.
+
+Die Store-Source-Map enthält 2117 Quellen. Für
+`node_modules/shell-quote/`, `source-map-js/`, `node-forge/` und `braces/`
+ist jeweils keine Quelle enthalten. Geprüfte Datei:
+`android/app/build/intermediates/sourcemaps/react/storeRelease/index.android.bundle.packager.map`.
+
+Die Target-API wurde aus der konkreten AAB gelesen und entspricht den
+[aktuellen Play-Vorgaben für neue Android-Apps](https://support.google.com/googleplay/android-developer/answer/11926878?hl=en).
+Die 16-KB-Prüfung folgt den
+[Android-Hinweisen zu ELF- und ZIP-Ausrichtung](https://developer.android.com/guide/practices/page-sizes).
+Dies ist eine statische Artefaktprüfung, kein beobachteter Start auf einem Gerät
+mit 16-KB-Speicherseiten.
+
+## Verbleibende Console-Schritte
+
+Die technische Store-Datei liegt vor. Vor Veröffentlichung folgen App-Anlage,
+Store-Eintrag mit Grafiken und Screenshots, die tatsächlichen Console-Formulare,
+Play App Signing, Testzugang und Upload. Der erste Play-Test prüft zusätzlich
+Installation und Start der von Play erzeugten Store-App mit eigener Identität.
+Die Dev-App bleibt parallel bestehen.
+
+Vorbereitete kopierbare Feldinhalte stehen in
+[Store-Texte Deutsch](store-listing-de.md). Es wurde weder ein Bundle hochgeladen
+noch eine App veröffentlicht. Rechtsverbindliche Erklärungen und Freigaben trifft
+der Kontoinhaber im geführten Console-Ablauf.

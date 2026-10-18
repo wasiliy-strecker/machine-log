@@ -107,7 +107,7 @@ android {
         applicationId 'com.appfactory.maschinenlog'
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 1
+        versionCode 2
         versionName "1.0.0"
 
         buildConfigField "String", "REACT_NATIVE_RELEASE_LEVEL", "\"${findProperty('reactNativeReleaseLevel') ?: 'stable'}\""
@@ -204,7 +204,7 @@ androidComponents {
     }
 }
 
-// MaschinenLog standalone Dev preview. Store releases remain unsigned.
+// MaschinenLog standalone Dev preview.
 android.productFlavors.dev.signingConfig = android.signingConfigs.debug
 
 // MaschinenLog Android 7 time API support
@@ -214,3 +214,6 @@ android {
 dependencies {
     coreLibraryDesugaring 'com.android.tools:desugar_jdk_libs:2.1.5'
 }
+
+// MaschinenLog private Store upload signing.
+apply from: file('store-signing.gradle')

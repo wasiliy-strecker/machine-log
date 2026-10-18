@@ -1,0 +1,6 @@
+# Copy to ignored android/key.properties, or link a private external file.
+# Relative storeFile paths resolve from android/app.
+storeFile=/absolute/private/path/to/maschinenlog/upload-keystore.p12
+storePassword=REPLACE_WITH_PRIVATE_PASSWORD
+keyAlias=upload
+keyPassword=REPLACE_WITH_PRIVATE_PASSWORD

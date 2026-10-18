@@ -16,6 +16,7 @@
     "check": "npm run format:check && npm run lint && npm run typecheck && npm test",
     "check:native": "bash scripts/check-native.sh",
     "build:preview": "bash scripts/build-preview.sh",
+    "build:store": "bash scripts/build_store_aab.sh",
     "install:preview": "bash scripts/install-preview.sh"
   },
   "dependencies": {
