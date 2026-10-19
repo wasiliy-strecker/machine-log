@@ -11,9 +11,10 @@ aber den eigenen Gradle-Build. Nachbarprojekte und deren Schlüssel bleiben unve
 | Dev      | `com.appfactory.maschinenlog.dev` | MaschinenLog Dev | Lokale Tests und datenbewahrende APK-Updates |
 | Store    | `com.appfactory.maschinenlog`     | MaschinenLog     | Interne Play-Tests und Produktion            |
 
-Die aktuelle Auslieferung verwendet Version `1.0.0`, Versionscode `4`.
-Die früheren benannten Auslieferungen mit Code `2` und `3` bleiben unverändert
-erhalten. Code `4` enthält den auf dem Smartphone bestätigten App-Start mit Icon.
+Die aktuelle Auslieferung verwendet Version `1.0.0`, Versionscode `5`.
+Die früheren benannten Auslieferungen mit Code `2`, `3` und `4` bleiben unverändert
+erhalten. Code `5` enthält wie Code `4` den auf dem Smartphone bestätigten
+App-Start mit Icon. Die erneute Auslieferung erhöht nur den Versionscode.
 Die App wurde inzwischen vom Nutzer in der Play Console angelegt. Ein Upload
 oder eine Veröffentlichung durch den Agenten ist nicht erfolgt. Vor einem
 weiteren Upload den tatsächlichen Console-Stand prüfen.
@@ -103,7 +104,7 @@ Sicherheitsbewertung sämtlicher nativer Bibliotheken.
 Erst danach legt der Helfer die benannte Auslieferung an:
 
 ```text
-build/releases/production/maschinenlog-1.0.0-build-4-production.aab
+build/releases/production/maschinenlog-1.0.0-build-5-production.aab
 ```
 
 Daneben liegt eine JSON-Prüfdatei mit SHA-256, Upload-Zertifikat-Fingerabdruck,

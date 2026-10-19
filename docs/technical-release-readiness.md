@@ -1,7 +1,7 @@
 # Technischer Prüfstand
 
-Stand: 18. Oktober 2026. Die Store-AAB für `com.appfactory.maschinenlog`,
-Version `1.0.0`, Code `4`, ist lokal gebaut, signiert und geprüft.
+Stand: 19. Oktober 2026. Die Store-AAB für `com.appfactory.maschinenlog`,
+Version `1.0.0`, Code `5`, ist lokal gebaut, signiert und geprüft.
 Die Nutzerabnahme der zuletzt installierten Dev-Version ist bestätigt.
 Die App ist in der Play Console angelegt. Der Agent hat weder einen Upload
 noch eine Veröffentlichung durchgeführt.
@@ -23,7 +23,7 @@ der tatsächlich gebauten Paketkennung, Version und Signatur.
 ## Sicherheitsprüfung
 
 Vor der Abhängigkeitsaktualisierung am 16. Oktober meldete `npm audit --omit=dev` einen kritischen und
-20 hoch eingestufte Paketeinträge. Bei der erneuten Prüfung am 18. Oktober melden sowohl `npm audit` als auch
+20 hoch eingestufte Paketeinträge. Bei der erneuten Prüfung am 19. Oktober melden sowohl `npm audit` als auch
 `npm audit --omit=dev` keinen kritischen und 18 hoch eingestufte Einträge.
 Der Audit-Befehl endet wegen dieser verbleibenden Meldungen weiterhin mit Code 1.
 Diese Einträge enthalten die übergeordneten Pakete der betroffenen
@@ -41,7 +41,7 @@ Die Einordnung als Build-Werkzeuge ergibt sich aus dem installierten
 Abhängigkeitsbaum und den Aufrufstellen. Die Abwesenheit im tatsächlich erzeugten
 Store-JavaScript-Bundle ist zusätzlich anhand seiner Source Map geprüft und unten
 festgehalten. Das ist keine allgemeine Entwarnung für die Entwicklungsumgebung
-oder sämtliche nativen Bibliotheken. Auch am 18. Oktober liefern npm und die
+oder sämtliche nativen Bibliotheken. Auch am 19. Oktober liefern npm und die
 Advisories keine gepatchte Version für die beiden verbleibenden Ursachen.
 Vor künftigen Uploads erneut prüfen und verfügbare kompatible Patches übernehmen.
 
@@ -94,6 +94,11 @@ Store-Build 4 beauftragt. Der native Start und der Ladezustand verwenden dasselb
 Motiv. Die fertige App blendet in 180 Millisekunden ein. Zuvor wurden Kaltstarts
 auf isolierten Android-7- und Android-15-Emulatoren sowie Android 15 im Dunkelmodus
 geprüft. Die installierte Dev-Version enthält bereits genau diese Änderung.
+
+Am 19. Oktober wurde auf erneuten Auftrag die signierte Store-Auslieferung mit
+Code 5 erstellt. Die Marketingversion und der Funktionsstand bleiben gegenüber
+Code 4 gleich. Der höchste lokal bekannte frühere Versionscode ist 4.
+Ein darüber hinausgehender Console-Upload ist dem Agenten nicht bekannt.
 
 Die damaligen Hinweise vom 16. Oktober beschrieben ein gesperrtes Smartphone und
 fehlende manuelle Prüfungen zu diesem Zeitpunkt. Sie sind kein aktueller offener
@@ -154,7 +159,7 @@ Datensicherheitsformular. Einzelheiten und lokale Nachweise:
 ## Geprüfte Store-Datei
 
 Benannte Auslieferung:
-`build/releases/production/maschinenlog-1.0.0-build-4-production.aab`.
+`build/releases/production/maschinenlog-1.0.0-build-5-production.aab`.
 Daneben liegt die JSON-Prüfdatei. Reproduktionsanleitung:
 [Android Store-Auslieferung](ANDROID_RELEASES.md).
 
@@ -162,7 +167,7 @@ Daneben liegt die JSON-Prüfdatei. Reproduktionsanleitung:
 | -------------------- | -------------------------------------------------------------------------------------------- |
 | Paketkennung         | `com.appfactory.maschinenlog`                                                                |
 | App-Name             | `MaschinenLog`                                                                               |
-| Version              | `1.0.0` mit Code `4`                                                                         |
+| Version              | `1.0.0` mit Code `5`                                                                         |
 | Android              | Minimum API 24, Target API 36                                                                |
 | Debug/Test-only      | Deaktiviert                                                                                  |
 | Android-Systembackup | Deaktiviert                                                                                  |
@@ -173,7 +178,7 @@ Daneben liegt die JSON-Prüfdatei. Reproduktionsanleitung:
 | Zahlen-OCR           | Lateinisches ML-Kit-Modell im Bundle enthalten                                               |
 
 SHA-256 der AAB:
-`5e6d4e8320e35d0b31142d6a15feb21648794173f0ab52e685ee636c9e6287f6`.
+`dd4b9934f8285b18079bf5d2ad96071c4383cf40a0f901b38783b776a1ef5560`.
 
 SHA-256 des öffentlichen Upload-Zertifikats:
 `567749b56beef37de6f131f8410377ccd977d1b8add7e60052ccd389a8acb714`.
@@ -185,9 +190,9 @@ ist jeweils keine Quelle enthalten. Geprüfte Datei:
 
 Die fünf Startbild-Ressourcen in der signierten AAB stimmen pixelgenau mit den
 geprüften Dev-Ressourcen überein. Das frühere transparente Ersatzmotiv ist nicht
-mehr enthalten. Die Auslieferungen mit Code 2 und 3 wurden über ihre SHA-256-
+mehr enthalten. Die Auslieferungen mit Code 2, 3 und 4 wurden über ihre SHA-256-
 Prüfsummen als unverändert bestätigt. Lokale Nachweise und Audit-Berichte dieses
-Builds liegen unter `build/validation/release-4/`.
+Builds liegen unter `build/validation/release-5/`.
 
 Die Target-API wurde aus der konkreten AAB gelesen und entspricht den
 [aktuellen Play-Vorgaben für neue Android-Apps](https://support.google.com/googleplay/android-developer/answer/11926878?hl=en).

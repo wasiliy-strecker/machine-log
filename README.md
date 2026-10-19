@@ -315,6 +315,12 @@ Der Nutzer hat den neuen Startbildschirm auf diesem Smartphone bestätigt. Die
 anschließend beauftragte, signierte und geprüfte Store-Auslieferung liegt unter
 `build/releases/production/maschinenlog-1.0.0-build-4-production.aab`.
 
+Am 19. Oktober 2026 wurde auf erneuten Auftrag die Store-Auslieferung mit
+Versionscode 5 gebaut und geprüft. Sie enthält denselben Funktionsstand wie
+Code 4. Aktuelle Datei:
+`build/releases/production/maschinenlog-1.0.0-build-5-production.aab`.
+Frühere Auslieferungen bleiben unter ihren bisherigen Dateinamen erhalten.
+
 Die kurze automatisierte Suite prüft exakte Zahlen, OCR-Kandidaten, getrennte Altzähler,
 Nachträge, Rücksetzungen, Wechsel, Korrekturen, SQLite-Neuöffnung und einen vollständigen
 PDF-/Backup-Ablauf. Die Entschlüsselung wird unabhängig mit Node Crypto geprüft.

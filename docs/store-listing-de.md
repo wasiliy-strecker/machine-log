@@ -1,6 +1,6 @@
 # Store-Texte Deutsch
 
-Vorbereitet für den Store-Upload von MaschinenLog 1.0.0, Versionscode 4.
+Vorbereitet für den Store-Upload von MaschinenLog 1.0.0, Versionscode 5.
 Diese Texte sind noch keine Veröffentlichung oder abgeschlossene Play-Freigabe.
 Die Feldinhalte können direkt kopiert werden.
 
@@ -58,21 +58,21 @@ https://wasiliy-strecker.github.io/machine-log/datenschutz/
 ## Interner Release-Titel
 
 ```text
-1.0.0 (4) – Neuer Startbildschirm
+1.0.0 (5) – MaschinenLog
 ```
 
 ## Versionshinweise
 
 ```text
 <de-DE>
-Neuer Startbildschirm mit MaschinenLog-Icon und sanftem Übergang zur App. Passende Darstellung im Hell- und Dunkelmodus.
+Produktionszähler manuell oder per Foto erfassen. Zählerverläufe und PDF-Protokolle erstellen. Mit Ableseerinnerungen, passwortgeschützten Backups und Startbildschirm mit MaschinenLog-Icon.
 </de-DE>
 ```
 
 ## Nächster Console-Schritt
 
 Die App ist in der Play Console angelegt. Für den nächsten Upload die geprüfte
-AAB mit Code 4 verwenden. Die Store-Grafiken liegen unter
+AAB mit Code 5 verwenden. Die Store-Grafiken liegen unter
 `build/store-assets/de-DE/build-3/` und zeigen die weiterhin gültigen App-Ansichten.
 Danach die noch offenen Console-Aufgaben anhand des tatsächlichen Console-Stands
 abarbeiten. Rechtliche Erklärungen und Veröffentlichung bleiben beim Kontoinhaber.
