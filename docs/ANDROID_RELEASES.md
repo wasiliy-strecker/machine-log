@@ -11,13 +11,20 @@ aber den eigenen Gradle-Build. Nachbarprojekte und deren Schlüssel bleiben unve
 | Dev      | `com.appfactory.maschinenlog.dev` | MaschinenLog Dev | Lokale Tests und datenbewahrende APK-Updates |
 | Store    | `com.appfactory.maschinenlog`     | MaschinenLog     | Interne Play-Tests und Produktion            |
 
-Die aktuelle Auslieferung verwendet Version `1.0.0`, Versionscode `5`.
-Die früheren benannten Auslieferungen mit Code `2`, `3` und `4` bleiben unverändert
-erhalten. Code `5` enthält wie Code `4` den auf dem Smartphone bestätigten
+Die zuletzt vorbereitete Store-Auslieferung verwendet Version `1.0.0`, Versionscode `5`.
+Die lokalen AAB-Dateien mit Code `2`, `3`, `4` und `5` wurden am 21.10.2026
+auf Nutzerauftrag zur Speicherbereinigung entfernt. Prüfdateien und Release-Texte
+bleiben erhalten. Code `5` enthält wie Code `4` den auf dem Smartphone bestätigten
 App-Start mit Icon. Die erneute Auslieferung erhöht nur den Versionscode.
 Die App wurde inzwischen vom Nutzer in der Play Console angelegt. Ein Upload
 oder eine Veröffentlichung durch den Agenten ist nicht erfolgt. Vor einem
 weiteren Upload den tatsächlichen Console-Stand prüfen.
+
+Die zur aktuell installierten Smartphone-Version identische Dev-APK bleibt unter
+`build/dev/maschinenlog-1.0.0-dev-start-icon-2026-10-18.apk` erhalten.
+Sie verwendet Version `1.0.0`, Versionscode `3`. Ihr SHA-256 wurde vor der
+Bereinigung mit der installierten APK verglichen. Die Dev-Installation und ihre
+Daten wurden nicht verändert.
 
 Store-Debug ist deaktiviert. Die Store-Version benötigt einen eigenen privaten
 Upload-Schlüssel. Es gibt keinen Rückfall auf Debug-Signierung oder unsignierte
