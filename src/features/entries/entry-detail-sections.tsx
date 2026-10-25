@@ -1,3 +1,6 @@
+import { presetLabel } from '../../core/localization/presets';
+import { t } from '../../core/localization/runtime';
+import { useLocalization } from '../../core/localization/react';
 import { useState } from 'react';
 import { Pressable, View } from 'react-native';
 import { Body, Card, useTheme } from '../../core/ui/components';
@@ -9,10 +12,9 @@ import {
   type CounterEvent,
   type Revision,
 } from '../../core/domain/models';
-import { formatValue } from '../../core/domain/reading-value';
+import { displayValue as formatValue } from '../../core/localization/numbers';
 import { dateTime } from '../records/presentation-model';
 import { Documents, PhotoGallery } from '../media/attachments';
-
 function DetailRow({
   label,
   value,
@@ -22,6 +24,7 @@ function DetailRow({
   value: string;
   comparison?: boolean;
 }) {
+  useLocalization();
   return (
     <View style={{ flexDirection: 'row', alignItems: 'flex-start', gap: 12 }}>
       <Body
@@ -31,71 +34,66 @@ function DetailRow({
         {label}
       </Body>
       <Body strong={!comparison} style={{ flex: 1 }}>
-        {value || 'Keine Angabe'}
+        {value || t('notSpecified')}
       </Body>
     </View>
   );
 }
-
 export function EntryInformation({ entry: e }: { entry: CounterEvent }) {
+  useLocalization();
   return (
     <Card>
-      <DetailRow
-        label="Zeitpunkt der Ablesung"
-        value={dateTime(e.occurredAt)}
-      />
-      <DetailRow label="Quelle" value={sourceLabels[e.source]} />
+      <DetailRow label={t('timeOfReading')} value={dateTime(e.occurredAt)} />
+      <DetailRow label={t('source')} value={sourceLabels[e.source]} />
       {e.kind !== 'reading' && (
         <>
-          <DetailRow label="Art des Eintrags" value={eventLabels[e.kind]} />
+          <DetailRow label={t('artDesEintrags')} value={eventLabels[e.kind]} />
           <DetailRow
-            label="Alter Endstand"
+            label={t('alterEndstand')}
             value={
               e.closing
-                ? `${formatValue(e.closing.value)} ${e.closing.unit}`
-                : 'Unbekannt'
+                ? `${formatValue(e.closing.value)} ${presetLabel(e.closing.unit)}`
+                : t('unbekannt')
             }
           />
         </>
       )}
       {!!e.newCounterNumber && (
-        <DetailRow label="Neue Zählernummer" value={e.newCounterNumber} />
+        <DetailRow label={t('neueZaehlernummer')} value={e.newCounterNumber} />
       )}
-      {!!e.note && <DetailRow label="Notiz" value={e.note} />}
+      {!!e.note && <DetailRow label={t('note')} value={e.note} />}
     </Card>
   );
 }
-
 function changedFields({ before, after }: Revision) {
   const measurement = (state: Revision['before']) =>
-    `${formatValue(state.measurement.value)} ${state.measurement.unit}`;
+    `${formatValue(state.measurement.value)} ${presetLabel(state.measurement.unit)}`;
   const closing = (state: Revision['before']) =>
     state.closing
-      ? `${formatValue(state.closing.value)} ${state.closing.unit}`
-      : 'Unbekannt';
+      ? `${formatValue(state.closing.value)} ${presetLabel(state.closing.unit)}`
+      : t('unbekannt');
   const rows: [string, string, string][] = [
-    ['Zählerstand', measurement(before), measurement(after)],
+    [t('meterReading'), measurement(before), measurement(after)],
     [
-      'Zeitpunkt der Ablesung',
+      t('timeOfReading'),
       dateTime(before.occurredAt),
       dateTime(after.occurredAt),
     ],
-    ['Art des Eintrags', eventLabels[before.kind], eventLabels[after.kind]],
-    ['Alter Endstand', closing(before), closing(after)],
-    ['Neue Zählernummer', before.newCounterNumber, after.newCounterNumber],
-    ['Notiz', before.note, after.note],
+    [t('artDesEintrags'), eventLabels[before.kind], eventLabels[after.kind]],
+    [t('alterEndstand'), closing(before), closing(after)],
+    [t('neueZaehlernummer'), before.newCounterNumber, after.newCounterNumber],
+    [t('note'), before.note, after.note],
   ];
   return rows.filter(([, previous, next]) => previous !== next);
 }
-
 function filesChanged(before: Attachment[], after: Attachment[]) {
   return (
     JSON.stringify(before.map((a) => [a.file, a.sha256])) !==
     JSON.stringify(after.map((a) => [a.file, a.sha256]))
   );
 }
-
 function RevisionEntry({ revision }: { revision: Revision }) {
+  useLocalization();
   const c = useTheme();
   const [showPrevious, setShowPrevious] = useState(false);
   const beforePhotos = revision.before.attachments.filter(
@@ -116,23 +114,31 @@ function RevisionEntry({ revision }: { revision: Revision }) {
   const previousDocuments = documentsChanged ? beforeDocuments : [];
   return (
     <View style={{ gap: 10 }}>
-      <Body strong>Korrektur vom {dateTime(revision.changedAt)}</Body>
-      {!!revision.reason && <Body>Grund: {revision.reason}</Body>}
+      <Body strong>
+        {t('korrekturVom') + ' '}
+        {dateTime(revision.changedAt)}
+      </Body>
+      {!!revision.reason && (
+        <Body>
+          {t('grund') + ' '}
+          {revision.reason}
+        </Body>
+      )}
       {changedFields(revision).map(([label, before, after]) => (
         <View key={label} style={{ gap: 3 }}>
           <Body strong>{label}</Body>
-          <DetailRow comparison label="Vorher:" value={before} />
-          <DetailRow comparison label="Neu:" value={after} />
+          <DetailRow comparison label={t('vorher')} value={before} />
+          <DetailRow comparison label={t('neu')} value={after} />
         </View>
       ))}
       {photoChanged &&
         (afterPhotos.length ? (
           <View style={{ gap: 8 }}>
-            <Body strong>Neues Foto</Body>
+            <Body strong>{t('newPhoto')}</Body>
             <PhotoGallery photos={afterPhotos} />
           </View>
         ) : (
-          <Body strong>Nachweisfoto geändert</Body>
+          <Body strong>{t('supportingPhotoChanged')}</Body>
         ))}
       {documentsChanged && <Documents documents={afterDocuments} />}
       {(previousPhotos.length > 0 || previousDocuments.length > 0) && (
@@ -150,8 +156,8 @@ function RevisionEntry({ revision }: { revision: Revision }) {
           >
             <Body style={{ flex: 1 }}>
               {previousDocuments.length
-                ? 'Vorherige Anhänge anzeigen'
-                : 'Vorheriges Foto anzeigen'}
+                ? t('vorherigeAnhaengeAnzeigen')
+                : t('viewPreviousPhoto')}
             </Body>
             <Icon
               name={showPrevious ? 'expand_less' : 'expand_more'}
@@ -171,8 +177,8 @@ function RevisionEntry({ revision }: { revision: Revision }) {
     </View>
   );
 }
-
 export function CorrectionHistory({ entry }: { entry: CounterEvent }) {
+  useLocalization();
   const c = useTheme();
   const revisions = [...entry.revisions].sort(
     (a, b) => Date.parse(b.changedAt) - Date.parse(a.changedAt),
@@ -182,15 +188,16 @@ export function CorrectionHistory({ entry }: { entry: CounterEvent }) {
       <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
         <Icon name="history_outlined" color={c.primary} />
         <Body strong style={{ flex: 1 }}>
-          Korrekturverlauf
+          {t('correctionHistory')}
         </Body>
       </View>
       <Body>
-        Hier findest du jede gespeicherte Korrektur mit Zeitpunkt, den
-        geänderten Angaben und – falls angegeben – einem Grund.
+        {t(
+          'hereYouWillFindEverySavedCorrectionWithTheTimeTheChangedInformationAndIfSpecifiedAReason',
+        )}
       </Body>
       {revisions.length === 0 ? (
-        <Body>Für diese Ablesung gibt es noch keine Korrekturen.</Body>
+        <Body>{t('thereAreNoCorrectionsForThisReadingYet')}</Body>
       ) : (
         revisions.map((revision, index) => (
           <View

@@ -1,7 +1,7 @@
+import { useLocalization } from '../localization/react';
 import { Pressable, Text, View } from 'react-native';
 import { Icon, type IconName } from './icon';
 import { useTheme } from './theme';
-
 type DialogAction = {
   label: string;
   onPress(): void;
@@ -11,7 +11,6 @@ type DialogAction = {
   disabled?: boolean;
   icon?: IconName;
 };
-
 export function DialogActions({
   actions,
   stacked = false,
@@ -19,6 +18,7 @@ export function DialogActions({
   actions: DialogAction[];
   stacked?: boolean;
 }) {
+  useLocalization();
   const c = useTheme();
   return (
     <View

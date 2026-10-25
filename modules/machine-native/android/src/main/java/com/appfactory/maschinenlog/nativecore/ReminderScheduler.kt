@@ -231,22 +231,22 @@ internal object ReminderNotifier {
         val latestReading = if (
             !reminder.latestValue.isNullOrBlank()
         ) {
-            "Letzter Eintrag: ${reminder.latestValue} ${reminder.latestUnit.orEmpty()}".trim()
+            NativeLanguage.text(context, R.string.ml_notificationlatest, NativeLanguage.number(context, reminder.latestDigits, reminder.latestScale, reminder.latestValue).orEmpty(), NativeLanguage.unit(context, reminder.latestUnit.orEmpty())).trim()
         } else {
-            "Noch kein Eintrag"
+            NativeLanguage.text(context, R.string.ml_notificationempty)
         }
-        val summary = "${reminder.categoryLabel} · $latestReading"
+        val summary = "${if (reminder.category == "machine") NativeLanguage.text(context, R.string.ml_produktionszaehler) else reminder.categoryLabel} · $latestReading"
         val notification = NotificationCompat.Builder(context, channelId)
             .setSmallIcon(MachineIcons.drawableId(reminder.icon))
             .setLargeIcon(MachineIcons.bitmap(context, reminder.icon))
             .setOnlyAlertOnce(onlyAlertOnce)
             .addExtras(Bundle().apply { putString(machineIconExtra, reminder.icon) })
             .setColor(Color.rgb(0, 107, 99))
-            .setContentTitle("${reminder.categoryLabel} · ${reminder.label}")
+            .setContentTitle("${if (reminder.category == "machine") NativeLanguage.text(context, R.string.ml_produktionszaehler) else reminder.categoryLabel} · ${reminder.label}")
             .setContentText(summary)
             .setStyle(
                 NotificationCompat.BigTextStyle().bigText(
-                    "$latestReading\nJetzt den aktuellen Zählerstand in MaschinenLog erfassen.",
+                    NativeLanguage.text(context, R.string.ml_notificationbody, latestReading),
                 ),
             )
             .apply { configureLegacySound(this, reminder.isPunctual) }
@@ -283,14 +283,14 @@ internal object ReminderNotifier {
         }
     }
 
-    fun refreshActive(context: Context, reminder: StoredReminder): Boolean {
+    fun refreshActive(context: Context, reminder: StoredReminder, force: Boolean = false): Boolean {
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M) return true
         return try {
             val active = context.getSystemService(NotificationManager::class.java)
                 .activeNotifications.firstOrNull {
                     it.tag == recordTag(reminder.recordId) && it.id == recordNotificationId
                 } ?: return true
-            if (active.notification.extras.getString(machineIconExtra) == reminder.icon) return true
+            if (!force && active.notification.extras.getString(machineIconExtra) == reminder.icon) return true
             // Updating a machine's symbol must not trigger another reminder sound.
             showRecord(context, reminder, active.notification.`when`, onlyAlertOnce = true) != null
         } catch (_: Exception) {
@@ -312,11 +312,10 @@ internal object ReminderNotifier {
         val availability = availability(context, punctual)
         if (availability != ReminderAvailability.AVAILABLE) return availability.wireValue
         val latestReading = if (!latestValue.isNullOrBlank()) {
-            "Letzter Eintrag: $latestValue ${latestUnit.orEmpty()}".trim()
+            NativeLanguage.text(context, R.string.ml_notificationlatest, latestValue.orEmpty(), NativeLanguage.unit(context, latestUnit.orEmpty())).trim()
         } else {
-            "Noch kein Eintrag"
+            NativeLanguage.text(context, R.string.ml_notificationempty)
         }
-        val target = if (recordId.isNullOrBlank()) "die App" else "den Zähler"
         val notification = NotificationCompat.Builder(
             context,
             channelId(punctual),
@@ -324,11 +323,11 @@ internal object ReminderNotifier {
             .setSmallIcon(MachineIcons.drawableId(icon))
             .setLargeIcon(MachineIcons.bitmap(context, icon))
             .setColor(Color.rgb(0, 107, 99))
-            .setContentTitle("Test: $categoryLabel · $label")
+            .setContentTitle(NativeLanguage.text(context, R.string.ml_notificationtesttitle, if (category == "machine") NativeLanguage.text(context, R.string.ml_produktionszaehler) else categoryLabel, label))
             .setContentText(latestReading)
             .setStyle(
                 NotificationCompat.BigTextStyle().bigText(
-                    "$latestReading\nDas ist eine Test-Erinnerung. Tippen öffnet $target.",
+                    NativeLanguage.text(context, if (recordId.isNullOrBlank()) R.string.ml_notificationtestapp else R.string.ml_notificationtestcounter, latestReading),
                 ),
             )
             .apply { configureLegacySound(this, punctual) }
@@ -407,15 +406,15 @@ internal object ReminderNotifier {
         context.getSystemService(NotificationManager::class.java).cancel(testTag, testNotificationId)
     }
 
-    private fun ensureChannels(context: Context) {
+    fun ensureChannels(context: Context) {
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) return
         val manager = context.getSystemService(NotificationManager::class.java)
         val normal = NotificationChannel(
             normalChannelId,
-            "Normale Erinnerung",
+            NativeLanguage.text(context, R.string.ml_normalreminder),
             NotificationManager.IMPORTANCE_HIGH,
         ).apply {
-            description = "Optionale Erinnerungen für regelmäßige Zählerablesungen."
+            description = NativeLanguage.text(context, R.string.ml_normalreminderdescription)
             enableVibration(true)
             setSound(
                 RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION),
@@ -429,10 +428,10 @@ internal object ReminderNotifier {
             ?: RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION)
         val alarm = NotificationChannel(
             alarmChannelId,
-            "Pünktlich mit Ton",
+            NativeLanguage.text(context, R.string.ml_ontimewithsound),
             NotificationManager.IMPORTANCE_HIGH,
         ).apply {
-            description = "Pünktliche Ableseerinnerungen mit Alarmton."
+            description = NativeLanguage.text(context, R.string.ml_punctualreminderdescription)
             enableVibration(true)
             setSound(
                 alarmSound,

@@ -1,3 +1,4 @@
+import { t } from '../../core/localization/runtime';
 import { useCallback, useState } from 'react';
 import { router, useFocusEffect } from 'expo-router';
 import { useIsFocused } from 'expo-router/react-navigation';
@@ -7,7 +8,6 @@ import type { SavedReport } from '../../core/domain/models';
 import { errorText } from '../../core/ui/components';
 import { useTask } from '../../core/ui/use-task';
 import { useFeedback } from '../../core/ui/feedback';
-
 export function useReports(
   recordId: string,
   entryId: string | null,
@@ -93,25 +93,30 @@ export function useReports(
                 .hasAttachments
             : hasAttachments;
         const mode = await feedback.choose({
-          title: 'PDF-Inhalt wählen',
-          message: 'Wähle, welche Inhalte deine PDF enthalten soll.',
+          title: t('selectPdfContent'),
+          message: t('chooseWhatContentYourPdfShouldContain'),
           optionStyle: 'cards',
           options: [
             {
               value: 'compact',
-              label: 'Kompakt ohne Anhänge',
-              description:
-                'Stände, Zuwächse, Wechsel, Korrekturen und Notizen mit Dokumentenliste.',
+              label: t('compactWithoutAttachments'),
+              description: t(
+                'staendeZuwaechseWechselKorrekturenUndNotizenMitDokumentenliste',
+              ),
               icon: 'description_outlined',
             },
             {
               value: 'full',
-              label: 'Mit Fotos',
+              label: t('mitFotos'),
               description: anyAttachments
                 ? entryId
-                  ? 'Enthält nur das aktuelle Foto. Vorhandene PDF-Altanhänge bleiben enthalten.'
-                  : 'Enthält nur die aktuellen Fotos der Ablesungen. Vorhandene PDF-Altanhänge bleiben enthalten.'
-                : 'Keine Fotos vorhanden.',
+                  ? t(
+                      'enthaeltNurDasAktuelleFotoVorhandenePdfAltanhaengeBleibenEnthalten',
+                    )
+                  : t(
+                      'enthaeltNurDieAktuellenFotosDerAblesungenVorhandenePdfAltanhaengeBleibenEnthalten',
+                    )
+                : t('keineFotosVorhanden'),
               icon: 'photo_outlined',
               disabled: !anyAttachments,
             },
@@ -139,9 +144,11 @@ export function useReports(
       if (
         await feedback.confirm(
           report.entryId
-            ? 'Einzelprotokoll löschen?'
-            : 'Zählerverlaufsprotokoll löschen?',
-          'Die gespeicherte PDF wird entfernt. Bereits exportierte Kopien bleiben erhalten.',
+            ? t('einzelprotokollLoeschen320')
+            : t('zaehlerverlaufsprotokollLoeschen683'),
+          t(
+            'dieGespeichertePdfWirdEntferntBereitsExportierteKopienBleibenErhalten',
+          ),
         )
       )
         await task.run(async () => {
@@ -151,8 +158,8 @@ export function useReports(
             refresh();
             feedback.notify(
               report.entryId
-                ? 'Einzelprotokoll gelöscht.'
-                : 'Zählerverlaufsprotokoll gelöscht.',
+                ? t('einzelprotokollGeloescht')
+                : t('zaehlerverlaufsprotokollGeloescht'),
             );
           } finally {
             setDeletingId(undefined);

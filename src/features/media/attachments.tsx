@@ -1,3 +1,5 @@
+import { t } from '../../core/localization/runtime';
+import { useLocalization } from '../../core/localization/react';
 import { useState } from 'react';
 import { Image, Pressable, View } from 'react-native';
 import { PhotoViewer } from './photo-viewer';
@@ -23,6 +25,7 @@ export type AttachmentActions = {
   reorder: (items: Attachment[]) => void;
 };
 function PhotoThumbnail(props: React.ComponentProps<typeof Image>) {
+  useLocalization();
   const [failed, setFailed] = useState(false),
     c = useTheme();
   return failed ? (
@@ -33,7 +36,7 @@ function PhotoThumbnail(props: React.ComponentProps<typeof Image>) {
       ]}
     >
       <Icon name="error_outline" color={c.danger} />
-      <Body>Foto nicht verfügbar</Body>
+      <Body>{t('photoUnavailable')}</Body>
     </View>
   ) : (
     <Image {...props} onError={() => setFailed(true)} />
@@ -46,12 +49,13 @@ export function PhotoGallery({
   photos: Attachment[];
   actions?: AttachmentActions;
 }) {
+  useLocalization();
   const { machine } = useServices();
   const feedback = useFeedback();
   const [gallery, setGallery] = useState<number | null>(null);
   async function menu(a: Attachment, index: number, anchor?: MenuAnchor) {
     const selected = await feedback.choose({
-      title: `Foto ${index + 1} bearbeiten`,
+      title: t('editPhotoValue', { p0: index + 1 }),
       anchor,
       optionStyle: 'plain',
       options: [
@@ -59,20 +63,20 @@ export function PhotoGallery({
           ? [
               {
                 value: 'earlier',
-                label: 'Nach vorne',
+                label: t('moveEarlier'),
                 disabled: index === 0,
               },
               {
                 value: 'later',
-                label: 'Nach hinten',
+                label: t('moveLater'),
                 disabled: index + 1 === photos.length,
               },
             ]
           : []),
-        { value: 'replace', label: 'Foto ersetzen' },
+        { value: 'replace', label: t('replacePhoto') },
         {
           value: 'remove',
-          label: 'Foto entfernen',
+          label: t('removePhoto'),
         },
       ],
     });
@@ -81,16 +85,16 @@ export function PhotoGallery({
     if (selected === 'remove') actions?.remove(a.id);
     if (selected === 'replace') {
       const source = await feedback.choose({
-        title: 'Foto ersetzen',
+        title: t('replacePhoto'),
         options: [
           {
             value: 'camera',
-            label: 'Neu fotografieren',
+            label: t('takeANewPhoto'),
             icon: 'photo_camera_outlined',
           },
           {
             value: 'gallery',
-            label: 'Aus Galerie wählen',
+            label: t('selectFromGallery'),
             icon: 'photo_library_outlined',
           },
         ],
@@ -104,7 +108,7 @@ export function PhotoGallery({
   return (
     <>
       {!photos.length ? (
-        <Body>Keine aktuellen Fotos</Body>
+        <Body>{t('noCurrentPhotos')}</Body>
       ) : (
         <Sortable
           items={photos}
@@ -122,14 +126,17 @@ export function PhotoGallery({
             <View>
               <Pressable
                 accessibilityRole="button"
-                accessibilityLabel={`Foto ${index + 1} von ${photos.length} ansehen`}
+                accessibilityLabel={t('viewPhotoValueOfValue', {
+                  p0: index + 1,
+                  p1: photos.length,
+                })}
                 disabled={actions?.busy}
                 onPress={() => {
                   if (canTap()) show(index);
                 }}
               >
                 <PhotoThumbnail
-                  accessibilityLabel={`Foto ${index + 1}`}
+                  accessibilityLabel={t('photoValue', { p0: index + 1 })}
                   source={{ uri: machine.vault.uri(a.file) }}
                   resizeMethod="resize"
                   resizeMode="contain"
@@ -148,13 +155,14 @@ export function PhotoGallery({
                 }}
               >
                 <Body style={{ textAlign: 'center', flex: 1 }}>
-                  Foto {index + 1}
+                  {t('photo') + ' '}
+                  {index + 1}
                 </Body>
                 {actions && (
                   <IconButton
                     icon="more_vert"
                     menu
-                    label={`Foto ${index + 1} bearbeiten`}
+                    label={t('editPhotoValue', { p0: index + 1 })}
                     disabled={actions.busy}
                     onPress={(anchor) => void menu(a, index, anchor)}
                   />
@@ -184,28 +192,31 @@ export function PhotoEditor({
   photos: Attachment[];
   actions: AttachmentActions;
 }) {
+  useLocalization();
   return (
     <Card style={{ margin: 4, padding: 13 }}>
       <Body strong>
-        {photos.length > 1 ? 'Fotos aus dem Altbestand' : 'Foto (optional)'}
+        {photos.length > 1 ? t('fotosAusDemAltbestand') : t('fotoOptional')}
       </Body>
       {photos.length > 1 && (
         <Body muted>
-          Diese Fotos bleiben erhalten. Ein neues Foto ersetzt das erste Foto.
+          {t('dieseFotosBleibenErhaltenEinNeuesFotoErsetztDasErsteFoto')}
         </Body>
       )}
       <PhotoGallery photos={photos} />
       <Button
         secondary
         icon="photo_camera_outlined"
-        title={photos.length ? 'Neues Foto aufnehmen' : 'Zähler fotografieren'}
+        title={
+          photos.length ? t('neuesFotoAufnehmen') : t('takeAPhotoOfTheMeter')
+        }
         disabled={actions.busy}
         onPress={() => void actions.pick('camera', photos[0]?.id)}
       />
       <Button
         secondary
         icon="photo_library_outlined"
-        title="Foto aus Galerie"
+        title={t('photoFromGallery')}
         disabled={actions.busy}
         onPress={() => void actions.pick('gallery', photos[0]?.id)}
       />
@@ -213,7 +224,7 @@ export function PhotoEditor({
         <Button
           secondary
           icon="delete_outline"
-          title="Foto entfernen"
+          title={t('removePhoto')}
           disabled={actions.busy}
           onPress={() => actions.remove(photos[0]!.id)}
         />
@@ -222,16 +233,17 @@ export function PhotoEditor({
   );
 }
 export function Documents({ documents }: { documents: Attachment[] }) {
+  useLocalization();
   const c = useTheme();
   if (!documents.length) return null;
   return (
     <Card style={{ margin: 4, padding: 13 }}>
-      <Body strong>PDF-Anhänge aus dem Altbestand</Body>
+      <Body strong>{t('pdfAnhaengeAusDemAltbestand')}</Body>
       {documents.map((document) => (
         <Pressable
           key={document.id}
           accessibilityRole="button"
-          accessibilityLabel={'PDF ' + document.name + ' öffnen'}
+          accessibilityLabel={'PDF ' + document.name + t('oeffnen')}
           onPress={() =>
             router.push({ pathname: '/pdf/[id]', params: { id: document.id } })
           }
@@ -246,7 +258,7 @@ export function Documents({ documents }: { documents: Attachment[] }) {
           <View style={{ flex: 1, gap: 4 }}>
             <Body>{document.name}</Body>
             <Body muted>
-              {document.pages} {document.pages === 1 ? 'Seite' : 'Seiten'}
+              {document.pages} {document.pages === 1 ? t('page') : t('pages')}
             </Body>
           </View>
           <Icon name="chevron_right" />

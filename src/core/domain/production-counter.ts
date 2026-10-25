@@ -1,7 +1,7 @@
+import { LocalizedError } from '../localization/runtime';
 import type { Counter, Machine } from './models';
 import { machineIconId, type MachineIconId } from './machine-icon';
 import { counterTypeLabel, counterTypeValue } from './counter-type';
-
 export type CounterDetails = Pick<
   Counter,
   'name' | 'number' | 'type' | 'unit' | 'reminder'
@@ -9,17 +9,14 @@ export type CounterDetails = Pick<
   location: string;
   icon: MachineIconId;
 };
-
 export function counterTitle(record: Machine, counter: Counter): string {
   return record.counters.length > 1
     ? `${record.name} · ${counter.name}`
     : record.name;
 }
-
 export function counterLocation(record: Machine, counter: Counter): string {
   return counter.location ?? record.location;
 }
-
 export function counterDetails(
   record: Machine,
   counter: Counter,
@@ -34,14 +31,13 @@ export function counterDetails(
     icon: machineIconId(counter.icon),
   };
 }
-
 export function recordWithCounterDetails(
   record: Machine,
   counterId: string,
   details: CounterDetails,
 ): Machine {
   if (!record.counters.some((counter) => counter.id === counterId))
-    throw new Error('Der Zähler wurde nicht gefunden.');
+    throw new LocalizedError('derZaehlerWurdeNichtGefunden');
   return {
     ...record,
     ...(record.counters.length === 1

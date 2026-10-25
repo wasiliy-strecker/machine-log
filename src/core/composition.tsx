@@ -1,3 +1,5 @@
+import { t, localization } from './localization/runtime';
+import { useLocalization } from './localization/react';
 import type { OcrPort } from './ocr/candidate-extractor';
 import { reminderRequests } from './native/reminder-requests';
 import { replaceReadingPhoto } from './media/reading-photo';
@@ -28,7 +30,6 @@ import {
   DeviceExternalLinks,
   type ExternalLinks,
 } from './links/external-links';
-
 export type Services = {
   machine: MachineService;
   ocr: OcrPort;
@@ -37,9 +38,14 @@ export type Services = {
   native: MachineNative;
   viewer: PdfViewerService;
   links: ExternalLinks;
+  refreshSearch(): Promise<void>;
 };
 const Context = createContext<
-  (Services & { revision: number; refresh(): void }) | null
+  | (Services & {
+      revision: number;
+      refresh(): void;
+    })
+  | null
 >(null);
 let boot: Promise<Services> | undefined;
 async function createServices(): Promise<Services> {
@@ -54,6 +60,7 @@ async function createServices(): Promise<Services> {
   };
   await migrate(db);
   const repository = new SqlRepository(db);
+  await repository.reindexSearch();
   const vault = new ExpoVault();
   const env: Environment = {
     id: Crypto.randomUUID,
@@ -116,9 +123,12 @@ async function createServices(): Promise<Services> {
     native: machineNative,
     viewer: new PdfViewerService(machine, machineNative),
     links: new DeviceExternalLinks(),
+    refreshSearch: () =>
+      machine.queue.run(() => repository.reindexSearch(localization())),
   };
 }
 export function ServicesProvider({ children }: { children: ReactNode }) {
+  const locale = useLocalization();
   const [services, setServices] = useState<Services>();
   const [error, setError] = useState('');
   const [revision, setRevision] = useState(0);
@@ -130,10 +140,30 @@ export function ServicesProvider({ children }: { children: ReactNode }) {
       setError(
         e instanceof Error
           ? e.message
-          : 'Lokale Daten konnten nicht geladen werden.',
+          : t('lokaleDatenKonntenNichtGeladenWerden'),
       );
     });
   }, [attempt]);
+  useEffect(() => {
+    if (!services) return;
+    let active = true;
+    services
+      .refreshSearch()
+      .then(() => {
+        if (active) setRevision((n) => n + 1);
+      })
+      .catch((e) => {
+        if (active)
+          setError(
+            e instanceof Error
+              ? e.message
+              : t('lokaleDatenKonntenNichtGeladenWerden'),
+          );
+      });
+    return () => {
+      active = false;
+    };
+  }, [services, locale.language, locale.formatLocale]);
   if (!services)
     return error ? (
       <StartupError

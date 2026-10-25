@@ -1,14 +1,17 @@
+import { LocalizedError } from '../localization/runtime';
 // Adapted from ZählerstandLog's ReadingValue (MPL-2.0).
-export type ReadingValue = { digits: string; scale: number };
-
+export type ReadingValue = {
+  digits: string;
+  scale: number;
+};
 export function parseValue(input: string): ReadingValue {
   const value = input
     .trim()
     .replaceAll('’', "'")
     .replace(/[\u00a0\u202f]/g, ' ');
   if (!value || value.length > 100 || !/^[0-9., ']+$/.test(value))
-    throw new Error(
-      'Bitte einen gültigen, nicht negativen Zählerstand eingeben.',
+    throw new LocalizedError(
+      'bitteEinenGueltigenNichtNegativenZaehlerstandEingeben',
     );
   const commas = value.split(',').length - 1;
   const dots = value.split('.').length - 1;
@@ -23,12 +26,12 @@ export function parseValue(input: string): ReadingValue {
           ? '.'
           : null;
   if (decimal && value.split(decimal).length !== 2)
-    throw new Error('Ungültige Zahlenschreibweise.');
+    throw new LocalizedError('ungueltigeZahlenschreibweise');
   const split = decimal ? value.lastIndexOf(decimal) : -1;
   let integer = split < 0 ? value : value.slice(0, split) || '0';
   const fraction = split < 0 ? '' : value.slice(split + 1);
   if (split >= 0 && !/^\d+$/.test(fraction))
-    throw new Error('Nachkommastellen bitte vollständig eingeben.');
+    throw new LocalizedError('nachkommastellenBitteVollstaendigEingeben');
   if (!/^\d+$/.test(integer)) {
     const separators = [...new Set(integer.match(/[., ']/g))];
     const separator = separators[0];
@@ -39,7 +42,7 @@ export function parseValue(input: string): ReadingValue {
         `^\\d{1,3}(?:${separator === '.' ? '\\.' : separator}\\d{3})+$`,
       ).test(integer)
     )
-      throw new Error('Ungültige Tausendergruppierung.');
+      throw new LocalizedError('ungueltigeTausendergruppierung');
     integer = integer.split(separator).join('');
   }
   return {

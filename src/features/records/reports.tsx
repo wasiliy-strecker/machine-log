@@ -1,3 +1,5 @@
+import { t, localization } from '../../core/localization/runtime';
+import { useLocalization } from '../../core/localization/react';
 import { useEffect, useRef } from 'react';
 import {
   ActivityIndicator,
@@ -22,7 +24,6 @@ import { PAGE_SIZE, type SavedReport } from '../../core/domain/models';
 import { dateTime } from './presentation-model';
 import { useReports } from './use-reports';
 import { useScrollHost } from '../../core/ui/scroll-host';
-
 function ReportCard({
   report,
   summary,
@@ -40,6 +41,7 @@ function ReportCard({
   onOpen(): void;
   onDelete(): void;
 }) {
+  useLocalization();
   const c = useTheme();
   const backgroundColor = available ? c.soft : c.errorContainer;
   const color = available ? c.onSoft : c.onErrorContainer;
@@ -57,23 +59,28 @@ function ReportCard({
       <View style={s.reportBody}>
         <Body style={[s.reportTitle, { color: c.onSecondaryContainer }]}>
           {report.entryId
-            ? 'Einzelprotokoll'
+            ? t('einzelprotokoll')
             : report.counterId
-              ? 'Zählerverlauf'
-              : 'Produktionsprotokoll · Früheres Maschinenprotokoll'}
+              ? t('meterHistory')
+              : t('produktionsprotokollFrueheresMaschinenprotokoll')}
           {report.partIndex
-            ? ` · Teil ${report.partIndex} von ${report.partCount}`
+            ? t('teilValueVonValue', {
+                p0: report.partIndex,
+                p1: report.partCount ?? 1,
+              })
             : ''}
         </Body>
         <Body style={{ color: c.onSecondaryContainer, marginTop: 3 }}>
-          Erstellt am {dateTime(report.createdAt)} Uhr
+          {t('erstelltAm') + ' '}
+          {dateTime(report.createdAt)}
+          {localization().language === 'de' ? ' Uhr' : ''}
         </Body>
         <Body strong style={{ color: c.onSecondaryContainer, marginTop: 4 }}>
           {report.name || summary}
           {'\n'}
           {report.full
-            ? 'Mit Fotos und gegebenenfalls Altanhängen'
-            : 'Kompakt ohne Anhänge'}
+            ? t('mitFotosUndGegebenenfallsAltanhaengen')
+            : t('compactWithoutAttachments')}
         </Body>
         <View style={[s.status, { backgroundColor }]}>
           <Icon
@@ -82,14 +89,14 @@ function ReportCard({
             color={color}
           />
           <Text numberOfLines={1} style={[s.statusText, { color }]}>
-            {available ? 'Lokal gespeichert' : 'Datei fehlt'}
+            {available ? t('storedLocally') : t('fileMissing')}
           </Text>
         </View>
       </View>
       <View style={s.deleteAction}>
         {deleting ? (
           <ActivityIndicator
-            accessibilityLabel="Protokoll wird gelöscht"
+            accessibilityLabel={t('protokollWirdGeloescht')}
             color={c.primary}
           />
         ) : (
@@ -97,8 +104,8 @@ function ReportCard({
             icon="delete_outline"
             label={
               report.entryId
-                ? 'Einzelprotokoll löschen'
-                : 'Zählerverlaufsprotokoll löschen'
+                ? t('einzelprotokollLoeschen')
+                : t('zaehlerverlaufsprotokollLoeschen')
             }
             color={c.danger}
             disabled={busy}
@@ -109,7 +116,6 @@ function ReportCard({
     </Card>
   );
 }
-
 type ReportsProps = {
   recordId: string;
   counterId?: string | null;
@@ -117,8 +123,8 @@ type ReportsProps = {
   hasAttachments: boolean;
   summary: string;
 };
-
 export function Reports(props: ReportsProps) {
+  useLocalization();
   return (
     <ReportSection
       key={`${props.recordId}/${props.counterId ?? ''}/${props.entryId ?? ''}`}
@@ -126,7 +132,6 @@ export function Reports(props: ReportsProps) {
     />
   );
 }
-
 function ReportSection({
   recordId,
   counterId = null,
@@ -134,6 +139,7 @@ function ReportSection({
   hasAttachments,
   summary,
 }: ReportsProps) {
+  useLocalization();
   const vm = useReports(recordId, entryId, hasAttachments, counterId);
   const c = useTheme();
   const host = useScrollHost();
@@ -169,11 +175,11 @@ function ReportSection({
   const saved = (
     <View>
       {vm.loading || (!vm.availableFiles && !vm.loadError) ? (
-        <Busy label="PDF-Dateien werden geprüft …" />
+        <Busy label={t('pdfDateienWerdenGeprueft')} />
       ) : vm.loadError ? (
         <View style={s.loadError}>
           <Notice error text={vm.loadError} />
-          <Button textOnly title="Erneut versuchen" onPress={vm.retry} />
+          <Button textOnly title={t('tryAgain')} onPress={vm.retry} />
         </View>
       ) : (
         <>
@@ -192,7 +198,8 @@ function ReportSection({
           {vm.total > PAGE_SIZE && (
             <View style={{ gap: 8 }}>
               <Body style={{ textAlign: 'center' }}>
-                Seite {Math.floor(vm.offset / PAGE_SIZE) + 1} von{' '}
+                {t('page') + ' '}
+                {Math.floor(vm.offset / PAGE_SIZE) + 1} von{' '}
                 {Math.ceil(vm.total / PAGE_SIZE)}
               </Body>
               <ActionRow>
@@ -200,7 +207,7 @@ function ReportSection({
                   <Button
                     key="previous"
                     secondary
-                    title="Zurück"
+                    title={t('back')}
                     icon="chevron_left"
                     disabled={vm.offset === 0 || vm.busy}
                     onPress={() => vm.setOffset(vm.offset - PAGE_SIZE)}
@@ -208,7 +215,7 @@ function ReportSection({
                   <Button
                     key="next"
                     secondary
-                    title="Weiter"
+                    title={t('next')}
                     icon="chevron_right"
                     disabled={vm.offset + PAGE_SIZE >= vm.total || vm.busy}
                     onPress={() => vm.setOffset(vm.offset + PAGE_SIZE)}
@@ -226,7 +233,7 @@ function ReportSection({
       {!!entryId && (
         <View ref={heading} collapsable={false}>
           <Body strong style={s.heading}>
-            Gespeicherte Einzelprotokolle
+            {t('gespeicherteEinzelprotokolle')}
           </Body>
         </View>
       )}
@@ -235,12 +242,16 @@ function ReportSection({
           <Icon name="picture_as_pdf_outlined" color={c.onSecondaryContainer} />
           <View style={{ flex: 1, gap: 4 }}>
             <Body strong style={{ color: c.onSecondaryContainer }}>
-              {entryId ? 'Einzelprotokoll dieses Eintrags' : 'Zählerverlauf'}
+              {entryId ? t('einzelprotokollDiesesEintrags') : t('meterHistory')}
             </Body>
             <Body style={{ color: c.onSecondaryContainer }}>
               {entryId
-                ? 'Erstelle die PDF kompakt oder mit dem aktuellen Foto. Stand, Zeitpunkt und Notizen sind enthalten – zum Speichern, Drucken oder Teilen.'
-                : 'Die PDF bündelt die Ablesungen, Zuwächse und Korrekturen dieses Zählers. Erstelle sie kompakt oder mit Fotos – zum Speichern, Drucken oder Teilen.'}
+                ? t(
+                    'erstelleDiePdfKompaktOderMitDemAktuellenFotoStandZeitpunktUndNotizenSindEnthaltenZumSpeichernDr',
+                  )
+                : t(
+                    'diePdfBuendeltDieAblesungenZuwaechseUndKorrekturenDiesesZaehlersErstelleSieKompaktOderMitFotosZ',
+                  )}
             </Body>
           </View>
         </View>
@@ -248,8 +259,8 @@ function ReportSection({
           icon="picture_as_pdf_outlined"
           title={
             entryId
-              ? 'Einzelprotokoll als PDF erstellen'
-              : 'Zählerverlaufsprotokoll erstellen'
+              ? t('einzelprotokollAlsPdfErstellen')
+              : t('zaehlerverlaufsprotokollErstellen')
           }
           disabled={vm.busy}
           onPress={() => void vm.create()}
@@ -273,14 +284,14 @@ function ReportSection({
               <Icon name="folder_copy_outlined" color={c.primary} />
               <View style={{ flex: 1 }}>
                 <Body strong style={s.sectionTitle}>
-                  Gespeicherte Zählerverlaufsprotokolle
+                  {t('gespeicherteZaehlerverlaufsprotokolle')}
                 </Body>
                 <Body>
                   {vm.loadError
-                    ? 'Zählerverlaufsprotokolle konnten nicht geladen werden'
+                    ? t('zaehlerverlaufsprotokolleKonntenNichtGeladenWerden')
                     : vm.loading
-                      ? 'Zählerverlaufsprotokolle werden geladen …'
-                      : `${vm.total} ${vm.total === 1 ? 'Protokoll' : 'Protokolle'}`}
+                      ? t('zaehlerverlaufsprotokolleWerdenGeladen')
+                      : `${vm.total} ${vm.total === 1 ? t('report') : t('protokolle')}`}
                 </Body>
               </View>
               <Icon
@@ -294,12 +305,11 @@ function ReportSection({
       ) : null}
       <BusyOverlay
         visible={vm.busy && !vm.deletingId}
-        label="PDF-Protokoll wird verarbeitet …"
+        label={t('pdfProtokollWirdVerarbeitet')}
       />
     </View>
   );
 }
-
 const s = StyleSheet.create({
   heading: {
     fontSize: 16,

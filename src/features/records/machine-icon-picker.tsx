@@ -1,9 +1,10 @@
+import { t } from '../../core/localization/runtime';
+import { useLocalization } from '../../core/localization/react';
 import { Pressable, View } from 'react-native';
 import { type MachineIconId } from '../../core/domain/machine-icon';
 import { Body, Card, useTheme } from '../../core/ui/components';
 import { Icon } from '../../core/ui/icon';
 import { machineIconOptions } from '../../core/ui/machine-icon';
-
 export function MachineIconPicker({
   value,
   disabled,
@@ -13,16 +14,18 @@ export function MachineIconPicker({
   disabled: boolean;
   onChange(value: MachineIconId): void;
 }) {
+  useLocalization();
   const c = useTheme();
   const selectedLabel = machineIconOptions.find(
     (option) => option.id === value,
   )!.label;
   return (
     <Card>
-      <Body strong>Maschinensymbol</Body>
+      <Body strong>{t('maschinensymbol')}</Body>
       <Body muted>
-        Das Symbol erscheint in der Übersicht, bei Ablesungen und in
-        Erinnerungsnachrichten.
+        {t(
+          'dasSymbolErscheintInDerUbersichtBeiAblesungenUndInErinnerungsnachrichten',
+        )}
       </Body>
       <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
         {machineIconOptions.map((option) => {
@@ -31,7 +34,9 @@ export function MachineIconPicker({
             <Pressable
               key={option.id}
               accessibilityRole="radio"
-              accessibilityLabel={`Maschinensymbol: ${option.label}`}
+              accessibilityLabel={t('maschinensymbolValue', {
+                p0: option.label,
+              })}
               accessibilityState={{ selected, checked: selected, disabled }}
               disabled={disabled}
               onPress={() => onChange(option.id)}
@@ -59,7 +64,10 @@ export function MachineIconPicker({
           );
         })}
       </View>
-      <Body strong>Ausgewählt: {selectedLabel}</Body>
+      <Body strong>
+        {t('ausgewaehlt') + ' '}
+        {selectedLabel}
+      </Body>
     </Card>
   );
 }

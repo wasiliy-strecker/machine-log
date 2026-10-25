@@ -1,3 +1,4 @@
+import { t } from '../../core/localization/runtime';
 import { useCallback, useState } from 'react';
 import { router, useFocusEffect } from 'expo-router';
 import { useServices } from '../../core/composition';
@@ -46,8 +47,10 @@ export function useEntryDetail(id: string) {
       if (!entry) return;
       if (
         !(await feedback.confirm(
-          'Eintrag löschen?',
-          'Der Eintrag und seine Einzelprotokolle werden gelöscht. Gespeicherte Gesamtprotokolle bleiben erhalten.',
+          t('deleteEntry309'),
+          t(
+            'derEintragUndSeineEinzelprotokolleWerdenGeloeschtGespeicherteGesamtprotokolleBleibenErhalten',
+          ),
         ))
       )
         return;
@@ -58,7 +61,7 @@ export function useEntryDetail(id: string) {
           pathname: '/record/[id]',
           params: { id: entry.recordId, counterId: entry.counterId },
         });
-        feedback.notify(warnings.join('\n') || 'Eintrag gelöscht.');
+        feedback.notify(warnings.join('\n') || t('eintragGeloescht'));
       });
     },
   };

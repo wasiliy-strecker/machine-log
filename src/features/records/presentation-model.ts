@@ -1,5 +1,7 @@
+import { presetLabel } from '../../core/localization/presets';
+import { t, localization } from '../../core/localization/runtime';
 import { increment } from '../../core/domain/counter-timeline';
-import { formatValue } from '../../core/domain/reading-value';
+import { displayValue as formatValue } from '../../core/localization/numbers';
 import type {
   CounterEvent,
   Machine,
@@ -14,7 +16,6 @@ import {
   counterTitle,
   counterLocation,
 } from '../../core/domain/production-counter';
-
 export type HistoryItem = {
   entry: CounterEvent;
   photoUri?: string;
@@ -28,15 +29,14 @@ export function historyComparison(
 ): string | null {
   return increment(entry, previous).label;
 }
-
 export function categorySuggestions(records: Machine[]): string[] {
   const unique = new Map<string, string>();
   const saved = records
     .map((record) => record.category.trim())
     .filter(Boolean)
-    .sort((a, b) => a.localeCompare(b, 'de-DE'));
+    .sort((a, b) => a.localeCompare(b, localization().formatLocale));
   for (const category of [...categories, ...saved]) {
-    const key = category.toLocaleLowerCase('de-DE');
+    const key = category.toLocaleLowerCase(localization().formatLocale);
     if (!unique.has(key)) unique.set(key, category);
   }
   return [...unique.values()];
@@ -60,12 +60,18 @@ export function visibleReports(
 }
 export type RecordSort = 'lastEdited' | 'name' | 'type';
 export const sortLabels: Record<RecordSort, string> = {
-  lastEdited: 'Zuletzt bearbeitet',
-  name: 'Name',
-  type: 'Zählerart',
+  get lastEdited() {
+    return t('lastEdited');
+  },
+  get name() {
+    return t('name484');
+  },
+  get type() {
+    return t('meterType');
+  },
 };
 export const dateTime = (value: string | number) =>
-  new Date(value).toLocaleString('de-DE', {
+  new Date(value).toLocaleString(localization().formatLocale, {
     day: '2-digit',
     month: '2-digit',
     year: 'numeric',
@@ -74,15 +80,15 @@ export const dateTime = (value: string | number) =>
   });
 export function entrySummary(entry: CounterEvent | null) {
   return entry
-    ? `${eventLabels[entry.kind]} · ${formatValue(entry.measurement.value)} ${entry.measurement.unit}`
-    : 'Noch keine Ablesung';
+    ? `${eventLabels[entry.kind]} · ${formatValue(entry.measurement.value)} ${presetLabel(entry.measurement.unit)}`
+    : t('noReadingYet');
 }
 export function visibleRecords(
   items: DashboardItem[],
   search: string,
   sort: RecordSort,
 ) {
-  const q = search.trim().toLocaleLowerCase('de-DE');
+  const q = search.trim().toLocaleLowerCase(localization().formatLocale);
   return items
     .filter(({ record: r, counter, latest }) =>
       [
@@ -92,6 +98,7 @@ export function visibleRecords(
         counter.number,
         counterTypeLabel(counter.type),
         counter.unit,
+        presetLabel(counter.unit),
         r.category,
         counterLocation(r, counter),
         r.manufacturer,
@@ -99,7 +106,9 @@ export function visibleRecords(
         r.serial,
         r.installedOn,
         latest ? entrySummary(latest) : '',
-      ].some((v) => v.toLocaleLowerCase('de-DE').includes(q)),
+      ].some((v) =>
+        v.toLocaleLowerCase(localization().formatLocale).includes(q),
+      ),
     )
     .sort(
       (a, b) =>
@@ -108,31 +117,46 @@ export function visibleRecords(
           : sort === 'name'
             ? counterTitle(a.record, a.counter).localeCompare(
                 counterTitle(b.record, b.counter),
-                'de-DE',
+                localization().formatLocale,
               )
             : counterTypeLabel(a.counter.type).localeCompare(
                 counterTypeLabel(b.counter.type),
-                'de-DE',
+                localization().formatLocale,
               )) ||
         counterTitle(a.record, a.counter).localeCompare(
           counterTitle(b.record, b.counter),
-          'de-DE',
+          localization().formatLocale,
         ) ||
         a.counter.id.localeCompare(b.counter.id),
     );
 }
 export function reminderSummary(r: Reminder) {
-  const time = `${String(r.hour).padStart(2, '0')}:${String(r.minute).padStart(2, '0')} Uhr`;
+  const time =
+    new Intl.DateTimeFormat(localization().formatLocale, {
+      hour: '2-digit',
+      minute: '2-digit',
+    }).format(new Date(2000, 0, 1, r.hour, r.minute)) + t('uhr');
   const labels = {
-    hourly: `stündlich ab ${dateTime(r.startsAtMillis)}`,
-    daily: `täglich um ${time}`,
-    weekly: `${['montags', 'dienstags', 'mittwochs', 'donnerstags', 'freitags', 'samstags', 'sonntags'][r.day - 1]} um ${time}`,
-    monthly: `monatlich am ${r.day}. um ${time}`,
-    yearly: `jährlich am ${r.day}.${r.month}. um ${time}`,
+    hourly: t('stuendlichAbValue', { p0: dateTime(r.startsAtMillis) }),
+    daily: t('dailyAtValue', { p0: time }),
+    weekly: t('valueUmValue', {
+      p0: new Intl.DateTimeFormat(localization().language, {
+        weekday: 'long',
+      }).format(new Date(2026, 0, 5 + r.day - 1)),
+      p1: time,
+    }),
+    monthly: t('monthlyOnDayValueAtValue', { p0: r.day, p1: time }),
+    yearly: t('yearlyOnDateAt', {
+      p0: new Intl.DateTimeFormat(localization().formatLocale, {
+        day: '2-digit',
+        month: '2-digit',
+      }).format(new Date(2000, r.month - 1, r.day)),
+      p1: time,
+    }),
   };
   return (
     labels[r.interval] +
-    (r.deliveryMode === 'punctualWithSound' ? ' · pünktlich mit Ton' : '')
+    (r.deliveryMode === 'punctualWithSound' ? t('puenktlichMitTon') : '')
   );
 }
 export function capturePhase(draft: EntryDraft): 'choose' | 'form' {
@@ -142,4 +166,17 @@ export function capturePhase(draft: EntryDraft): 'choose' | 'form' {
     draft.form.value
     ? 'form'
     : (draft.captureStage ?? 'choose');
+}
+
+export function dashboardCount(count: number, searching = false): string {
+  return t(
+    searching
+      ? count === 1
+        ? 'resultCountOne'
+        : 'resultCountMany'
+      : count === 1
+        ? 'counterCountOne'
+        : 'counterCountMany',
+    { p0: new Intl.NumberFormat(localization().formatLocale).format(count) },
+  );
 }

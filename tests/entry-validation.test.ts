@@ -178,10 +178,12 @@ afterEach(async () => {
 });
 
 it('keeps decimal editing and exact pasted numbers while rejecting signs, letters and exponent notation', () => {
-  for (const text of ['', '0', '258', '12,', '12.5', ',5', '00012,50'])
+  for (const text of ['', '0', '258', '12,', ',5', '00012,50'])
     expect(readingInput(text)).toBe(text);
   expect(readingInput('9.007.199.254.740.993,15')).toBe('9007199254740993,15');
-  expect(readingInput('1 234,50')).toBe('1234,50');
+  expect(readingInput('1 234,50')).toBeNull();
+  expect(readingInput('12.5')).toBeNull();
+  expect(readingInput('1.234')).toBe('1234');
   for (const text of [
     '-25',
     '+25',

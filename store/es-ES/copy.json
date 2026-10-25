@@ -1,0 +1,23 @@
+{
+  "locale": "es-ES",
+  "language": "es",
+  "name": "Registro de máquinas",
+  "shortDescription": "Registra contadores, lee fotos y documenta el historial de producción.",
+  "fullDescription": "Registro de máquinas te ayuda a documentar los contadores de producción de tus máquinas. Registra piezas, ciclos, horas de funcionamiento o cantidades y consulta tus lecturas.\n\nContadores a tu medida\nElige un tipo de contador predefinido o introduce tu propio tipo y unidad. Añade un número de máquina, un área de producción y un icono.\n\nLecturas manuales o desde fotos\nIntroduce el valor a mano o lee los números de una foto nueva o existente. El reconocimiento de texto procesa la foto en tu dispositivo. Revisa y confirma el valor reconocido antes de guardarlo.\n\nHistorial trazable\nLa aplicación calcula los incrementos entre lecturas y contempla registros anteriores, reinicios y sustituciones de contadores. Las correcciones conservan los datos originales y las fotos anteriores. Puedes añadir el motivo del cambio.\n\nRecordatorios e informes PDF\nConfigura recordatorios periódicos. Crea informes individuales o el historial de un contador en PDF, compacto o con fotos. Abre, imprime y comparte los informes guardados.\n\nCopias de seguridad cifradas\nCrea copias protegidas con contraseña de tus datos, fotos e informes. Elige dónde guardarlas y restáuralas cuando lo necesites.\n\nSeis idiomas\nAlemán, inglés, español, francés, italiano y portugués de Brasil. Elige el idioma en los ajustes o sigue el idioma del sistema. Los números y las fechas siguen la región del dispositivo.\n\nSin cuenta y sin publicidad\nLos datos de los contadores se guardan en el almacenamiento privado de la aplicación. No hay servidor propio ni sincronización en la nube. La versión de la tienda no requiere permiso de internet. Consulta la política de privacidad para obtener información sobre el SDK de Google ML Kit incluido.",
+  "feature": "Registra contadores.\nDocumenta la producción.",
+  "strap": "OCR de fotos · Historial · PDF",
+  "frames": [
+    "Tus contadores\na la vista",
+    "Lee los contadores\ndesde fotos",
+    "Consulta el historial\nde lecturas",
+    "Detalles y pruebas\nen un mismo lugar",
+    "Informes de producción\nen PDF",
+    "Elige el idioma.\nGuarda tus datos."
+  ],
+  "counters": ["Producción", "Embalaje", "Compresor"],
+  "location": "Nave 2",
+  "note": "Fin de turno",
+  "correction": "Nota añadida",
+  "releaseNotes": "Disponible en alemán, inglés, español, francés, italiano y portugués de Brasil. Elige el idioma de la aplicación. Números y fechas regionales. PDF y recordatorios traducidos.",
+  "privacyUrl": "https://wasiliy-strecker.github.io/machine-log/privacy/"
+}

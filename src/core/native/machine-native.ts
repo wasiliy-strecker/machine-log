@@ -2,6 +2,7 @@ import type { OcrText } from '../ocr/candidate-extractor';
 import type { Reminder } from '../domain/models';
 import type { MachineIconId } from '../domain/machine-icon';
 import { requireNativeModule } from 'expo';
+import type { LanguagePreference, Localization } from '../localization/runtime';
 export type ReminderAvailability =
   'available' | 'appBlocked' | 'channelBlocked' | 'unknown';
 export type ReminderSettingsTarget =
@@ -37,6 +38,12 @@ export type PdfSession = {
   pages: { width: number; height: number }[];
 };
 export interface MachineNative {
+  getLocalization(): Localization;
+  setLanguage(language: LanguagePreference): Promise<Localization>;
+  addListener(
+    event: 'localizationChanged',
+    listener: () => void,
+  ): { remove(): void };
   recognizeText(uri: string): Promise<OcrText>;
   openPdfPreview(uri: string): Promise<PdfSession>;
   renderPdfPage(session: string, index: number, width: number): Promise<string>;

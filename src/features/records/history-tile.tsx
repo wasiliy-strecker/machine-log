@@ -1,3 +1,5 @@
+import { t } from '../../core/localization/runtime';
+import { useLocalization } from '../../core/localization/react';
 import { eventLabels } from '../../core/domain/models';
 import { useState } from 'react';
 import { Image, StyleSheet, Text, View } from 'react-native';
@@ -5,8 +7,8 @@ import { router } from 'expo-router';
 import { Body, Card, useTheme } from '../../core/ui/components';
 import { Icon } from '../../core/ui/icon';
 import { dateTime, type HistoryItem } from './presentation-model';
-
 export function HistoryTile({ item }: { item: HistoryItem }) {
+  useLocalization();
   const c = useTheme();
   const [failedUri, setFailedUri] = useState<string>();
   const { entry, photoUri, photoCount, measurementText, comparison } = item;
@@ -22,7 +24,9 @@ export function HistoryTile({ item }: { item: HistoryItem }) {
     >
       <View
         style={[s.dateBadge, { backgroundColor: dateAccent + '24' }]}
-        accessibilityLabel={`Dokumentiert am ${dateTime(entry.occurredAt)} Uhr`}
+        accessibilityLabel={t('recordedOnValue', {
+          p0: dateTime(entry.occurredAt),
+        })}
       >
         <Icon name="calendar_month_outlined" size={17} />
         <Text
@@ -30,7 +34,9 @@ export function HistoryTile({ item }: { item: HistoryItem }) {
           ellipsizeMode="tail"
           style={[s.date, { color: c.ink }]}
         >
-          Dokumentiert · {dateTime(entry.occurredAt)} Uhr
+          {t('dokumentiert') + ' '}
+          {dateTime(entry.occurredAt)}
+          {t('uhr')}
         </Text>
       </View>
       <View style={s.row}>
@@ -39,10 +45,10 @@ export function HistoryTile({ item }: { item: HistoryItem }) {
           accessibilityRole={photoUri ? 'image' : undefined}
           accessibilityLabel={
             photoFailed
-              ? `Foto nicht verfügbar: ${eventLabels[entry.kind]}`
+              ? t('fotoNichtVerfuegbarValue', { p0: eventLabels[entry.kind] })
               : photoCount
-                ? `${photoCount} ${photoCount === 1 ? 'Foto' : 'Fotos'}: ${eventLabels[entry.kind]}`
-                : `Ohne Foto: ${eventLabels[entry.kind]}`
+                ? `${photoCount} ${photoCount === 1 ? t('photo') : t('photos')}: ${eventLabels[entry.kind]}`
+                : t('ohneFotoValue', { p0: eventLabels[entry.kind] })
           }
           style={[s.thumbnail, { backgroundColor: c.soft }]}
         >
@@ -67,7 +73,9 @@ export function HistoryTile({ item }: { item: HistoryItem }) {
           )}
           {photoCount > 1 && (
             <View style={s.photoBadge}>
-              <Text style={s.photoCount}>{photoCount} Fotos</Text>
+              <Text style={s.photoCount}>
+                {photoCount} {t('photos')}
+              </Text>
             </View>
           )}
         </View>
@@ -101,7 +109,6 @@ export function HistoryTile({ item }: { item: HistoryItem }) {
     </Card>
   );
 }
-
 const s = StyleSheet.create({
   // React Native includes the one-point border in layout. Flutter paints it.
   card: { padding: 13, gap: 12 },

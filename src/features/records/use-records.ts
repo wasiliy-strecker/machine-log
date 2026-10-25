@@ -1,4 +1,6 @@
-import { formatValue } from '../../core/domain/reading-value';
+import { presetLabel } from '../../core/localization/presets';
+import { t, LocalizedError } from '../../core/localization/runtime';
+import { displayValue as formatValue } from '../../core/localization/numbers';
 import { useCallback, useMemo, useRef, useState } from 'react';
 import { useFocusEffect, router } from 'expo-router';
 import { useServices } from '../../core/composition';
@@ -105,7 +107,7 @@ export function useRecordDetail(
               )
             : found?.counters[0];
         if (!found || !selected)
-          throw new Error('Maschine oder Zähler nicht gefunden.');
+          throw new LocalizedError('maschineOderZaehlerNichtGefunden');
         const page = await machine.repository.entries(
           id,
           history ? search : '',
@@ -178,8 +180,8 @@ export function useRecordDetail(
         photoUri: photos[0] ? machine.vault.uri(photos[0].file) : undefined,
         photoCount: photos.length,
         measurementText: entry.measurement
-          ? `${formatValue(entry.measurement.value)} ${entry.measurement.unit}`
-          : 'Ohne Messangabe',
+          ? `${formatValue(entry.measurement.value)} ${presetLabel(entry.measurement.unit)}`
+          : t('ohneMessangabe'),
         comparison: comparisons[entry.id] ?? null,
       };
     }),

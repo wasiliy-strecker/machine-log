@@ -1,8 +1,8 @@
+import { t } from '../localization/runtime';
 import type { CounterEvent, Machine } from '../domain/models';
 import { machineIconId } from '../domain/machine-icon';
 import { counterTitle } from '../domain/production-counter';
 import { formatValue } from '../domain/reading-value';
-
 export function reminderRequests(records: Machine[], entries: CounterEvent[]) {
   return records.flatMap((record) =>
     record.counters.flatMap((counter) => {
@@ -17,8 +17,10 @@ export function reminderRequests(records: Machine[], entries: CounterEvent[]) {
           label: counterTitle(record, counter),
           icon: machineIconId(counter.icon),
           category: 'machine',
-          categoryLabel: 'Produktionszähler',
+          categoryLabel: t('produktionszaehler'),
           latestValue: latest ? formatValue(latest.measurement.value) : null,
+          latestDigits: latest?.measurement.value.digits ?? null,
+          latestScale: latest?.measurement.value.scale ?? null,
           latestUnit: latest?.measurement.unit ?? counter.unit,
         },
       ];

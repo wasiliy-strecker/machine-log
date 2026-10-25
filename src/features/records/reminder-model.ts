@@ -1,3 +1,4 @@
+import { t, LocalizedError } from '../../core/localization/runtime';
 import type { Reminder } from '../../core/domain/models';
 import type {
   ReminderStatus,
@@ -6,39 +7,54 @@ import type {
   ReminderSettingsTarget,
 } from '../../core/native/machine-native';
 import { dateTime } from './presentation-model';
-
 export const reminderIntervals = {
-  hourly: 'Stündlich',
-  daily: 'Täglich',
-  weekly: 'Wöchentlich',
-  monthly: 'Monatlich',
-  yearly: 'Jährlich',
+  get hourly() {
+    return t('hourly');
+  },
+  get daily() {
+    return t('daily');
+  },
+  get weekly() {
+    return t('weekly');
+  },
+  get monthly() {
+    return t('monthly');
+  },
+  get yearly() {
+    return t('annually');
+  },
 };
-export const weekdays = [
-  'Montag',
-  'Dienstag',
-  'Mittwoch',
-  'Donnerstag',
-  'Freitag',
-  'Samstag',
-  'Sonntag',
+export const weekdays = () => [
+  t('monday'),
+  t('tuesday'),
+  t('wednesday'),
+  t('thursday'),
+  t('friday'),
+  t('saturday'),
+  t('sunday'),
 ];
 export const reminderModes = {
   normal: {
-    title: 'Normale Erinnerung',
-    description:
-      'Kann leicht verzögert erscheinen. Die Systemeinstellung „Nicht stören“ wird berücksichtigt.',
+    get title() {
+      return t('normalReminder');
+    },
+    get description() {
+      return t('mayAppearSlightlyDelayedTheDoNotDisturbSystemSettingIsHonored');
+    },
     icon: 'notifications_outlined' as const,
   },
   punctualWithSound: {
-    title: 'Pünktlich mit Ton',
-    description:
-      'Wird möglichst genau zur gewählten Uhrzeit wie ein Alarm ausgelöst.',
+    get title() {
+      return t('onTimeWithSound');
+    },
+    get description() {
+      return t('isTriggeredLikeAnAlarmAsPreciselyAsPossibleAtTheSelectedTime');
+    },
     icon: 'alarm_outlined' as const,
   },
 };
-export const testReminderHint =
-  'Ziehe die Benachrichtigungsleiste herunter. Die Test-Erinnerung verschwindet nach einer Minute.';
+export const testReminderHint = () =>
+  t('pullDownTheNotificationBarTheTestReminderDisappearsAfterOneMinute');
 export function defaultReminder(now = new Date()): Reminder {
   return {
     interval: 'monthly',
@@ -73,8 +89,8 @@ export function hourlyStart(date: Date, time: Date): number {
     value.getMinutes() !== time.getMinutes() ||
     value.getDate() !== date.getDate()
   )
-    throw new Error(
-      'Diese Uhrzeit ist wegen der Zeitumstellung nicht verfügbar. Bitte wähle eine andere Uhrzeit.',
+    throw new LocalizedError(
+      'thisTimeIsNotAvailableDueToTheTimeChangePleaseChooseADifferentTime',
     );
   return value.getTime();
 }
@@ -113,26 +129,38 @@ export function reminderSaveWarning(
 ): string | null {
   const schedule = reminderSchedule(status, counterId);
   if (schedule?.planningState === 'cancelFailed')
-    return 'Daten gespeichert. Die Erinnerung konnte nicht ausgeschaltet werden. Öffne die Erinnerung und speichere erneut.';
+    return t(
+      'dataSavedTheReminderCouldNotBeTurnedOffOpenTheReminderAndSaveAgain',
+    );
   if (!reminder)
     return status
       ? null
-      : 'Daten gespeichert. Der Erinnerungsstatus konnte nicht geprüft werden. Öffne die Erinnerung und speichere erneut.';
+      : t(
+          'dataSavedTheReminderStatusCouldNotBeCheckedOpenTheReminderAndSaveAgain',
+        );
   const availability = reminderAvailability(status, reminder.deliveryMode);
   if (availability === 'appBlocked' || availability === 'channelBlocked')
-    return 'Daten gespeichert. Erinnerungen sind in Android blockiert. Öffne die Erinnerung und dann die Android-Einstellungen.';
+    return t(
+      'dataSavedRemindersAreBlockedInAndroidOpenTheReminderAndThenAndroidSettings',
+    );
   if (!status || availability === 'unknown')
-    return 'Daten gespeichert. Der Erinnerungsstatus konnte nicht geprüft werden. Öffne die Erinnerung und speichere erneut.';
+    return t(
+      'dataSavedTheReminderStatusCouldNotBeCheckedOpenTheReminderAndSaveAgain',
+    );
   if (
     schedule?.planningState !== 'scheduled' ||
     schedule.nextTriggerAtMillis === null
   )
-    return 'Daten gespeichert. Die Erinnerung konnte nicht bestätigt werden. Öffne die Erinnerung und speichere erneut.';
+    return t(
+      'dataSavedTheReminderCouldNotBeConfirmedOpenTheReminderAndSaveAgain',
+    );
   if (
     reminder.deliveryMode === 'punctualWithSound' &&
     (!status.exact || schedule.isExact !== true)
   )
-    return 'Daten gespeichert. Für eine pünktliche Erinnerung öffne „Alarme & Erinnerungen“ in den Android-Einstellungen.';
+    return t(
+      'dataSavedForAnOnTimeReminderOpenAlarmsRemindersInAndroidSettings',
+    );
   return null;
 }
 export function reminderTestMessage(
@@ -141,25 +169,29 @@ export function reminderTestMessage(
 ): string {
   if (result === 'posted')
     return (
-      'Test-Erinnerung wurde an Android übergeben. ' +
-      testReminderHint +
+      t('testErinnerungWurdeAnAndroidUebergeben') +
+      testReminderHint() +
       (quiet === true
-        ? ' „Nicht stören“ ist aktiv. Ton und Banner können unterdrückt werden.'
+        ? t('doNotDisturbIsActiveSoundAndBannersCanBeSuppressed')
         : '')
     );
-  if (result === 'appBlocked') return 'Benachrichtigungen sind nicht erlaubt.';
+  if (result === 'appBlocked') return t('notificationsAreNotAllowed');
   if (result === 'channelBlocked')
-    return 'Diese Erinnerungsart ist in Android gesperrt.';
-  return 'Test-Erinnerung konnte nicht angezeigt werden.';
+    return t('thisReminderTypeIsBlockedInAndroid');
+  return t('testReminderCouldNotBeDisplayed');
 }
 export function reminderSettingsFailure(
   target: ReminderSettingsTarget,
 ): string {
   if (target === 'exact')
-    return 'Die Android-Einstellung „Alarme & Erinnerungen“ ist auf diesem Gerät nicht verfügbar.';
+    return t('theAndroidAlarmsRemindersSettingIsNotAvailableOnThisDevice');
   if (target === 'doNotDisturb')
-    return 'Die Systemeinstellungen konnten nicht geöffnet werden. Du findest „Nicht stören“ in den Einstellungen deines Smartphones.';
-  return 'Die Einstellungen konnten nicht geöffnet werden. Öffne in den Einstellungen deines Smartphones „Apps“, dann „MaschinenLog“ und „Benachrichtigungen“.';
+    return t(
+      'systemPreferencesCouldNotBeOpenedYouCanFindDoNotDisturbInYourSmartphoneSSettings',
+    );
+  return t(
+    'dieEinstellungenKonntenNichtGeoeffnetWerdenOffneInDenEinstellungenDeinesSmartphonesAppsDannMasc',
+  );
 }
 export type ReminderPresentation = {
   title: string;
@@ -176,8 +208,8 @@ export function reminderPresentation(
   const schedule = reminderSchedule(status, counterId);
   if (schedule?.planningState === 'cancelFailed')
     return {
-      title: 'Ausschalten fehlgeschlagen',
-      description: 'Bitte öffne die Erinnerung und speichere erneut.',
+      title: t('couldNotTurnOffReminder'),
+      description: t('pleaseOpenTheReminderAndSaveAgain'),
       error: true,
       action: 'edit',
     };
@@ -185,11 +217,11 @@ export function reminderPresentation(
   const availability = reminderAvailability(status, reminder.deliveryMode);
   if (availability === 'appBlocked' || availability === 'channelBlocked')
     return {
-      title: 'Erinnerung blockiert',
+      title: t('reminderBlocked'),
       description:
         availability === 'appBlocked'
-          ? 'Benachrichtigungen sind ausgeschaltet.'
-          : 'Diese Erinnerungsart ist ausgeschaltet.',
+          ? t('notificationsAreTurnedOff125')
+          : t('thisReminderTypeIsSwitchedOff'),
       error: true,
       action: availability === 'appBlocked' ? 'notifications' : 'channel',
     };
@@ -198,16 +230,17 @@ export function reminderPresentation(
     schedule?.planningState === 'none'
   )
     return {
-      title: 'Erinnerung nicht geplant',
-      description: 'Bitte öffne die Erinnerung und speichere erneut.',
+      title: t('reminderNotScheduled'),
+      description: t('pleaseOpenTheReminderAndSaveAgain'),
       error: true,
       action: 'edit',
     };
   if (reminder.deliveryMode === 'punctualWithSound' && status?.exact === false)
     return {
-      title: 'Pünktlichkeit nicht erlaubt',
-      description:
-        'Erlaube „Alarme & Erinnerungen“ in Android. Bis dahin kann die Erinnerung verspätet erscheinen.',
+      title: t('exactAlarmsNotAllowed'),
+      description: t(
+        'allowAlarmsRemindersInAndroidUntilThenRemindersMayArriveLate',
+      ),
       error: true,
       action: 'exact',
     };
@@ -217,17 +250,17 @@ export function reminderPresentation(
     schedule?.isExact === false
   )
     return {
-      title: 'Pünktliche Planung ausstehend',
-      description:
-        'Der Termin ist noch ungenau geplant. Öffne die Erinnerung und speichere erneut.',
+      title: t('exactSchedulingPending'),
+      description: t(
+        'thisReminderIsNotScheduledAsAnExactAlarmYetOpenTheReminderAndSaveAgain',
+      ),
       error: false,
       action: 'edit',
     };
   if (schedule?.deliveryFailed)
     return {
-      title: 'Letzte Zustellung fehlgeschlagen',
-      description:
-        'Bitte öffne die Erinnerung und nutze „Erinnerung jetzt testen“.',
+      title: t('lastDeliveryFailed'),
+      description: t('openTheReminderAndSelectTestReminderNow'),
       error: true,
       action: 'edit',
     };
@@ -239,19 +272,20 @@ export function reminderPresentation(
       (!status || schedule.isExact === null))
   )
     return {
-      title: 'Planungsstatus unbekannt',
-      description:
-        'Der Erinnerungsstatus konnte nicht bestätigt werden. Öffne die Erinnerung zum Prüfen.',
+      title: t('schedulingStatusUnknown'),
+      description: t(
+        'theReminderStatusCouldNotBeConfirmedOpenTheReminderToReview',
+      ),
       error: false,
       action: 'edit',
     };
   const due = schedule.nextTriggerAtMillis <= now;
   return {
-    title: due ? 'Erinnerung steht noch aus' : 'Nächste Erinnerung',
+    title: due ? t('reminderPending') : t('nextReminder'),
     description:
       dateTime(schedule.nextTriggerAtMillis) +
-      ' Uhr' +
-      (due ? '. Android hat diesen Termin noch nicht verarbeitet.' : ''),
+      t('uhr') +
+      (due ? t('reminderNotProcessed') : ''),
     error: false,
     action: null,
   };

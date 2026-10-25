@@ -1,5 +1,5 @@
+import { LocalizedError } from '../localization/runtime';
 import type { Attachment } from '../domain/models';
-
 // Legacy attachments remain readable. New captures replace the current photo.
 export function replaceReadingPhoto(
   attachments: Attachment[],
@@ -7,12 +7,12 @@ export function replaceReadingPhoto(
   replaceId?: string,
 ): Attachment[] {
   if (photo.kind !== 'photo')
-    throw new Error('Bitte ein Zählerfoto auswählen.');
+    throw new LocalizedError('bitteEinZaehlerfotoAuswaehlen');
   const previous = replaceId
     ? attachments.find((a) => a.kind === 'photo' && a.id === replaceId)
     : attachments.find((a) => a.kind === 'photo');
   if (replaceId && !previous)
-    throw new Error('Das bisherige Foto wurde nicht gefunden.');
+    throw new LocalizedError('dasBisherigeFotoWurdeNichtGefunden');
   return previous
     ? attachments.map((a) => (a.id === previous.id ? photo : a))
     : [...attachments, photo];

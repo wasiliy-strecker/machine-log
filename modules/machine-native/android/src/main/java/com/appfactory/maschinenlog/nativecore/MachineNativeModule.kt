@@ -1,6 +1,8 @@
 package com.appfactory.maschinenlog.nativecore
 
 import android.content.Intent
+import android.content.ComponentCallbacks
+import android.content.res.Configuration
 import android.graphics.Bitmap
 import android.graphics.pdf.PdfRenderer
 import android.net.Uri
@@ -18,8 +20,25 @@ class MachineNativeModule : Module() {
     private var previews: PdfPreviewStore? = null
     @Synchronized private fun previewStore(): PdfPreviewStore = previews ?: PdfPreviewStore(context).also { previews = it }
     private val context get() = requireNotNull(appContext.reactContext)
+    private val configurationCallback = object : ComponentCallbacks {
+        override fun onConfigurationChanged(config: Configuration) {
+            NativeLanguage.refreshNotifications(context)
+            sendEvent("localizationChanged", NativeLanguage.state(context))
+        }
+        override fun onLowMemory() = Unit
+    }
     override fun definition() = ModuleDefinition {
         Name("MachineNative")
+        Events("localizationChanged")
+        Function("getLocalization") { NativeLanguage.state(context) }
+        AsyncFunction("setLanguage") { language: String? ->
+            NativeLanguage.select(context, language)
+            val state = NativeLanguage.state(context)
+            sendEvent("localizationChanged", state)
+            state
+        }.runOnQueue(Queues.MAIN)
+        OnCreate { context.registerComponentCallbacks(configurationCallback) }
+
         AsyncFunction("recognizeText") { uri: String, promise: expo.modules.kotlin.Promise -> recognizeCounter(context, uri, promise) }
         View(MachinePdfView::class) {
             Prop("session") { view: MachinePdfView, id: String -> view.open(previewStore(), id) }
@@ -34,7 +53,7 @@ class MachineNativeModule : Module() {
             val file = privateDocument(context, uri)
             val activity = requireNotNull(appContext.currentActivity)
             val manager = activity.getSystemService(android.content.Context.PRINT_SERVICE) as android.print.PrintManager
-            manager.print(name, OriginalPdfPrintAdapter(file, name), null)
+            manager.print(name, OriginalPdfPrintAdapter(context, file, name), null)
             Unit
         }.runOnQueue(Queues.MAIN)
         AsyncFunction("saveBackupFile") { uri: String, name: String, promise: Promise ->
@@ -42,22 +61,22 @@ class MachineNativeModule : Module() {
                 val file = privateDocument(context, uri)
                 val token = UUID.randomUUID().toString()
                 if (!SaveDocumentActivity.begin(token, SaveDocumentActivity.Pending(file, name, promise))) {
-                    promise.reject("SAVE_BUSY", "Eine Speicherortauswahl ist bereits geöffnet.", null)
+                    promise.reject("SAVE_BUSY", NativeLanguage.text(context, R.string.ml_savebusy), null)
                 } else {
                     try { requireNotNull(appContext.currentActivity).startActivity(Intent(context, SaveDocumentActivity::class.java).putExtra("save_token", token)) }
-                    catch (_: Exception) { SaveDocumentActivity.finish(token, false, "Die Speicherortauswahl konnte nicht geöffnet werden.") }
+                    catch (_: Exception) { SaveDocumentActivity.finish(token, false, NativeLanguage.text(context, R.string.ml_savepickerfailed)) }
                 }
-            } catch (_: Exception) { promise.reject("SAVE_SOURCE", "Die vorbereitete Backup-Datei ist nicht verfügbar.", null) }
+            } catch (_: Exception) { promise.reject("SAVE_SOURCE", NativeLanguage.text(context, R.string.ml_savesourcemissing), null) }
         }.runOnQueue(Queues.MAIN)
         AsyncFunction("deriveBackupKey") { password: String, salt: String, iterations: Int ->
             PasswordKey.derive(password, salt, iterations)
         }
-        OnDestroy { previews?.closeAll() }
+        OnDestroy { previews?.closeAll(); context.unregisterComponentCallbacks(configurationCallback) }
         AsyncFunction("validatePdf") { uri: String ->
             val file = File(requireNotNull(Uri.parse(uri).path))
             ParcelFileDescriptor.open(file, ParcelFileDescriptor.MODE_READ_ONLY).use { descriptor ->
                 PdfRenderer(descriptor).use { renderer ->
-                    require(renderer.pageCount in 1..2000) { "Leere oder zu umfangreiche PDF." }
+                    require(renderer.pageCount in 1..2000) { NativeLanguage.text(context, R.string.ml_pdfemptyortoolong) }
                     for (index in 0 until renderer.pageCount) {
                         renderer.openPage(index).use { page ->
                             val bitmap = Bitmap.createBitmap(32, 32, Bitmap.Config.ARGB_8888)
@@ -84,15 +103,15 @@ class MachineNativeModule : Module() {
                 val reminder = requireNotNull(StoredReminder.fromJson(desired.getJSONObject(index).toString()))
                 ids.add(reminder.recordId)
                 if (!ReminderScheduler.update(context, reminder)) {
-                    warnings.add("${reminder.label}: Erinnerung konnte nicht geplant werden.")
+                    warnings.add(NativeLanguage.text(context, R.string.ml_reminderschedulefailed, reminder.label))
                 } else if (!ReminderNotifier.refreshActive(context, reminder)) {
-                    warnings.add("${reminder.label}: Das Symbol einer angezeigten Erinnerung konnte nicht aktualisiert werden.")
+                    warnings.add(NativeLanguage.text(context, R.string.ml_reminderrefreshfailed, reminder.label))
                 }
-                if (ReminderNotifier.availability(context, reminder.isPunctual) != ReminderAvailability.AVAILABLE) warnings.add("${reminder.label}: Benachrichtigungen sind nicht freigegeben.")
-                if (reminder.isPunctual && !ReminderScheduler.canScheduleExact(context)) warnings.add("${reminder.label}: Ohne Freigabe für genaue Alarme erinnert Android möglicherweise später.")
+                if (ReminderNotifier.availability(context, reminder.isPunctual) != ReminderAvailability.AVAILABLE) warnings.add(NativeLanguage.text(context, R.string.ml_reminderpermissionmissing, reminder.label))
+                if (reminder.isPunctual && !ReminderScheduler.canScheduleExact(context)) warnings.add(NativeLanguage.text(context, R.string.ml_exactpermissionmissing, reminder.label))
             }
             ReminderStore.statusIds(context).filter { !ids.contains(it) }.forEach {
-                if (!ReminderScheduler.cancel(context, it)) warnings.add("Eine alte Erinnerung konnte nicht vollständig entfernt werden.")
+                if (!ReminderScheduler.cancel(context, it)) warnings.add(NativeLanguage.text(context, R.string.ml_oldremindercancelfailed))
             }
             warnings
         }
@@ -108,11 +127,16 @@ class MachineNativeModule : Module() {
         AsyncFunction("testReminder") { request: Map<String, String?> ->
             val mode = requireNotNull(request["deliveryMode"])
             require(mode == "normal" || mode == "punctualWithSound")
-            ReminderNotifier.showTest(context, request["counterId"], request["label"].orEmpty(), "machine", "Produktionszähler", request["latestValue"], request["latestUnit"], mode == "punctualWithSound", request["icon"])
+            ReminderNotifier.showTest(context, request["counterId"], request["label"].orEmpty(), "machine", NativeLanguage.text(context, R.string.ml_produktionszaehler), request["latestValue"], request["latestUnit"], mode == "punctualWithSound", request["icon"])
         }
         AsyncFunction("openReminderSettings") { target: String, mode: String? ->
             openReminderSettings(context, target, mode)
         }.runOnQueue(Queues.MAIN)
-        OnActivityEntersForeground { ReminderScheduler.rescheduleAll(context) }
+        OnActivityEntersForeground {
+            NativeLanguage.restore(context)
+            ReminderScheduler.rescheduleAll(context)
+            NativeLanguage.refreshNotifications(context)
+            sendEvent("localizationChanged", NativeLanguage.state(context))
+        }
     }
 }

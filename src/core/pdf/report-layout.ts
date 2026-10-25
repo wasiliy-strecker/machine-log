@@ -1,4 +1,9 @@
 import {
+  translator,
+  localization,
+  type Localization,
+} from '../localization/runtime';
+import {
   rgb,
   type PDFDocument,
   type PDFFont,
@@ -7,7 +12,6 @@ import {
   type RGB,
 } from 'pdf-lib';
 import { checkPdfPages } from '../files/limits';
-
 const PAGE_WIDTH = 595.2756;
 const PAGE_HEIGHT = 841.8898;
 export const REPORT_BLUE = rgb(0, 107 / 255, 99 / 255);
@@ -20,12 +24,18 @@ const PHOTO_MAX_FRACTION = 0.7;
 // Metrics of the bundled Roboto fonts, identical to Fahrzeugakte's PDF fonts.
 const ASCENT = 1900 / 2048;
 const LINE_HEIGHT = 2400 / 2048;
-
-export type ReportFonts = { regular: PDFFont; bold: PDFFont };
-type TextStyle = { size?: number; bold?: boolean; color?: RGB };
-
+export type ReportFonts = {
+  regular: PDFFont;
+  bold: PDFFont;
+};
+type TextStyle = {
+  size?: number;
+  bold?: boolean;
+  color?: RGB;
+};
 /** Paginates generated pages only. Imported PDF pages never receive decorations. */
 export class ReportLayout {
+  private readonly t: ReturnType<typeof translator>;
   private page!: PDFPage;
   private pages: PDFPage[] = [];
   private top = 0;
@@ -33,13 +43,14 @@ export class ReportLayout {
   readonly width: number;
   private readonly start: number;
   private readonly bottom: number;
-
   constructor(
     private pdf: PDFDocument,
     private fonts: ReportFonts,
     private entryNumber?: number,
     private separator = false,
+    locale: Localization = localization(),
   ) {
+    this.t = translator(locale);
     this.margin = separator ? 56.6929 : 40;
     this.width = PAGE_WIDTH - this.margin * 2;
     this.start = separator ? this.margin : 40 + 10 * LINE_HEIGHT + 10;
@@ -48,14 +59,12 @@ export class ReportLayout {
       : PAGE_HEIGHT - 40 - 8 * LINE_HEIGHT - 10;
     this.newPage();
   }
-
   private newPage() {
     checkPdfPages(this.pdf.getPageCount() + 1, true);
     this.page = this.pdf.addPage([PAGE_WIDTH, PAGE_HEIGHT]);
     this.pages.push(this.page);
     this.top = this.start;
   }
-
   ensure(height: number) {
     // Oversized text/table blocks are allowed to flow across pages below.
     if (
@@ -64,11 +73,9 @@ export class ReportLayout {
     )
       this.newPage();
   }
-
   gap(height: number) {
     this.top = Math.min(this.top + height, this.bottom);
   }
-
   private measure(text: string, font: PDFFont, size: number) {
     return text
       .split('→')
@@ -78,7 +85,6 @@ export class ReportLayout {
         0,
       );
   }
-
   private wrap(text: string, width: number, font: PDFFont, size: number) {
     const lines: string[] = [];
     for (const paragraph of text.replace(/\r\n?/g, '\n').split('\n')) {
@@ -104,7 +110,6 @@ export class ReportLayout {
     }
     return lines;
   }
-
   private drawLine(
     text: string,
     x: number,
@@ -130,7 +135,6 @@ export class ReportLayout {
       x += font.widthOfTextAtSize(part, size);
     }
   }
-
   text(
     text: string,
     { size = 12, bold = false, color = BLACK }: TextStyle = {},
@@ -142,7 +146,6 @@ export class ReportLayout {
       this.top += size * LINE_HEIGHT;
     }
   }
-
   textHeight(text: string, size = 12, bold = false) {
     return (
       this.wrap(
@@ -155,7 +158,6 @@ export class ReportLayout {
       LINE_HEIGHT
     );
   }
-
   private cells(
     row: string[],
     widths: number[],
@@ -171,7 +173,6 @@ export class ReportLayout {
       ),
     );
   }
-
   dataHeight(rows: string[][]) {
     const widths = [this.width / 2, this.width / 2];
     return rows.reduce((height, row, index) => {
@@ -183,7 +184,6 @@ export class ReportLayout {
       );
     }, 0);
   }
-
   private row(
     cells: string[][],
     widths: number[],
@@ -218,7 +218,6 @@ export class ReportLayout {
     }
     this.top += height;
   }
-
   private table(rows: string[][], widths: number[], history: boolean) {
     const padding = history ? 6 : 8;
     const header = this.cells(rows[0]!, widths, true, padding);
@@ -261,20 +260,25 @@ export class ReportLayout {
       }
     }
   }
-
   dataTable(rows: string[][]) {
     this.table(rows, [this.width / 2, this.width / 2], false);
   }
-
   historyTable(rows: string[][]) {
     const flex = (this.width - 30) / 4;
     this.table(
-      [['Nr.', 'Zeitpunkt', 'Eintrag', 'Zuwachs'], ...rows],
+      [
+        [
+          this.t('no'),
+          this.t('dateAndTime'),
+          this.t('entry'),
+          this.t('zuwachs'),
+        ],
+        ...rows,
+      ],
       [30, flex * 1.35, flex, flex * 1.65],
       true,
     );
   }
-
   photo(
     image: PDFImage,
     {
@@ -292,7 +296,10 @@ export class ReportLayout {
     this.newPage();
     this.text(title, { size: 17, bold: true, color: REPORT_BLUE });
     this.gap(6);
-    this.text(`Foto ${number} von ${total}`, { size: 11, bold: true });
+    this.text(this.t('photoValueOfValue', { p0: number, p1: total }), {
+      size: 11,
+      bold: true,
+    });
     this.gap(4);
     this.text(name, { size: 9 });
     this.gap(12);
@@ -313,12 +320,11 @@ export class ReportLayout {
     });
     this.top += fit.height;
   }
-
   finish() {
     if (this.separator) return;
     this.pages.forEach((page, index) => {
       this.drawLine(
-        'MASCHINENLOG',
+        this.t('maschinenlog447'),
         40,
         40,
         10,
@@ -326,7 +332,14 @@ export class ReportLayout {
         REPORT_BLUE,
         page,
       );
-      const label = `${this.entryNumber === undefined ? '' : `Eintrag ${this.entryNumber} · `}Protokollseite ${index + 1} von ${this.pages.length}`;
+      const label = this.t('valueReportPageValueOfValue', {
+        p0:
+          this.entryNumber === undefined
+            ? ''
+            : this.t('entryValue', { p0: this.entryNumber }),
+        p1: index + 1,
+        p2: this.pages.length,
+      });
       this.drawLine(
         label,
         PAGE_WIDTH - 40 - this.measure(label, this.fonts.regular, 9),
@@ -337,7 +350,7 @@ export class ReportLayout {
         page,
       );
       this.drawLine(
-        'Dokumentation deiner Produktionsstände.',
+        this.t('dokumentationDeinerProduktionsstaende'),
         40,
         PAGE_HEIGHT - 40 - 8 * LINE_HEIGHT,
         8,

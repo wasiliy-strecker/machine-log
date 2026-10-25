@@ -1,3 +1,4 @@
+import { useLocalization } from '../localization/react';
 import {
   createContext,
   useContext,
@@ -8,16 +9,15 @@ import {
   type RefObject,
 } from 'react';
 import { StyleSheet, View } from 'react-native';
-
 type PageOverlay = {
   ref: RefObject<View | null>;
   show(owner: symbol, content: ReactNode): void;
   hide(owner: symbol): void;
 };
 const Context = createContext<PageOverlay | null>(null);
-
 /** Keep anchored lists outside ScrollView clipping and touch handling. */
 export function PageOverlayHost({ children }: { children: ReactNode }) {
+  useLocalization();
   const ref = useRef<View>(null);
   const [overlay, setOverlay] = useState<{
     owner: symbol;
@@ -50,7 +50,6 @@ export function PageOverlayHost({ children }: { children: ReactNode }) {
     </Context.Provider>
   );
 }
-
 export function usePageOverlay() {
   const overlay = useContext(Context);
   if (!overlay) throw new Error('PageOverlayHost fehlt.');

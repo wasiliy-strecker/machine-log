@@ -1,3 +1,9 @@
+import {
+  localization,
+  translator,
+  t,
+  LocalizedError,
+} from '../../core/localization/runtime';
 import { parseValue } from '../../core/domain/reading-value';
 import {
   validateTimeline,
@@ -42,7 +48,6 @@ import {
   MAX_FILE_BYTES,
   type PdfService,
 } from '../../core/pdf/pdf-service';
-
 export class MachineService {
   readonly queue = new SerialQueue();
   constructor(
@@ -71,7 +76,9 @@ export class MachineService {
       return await this.reminders.sync(data.records, data.entries);
     } catch {
       return [
-        'Gespeichert. Erinnerungen konnten nicht aktualisiert werden. Bitte die Berechtigungen in den Einstellungen prüfen.',
+        t(
+          'gespeichertErinnerungenKonntenNichtAktualisiertWerdenBitteDieBerechtigungenInDenEinstellungenPr',
+        ),
       ];
     }
   }
@@ -81,8 +88,8 @@ export class MachineService {
         (r) => r.id === record.id,
       );
       if (!existing && record.counters.length !== 1)
-        throw new Error(
-          'Ein neuer Eintrag besitzt genau einen Produktionszähler.',
+        throw new LocalizedError(
+          'einNeuerEintragBesitztGenauEinenProduktionszaehler',
         );
       if (
         existing &&
@@ -91,8 +98,8 @@ export class MachineService {
             (c) => !existing.counters.some((old) => old.id === c.id),
           ))
       )
-        throw new Error(
-          'Bestehende Zähler können hier nicht entfernt, ersetzt oder ergänzt werden.',
+        throw new LocalizedError(
+          'bestehendeZaehlerKoennenHierNichtEntferntErsetztOderErgaenztWerden',
         );
       await this.repository.saveRecord(
         recordSchema.parse({ ...record, updatedAt: this.env.now() }),
@@ -105,7 +112,7 @@ export class MachineService {
       const existing = (await this.repository.records()).find(
         (r) => r.id === recordId,
       );
-      if (!existing) throw new Error('Der Zähler wurde nicht gefunden.');
+      if (!existing) throw new LocalizedError('derZaehlerWurdeNichtGefunden');
       const updated = recordWithCounterDetails(existing, counterId, details);
       await this.repository.saveRecord(
         recordSchema.parse({ ...updated, updatedAt: this.env.now() }),
@@ -139,7 +146,7 @@ export class MachineService {
         record?.counters.find(
           (c) => c.id === (entry?.counterId ?? counterId),
         ) ?? (!counterId && !entry ? record?.counters[0] : undefined);
-      if (!counter) throw new Error('Zähler nicht gefunden.');
+      if (!counter) throw new LocalizedError('meterNotFound');
       const existing = (await this.repository.drafts()).find(
         (d) =>
           d.recordId === recordId &&
@@ -194,7 +201,7 @@ export class MachineService {
     source?: Attachment['source'],
   ): Promise<Attachment> {
     if (!bytes.length || bytes.length > MAX_FILE_BYTES)
-      throw new Error('Die Datei ist leer oder größer als 50 MB.');
+      throw new LocalizedError('dieDateiIstLeerOderGroesserAls50Mb');
     const pages =
       kind === 'pdf' ? (await inspectPdf(bytes)).getPageCount() : undefined;
     const file = await this.vault.put(bytes, kind === 'pdf' ? 'pdf' : 'jpg');
@@ -202,7 +209,8 @@ export class MachineService {
       id: this.env.id(),
       kind,
       name:
-        name.slice(0, 500) || (kind === 'pdf' ? 'Dokument.pdf' : 'Foto.jpg'),
+        name.slice(0, 500) ||
+        (kind === 'pdf' ? t('documentFilename') : t('photoFilename')),
       file,
       sha256: digest(bytes),
       size: bytes.length,
@@ -210,14 +218,15 @@ export class MachineService {
       ...(source ? { source } : {}),
     };
   }
-  saveEntry(
-    draft: EntryDraft,
-  ): Promise<{ entry: CounterEvent; warnings: string[] }> {
+  saveEntry(draft: EntryDraft): Promise<{
+    entry: CounterEvent;
+    warnings: string[];
+  }> {
     return this.queue.run(async () => {
       const data = await this.repository.snapshot();
       const machine = data.records.find((r) => r.id === draft.recordId);
       const counter = machine?.counters.find((c) => c.id === draft.counterId);
-      if (!counter) throw new Error('Zähler nicht gefunden.');
+      if (!counter) throw new LocalizedError('meterNotFound');
       const existing = draft.entryId
         ? data.entries.find((e) => e.id === draft.entryId)
         : undefined;
@@ -227,13 +236,13 @@ export class MachineService {
           existing.counterId !== draft.counterId ||
           existing.recordId !== draft.recordId)
       )
-        throw new Error('Der ursprüngliche Eintrag wurde nicht gefunden.');
+        throw new LocalizedError('derUrspruenglicheEintragWurdeNichtGefunden');
       if (
         existing &&
         (existing.revisions.at(-1)?.id ?? null) !== draft.baseRevisionId
       )
-        throw new Error(
-          'Der Eintrag wurde zwischenzeitlich geändert. Bitte den Entwurf verwerfen und erneut öffnen.',
+        throw new LocalizedError(
+          'derEintragWurdeZwischenzeitlichGeaendertBitteDenEntwurfVerwerfenUndErneutOeffnen',
         );
       const f = draft.form;
       validateEntryForm(f);
@@ -356,9 +365,11 @@ export class MachineService {
     counterId: string | null = null,
   ): Promise<SavedReport> {
     return this.queue.run(async () => {
+      const locale = localization();
+      const t = translator(locale);
       const data = await this.repository.snapshot();
       const record = data.records.find((r) => r.id === recordId);
-      if (!record) throw new Error('Die Maschine wurde nicht gefunden.');
+      if (!record) throw new LocalizedError('dieMaschineWurdeNichtGefunden');
       const entries = data.entries.filter(
         (e) =>
           e.recordId === recordId &&
@@ -366,14 +377,15 @@ export class MachineService {
           (!counterId || e.counterId === counterId),
       );
       if (entryId && !entries.length)
-        throw new Error('Der Eintrag wurde nicht gefunden.');
+        throw new LocalizedError('derEintragWurdeNichtGefunden');
       if (counterId && !record.counters.some((c) => c.id === counterId))
-        throw new Error('Zähler nicht gefunden.');
+        throw new LocalizedError('meterNotFound');
       const reportCounterId = entryId ? entries[0]!.counterId : counterId;
       const createdAt = this.env.now();
       const bytes = await this.pdf.create(record, entries, full, {
         kind: entryId ? 'single' : 'history',
         createdAt,
+        locale,
         context: data.entries.filter((e) => e.recordId === recordId),
       });
       const source = await inspectPdf(bytes);
@@ -400,6 +412,7 @@ export class MachineService {
               index + 1,
               partCount,
               createdAt,
+              locale,
             );
             const indices = source
               .getPageIndices()
@@ -409,8 +422,8 @@ export class MachineService {
             part = await document.save();
           }
           if (part.length > MAX_FILE_BYTES)
-            throw new Error(
-              'Der Protokollteil überschreitet die Grenze von 50 MB.',
+            throw new LocalizedError(
+              'derProtokollteilUeberschreitetDieGrenzeVon50Mb',
             );
           const file = await this.vault.put(part, 'pdf');
           files.push(file);
@@ -419,7 +432,7 @@ export class MachineService {
             recordId,
             entryId,
             counterId: reportCounterId,
-            name: `${record.name.slice(0, 200)} · ${entryId ? 'Einzelprotokoll' : counterId ? record.counters.find((c) => c.id === counterId)!.name : 'Maschinenprotokoll'} · ${full ? 'vollständig' : 'kompakt'}${partCount > 1 ? ` · Teil ${index + 1} von ${partCount}` : ''}`,
+            name: `${record.name.slice(0, 200)} · ${entryId ? t('einzelprotokoll') : counterId ? record.counters.find((c) => c.id === counterId)!.name : t('maschinenprotokoll')} · ${full ? t('vollstaendig') : t('compact')}${partCount > 1 ? t('teilValueVonValue', { p0: index + 1, p1: partCount }) : ''}`,
             file,
             sha256: digest(part),
             createdAt,

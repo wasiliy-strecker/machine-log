@@ -1,9 +1,14 @@
+import { t } from '../../core/localization/runtime';
+import { useLocalization } from '../../core/localization/react';
 import { useEffect, useState } from 'react';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useServices } from '../../core/composition';
 import { Busy, Notice, Page } from '../../core/ui/components';
 export default function CounterRoute() {
-  const { id } = useLocalSearchParams<{ id: string }>();
+  useLocalization();
+  const { id } = useLocalSearchParams<{
+    id: string;
+  }>();
   const { machine } = useServices();
   const [error, setError] = useState('');
   useEffect(() => {
@@ -18,10 +23,10 @@ export default function CounterRoute() {
             pathname: '/record/[id]',
             params: { id: record.id, counterId: id },
           });
-        else setError('Dieser Zähler wurde nicht gefunden.');
+        else setError(t('dieserZaehlerWurdeNichtGefunden'));
       })
       .catch(() => {
-        if (active) setError('Der Zähler konnte nicht geladen werden.');
+        if (active) setError(t('derZaehlerKonnteNichtGeladenWerden'));
       });
     return () => {
       active = false;

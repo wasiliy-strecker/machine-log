@@ -1,0 +1,23 @@
+{
+  "locale": "de-DE",
+  "language": "de",
+  "name": "MaschinenLog",
+  "shortDescription": "Maschinenzähler erfassen, Fotos auslesen und Produktionsverläufe dokumentieren.",
+  "fullDescription": "MaschinenLog hilft dir, Produktionszähler deiner Maschinen übersichtlich zu dokumentieren. Erfasse Stückzahlen, Zyklen, Betriebsstunden oder Mengen und behalte deine Ablesungen im Blick.\n\nZähler passend zu deiner Maschine\nWähle eine vorgegebene Zählerart oder verwende eine eigene Bezeichnung und Einheit. Ergänze Maschinennummer, Produktionsbereich und ein passendes Symbol.\n\nAblesen per Eingabe oder Foto\nTrage den Wert manuell ein oder übernimm Zahlen aus einem Kamerafoto oder vorhandenen Bild. Die Zeichenerkennung verarbeitet das Foto auf deinem Gerät. Prüfe und bestätige den erkannten Wert vor dem Speichern.\n\nVerläufe nachvollziehbar führen\nDie App berechnet Zuwächse zwischen Ablesungen und berücksichtigt nachträgliche Einträge, Rücksetzungen und Zählerwechsel. Bei Korrekturen bleiben ursprüngliche Angaben und frühere Fotos erhalten. Einen Änderungsgrund kannst du ergänzen.\n\nErinnerungen und PDF-Protokolle\nRichte regelmäßige Ableseerinnerungen ein. Erstelle Einzelprotokolle oder einen Zählerverlauf als PDF, kompakt oder mit Fotos. Öffne, drucke und teile gespeicherte Protokolle.\n\nVerschlüsselt sichern\nErstelle passwortgeschützte Backups deiner Daten, Fotos und Protokolle. Wähle den Speicherort und stelle die Sicherung bei Bedarf wieder her.\n\nIn sechs Sprachen\nDeutsch, Englisch, Spanisch, Französisch, Italienisch und Portugiesisch (Brasilien). Wähle die App-Sprache in den Einstellungen oder folge der Systemsprache. Zahlen und Datumsangaben richten sich nach der Region deines Geräts.\n\nOhne Konto und ohne Werbung\nDeine Zählerdaten liegen im privaten App-Speicher. MaschinenLog verwendet keinen eigenen Server und bietet keine Cloud-Synchronisation. Die Store-App benötigt keine Internetberechtigung. Weitere Angaben zum enthaltenen Google-ML-Kit-SDK findest du in der Datenschutzerklärung.",
+  "feature": "Zähler erfassen.\nProduktion dokumentieren.",
+  "strap": "Foto-OCR · Verlauf · PDF",
+  "frames": [
+    "Maschinenzähler\nim Blick",
+    "Zählerstände aus\nFotos übernehmen",
+    "Ablesungen\nnachvollziehen",
+    "Details und Belege\nzusammenhalten",
+    "Produktionsprotokolle\nals PDF",
+    "Sprache wählen.\nDaten sichern."
+  ],
+  "counters": ["Fertigung", "Verpackung", "Kompressor"],
+  "location": "Halle 2",
+  "note": "Schichtende",
+  "correction": "Notiz ergänzt",
+  "releaseNotes": "Deutsch, Englisch, Spanisch, Französisch, Italienisch und Portugiesisch (Brasilien). App-Sprache auswählbar. Regionale Zahlen und Datumsangaben. Übersetzte PDFs und Erinnerungen.",
+  "privacyUrl": "https://wasiliy-strecker.github.io/machine-log/datenschutz/"
+}

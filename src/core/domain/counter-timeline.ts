@@ -1,21 +1,27 @@
+import { displayValue } from '../localization/numbers';
+import { presetLabel } from '../localization/presets';
+import {
+  LocalizedError,
+  type Localization,
+  localization,
+  translator,
+  type MessageKey,
+} from '../localization/runtime';
 import type { CounterEvent, EventState } from './models';
 import {
   compareValues,
-  formatValue,
   subtractValues,
   type ReadingValue,
 } from './reading-value';
-
-export class TimelineValidationError extends Error {
+export class TimelineValidationError extends LocalizedError {
   constructor(
-    message: string,
+    message: MessageKey,
     readonly entryId: string,
     readonly field: 'occurredAt' | 'value' | 'closingValue',
   ) {
     super(message);
   }
 }
-
 export function chronological(events: CounterEvent[]): CounterEvent[] {
   return [...events].sort(
     (a, b) =>
@@ -32,7 +38,9 @@ export type Increment = {
 export function increment(
   current: EventState,
   previous?: EventState | null,
+  locale: Localization = localization(),
 ): Increment {
+  const t = translator(locale);
   const transition = current.kind !== 'reading';
   const end = transition ? current.closing : current.measurement;
   if (transition && !end)
@@ -40,28 +48,32 @@ export function increment(
       value: null,
       unit: previous?.measurement.unit ?? current.measurement.unit,
       gap: true,
-      label: 'Berechnungslücke · alter Endstand unbekannt',
+      label: t('berechnungslueckeAlterEndstandUnbekannt'),
     };
   if (!previous)
     return {
       value: null,
       unit: current.measurement.unit,
       gap: false,
-      label: 'Ausgangsstand · noch kein Zuwachs berechenbar',
+      label: t('ausgangsstandNochKeinZuwachsBerechenbar'),
     };
   if (end!.unit !== previous.measurement.unit)
     return {
       value: null,
       unit: end!.unit,
       gap: true,
-      label: 'Einheit gewechselt · neuer Ausgangsstand',
+      label: t('einheitGewechseltNeuerAusgangsstand'),
     };
   const value = subtractValues(end!.value, previous.measurement.value);
   return {
     value,
     unit: end!.unit,
     gap: false,
-    label: `+${formatValue(value)} ${end!.unit} Zuwachs${transition ? ' bis zum Wechsel' : ''}`,
+    label: t('valueValueZuwachsValue', {
+      p0: displayValue(value, locale.formatLocale),
+      p1: presetLabel(end!.unit, locale),
+      p2: transition ? t('bisZumWechsel') : '',
+    }),
   };
 }
 export function validateTimeline(events: CounterEvent[]): void {
@@ -74,7 +86,7 @@ export function validateTimeline(events: CounterEvent[]): void {
       Date.parse(before.occurredAt) === Date.parse(entry.occurredAt)
     )
       throw new TimelineValidationError(
-        'Zu diesem Zeitpunkt gibt es bereits einen Eintrag für diesen Zähler. Bitte Zeitpunkt ändern oder den vorhandenen Eintrag korrigieren.',
+        'zuDiesemZeitpunktGibtEsBereitsEinenEintragFuerDiesenZaehlerBitteZeitpunktAendernOderDenVorhande',
         entry.id,
         'occurredAt',
       );
@@ -84,7 +96,7 @@ export function validateTimeline(events: CounterEvent[]): void {
       compareValues(delta.value, { digits: '0', scale: 0 }) < 0
     )
       throw new TimelineValidationError(
-        'Der Stand widerspricht einer benachbarten Ablesung. Bitte den Zeitpunkt prüfen, eine Rücksetzung oder einen Zählerwechsel erfassen oder die fehlerhafte Ablesung korrigieren.',
+        'derStandWidersprichtEinerBenachbartenAblesungBitteDenZeitpunktPruefenEineRuecksetzungOderEinenZ',
         entry.id,
         entry.kind === 'reading' ? 'value' : 'closingValue',
       );

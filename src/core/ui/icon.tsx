@@ -1,3 +1,5 @@
+import { t } from '../localization/runtime';
+import { useLocalization } from '../localization/react';
 import { Text } from 'react-native';
 import icons from './icons.json';
 import { useTheme } from './theme';
@@ -11,6 +13,7 @@ export function Icon({
   size?: number;
   color?: string;
 }) {
+  useLocalization();
   const theme = useTheme();
   return (
     <Text
@@ -28,5 +31,5 @@ export function Icon({
   );
 }
 export function categoryIcon(category: string): IconName {
-  return category === 'Verpackung' ? 'build' : 'settings_outlined';
+  return category === t('verpackung') ? 'build' : 'settings_outlined';
 }

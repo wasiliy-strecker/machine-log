@@ -1,0 +1,23 @@
+{
+  "locale": "it-IT",
+  "language": "it",
+  "name": "Registro macchine",
+  "shortDescription": "Registra contatori, leggi foto e documenta la cronologia della produzione.",
+  "fullDescription": "Registro macchine ti aiuta a documentare i contatori di produzione delle tue macchine. Registra pezzi, cicli, ore di funzionamento o quantità e consulta le tue letture.\n\nContatori adatti alle tue macchine\nScegli un tipo di contatore predefinito o inserisci un tipo e un’unità personalizzati. Aggiungi il numero della macchina, l’area di produzione e un’icona.\n\nLetture manuali o da foto\nInserisci il valore a mano o leggi i numeri da una nuova foto o da un’immagine esistente. Il riconoscimento del testo elabora la foto sul dispositivo. Controlla e conferma il valore riconosciuto prima di salvarlo.\n\nCronologia tracciabile\nL’app calcola gli incrementi tra le letture e gestisce inserimenti retrodatati, azzeramenti e sostituzioni dei contatori. Le correzioni mantengono i dati originali e le foto precedenti. Puoi aggiungere un motivo per ogni correzione.\n\nPromemoria e rapporti PDF\nImposta promemoria periodici. Crea rapporti singoli o la cronologia di un contatore in PDF, in formato compatto o con foto. Apri, stampa e condividi i rapporti salvati.\n\nBackup crittografati\nCrea backup protetti da password di dati, foto e rapporti. Scegli dove salvarli e ripristinali quando necessario.\n\nSei lingue\nTedesco, inglese, spagnolo, francese, italiano e portoghese brasiliano. Scegli la lingua nelle impostazioni o segui quella del sistema. Numeri e date seguono la regione del dispositivo.\n\nSenza account e senza pubblicità\nI dati dei contatori rimangono nello spazio privato dell’app. Nessun server proprio e nessuna sincronizzazione cloud. La versione dello Store non richiede il permesso di accesso a internet. Consulta l’informativa sulla privacy per i dettagli sullo SDK Google ML Kit incluso.",
+  "feature": "Registra i contatori.\nDocumenta la produzione.",
+  "strap": "OCR foto · Cronologia · PDF",
+  "frames": [
+    "I tuoi contatori\na colpo d’occhio",
+    "Leggi i contatori\ndalle foto",
+    "Segui la cronologia\ndelle letture",
+    "Dettagli e prove\nnello stesso posto",
+    "Rapporti di produzione\nin PDF",
+    "Scegli la lingua.\nSalva i tuoi dati."
+  ],
+  "counters": ["Produzione", "Imballaggio", "Compressore"],
+  "location": "Capannone 2",
+  "note": "Fine turno",
+  "correction": "Nota aggiunta",
+  "releaseNotes": "Disponibile in tedesco, inglese, spagnolo, francese, italiano e portoghese brasiliano. Scelta della lingua dell’app. Numeri e date regionali. PDF e promemoria tradotti.",
+  "privacyUrl": "https://wasiliy-strecker.github.io/machine-log/privacy/"
+}

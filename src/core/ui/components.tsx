@@ -1,3 +1,5 @@
+import { t, localization } from '../localization/runtime';
+import { useLocalization } from '../localization/react';
 import { useMemo, useRef, useState, type ReactNode } from 'react';
 import {
   ActivityIndicator,
@@ -61,6 +63,7 @@ export function Page({
   /** Initial route data has settled. Later navigation never reopens the splash. */
   ready?: boolean;
 }) {
+  useLocalization();
   const focused = useIsFocused();
   const c = useTheme(),
     safe = useSafeAreaInsets();
@@ -159,6 +162,7 @@ export function Body({
   style?: StyleProp<TextStyle>;
   strong?: boolean;
 }) {
+  useLocalization();
   const c = useTheme();
   return (
     <Text
@@ -182,6 +186,7 @@ export function Title({
   children: ReactNode;
   subtitle?: string;
 }) {
+  useLocalization();
   const c = useTheme();
   return (
     <View style={{ gap: 4 }}>
@@ -201,6 +206,7 @@ export function Title({
   );
 }
 export function Heading({ children }: { children: ReactNode }) {
+  useLocalization();
   const c = useTheme();
   return (
     <Text
@@ -225,6 +231,7 @@ export function Card({
   onPress?: () => void;
   style?: StyleProp<ViewStyle>;
 }) {
+  useLocalization();
   const c = useTheme();
   const s: StyleProp<ViewStyle> = [
     {
@@ -265,6 +272,7 @@ export function IconButton({
   color?: string;
   menu?: boolean;
 }) {
+  useLocalization();
   const c = useTheme();
   const anchor = useRef<View>(null);
   return (
@@ -314,6 +322,7 @@ export function Button({
   icon?: IconName;
   textOnly?: boolean;
 }) {
+  useLocalization();
   const c = useTheme();
   const anchor = useRef<View>(null);
   const foreground = disabled
@@ -389,6 +398,7 @@ export function Fab({
   icon?: IconName;
   onPress(): void;
 }) {
+  useLocalization();
   const c = useTheme();
   return (
     <Pressable
@@ -426,6 +436,7 @@ export function Fab({
   );
 }
 export function ActionRow({ children }: { children: ReactNode[] }) {
+  useLocalization();
   const { width, fontScale } = useWindowDimensions();
   return (
     <View
@@ -461,6 +472,7 @@ export function Field({
   suffix?: string;
   error?: string;
 }) {
+  useLocalization();
   const c = useTheme();
   const [focused, setFocused] = useState(false);
   const floated = focused || !!props.value;
@@ -540,7 +552,7 @@ export function Field({
         {!!trailing && (
           <IconButton
             icon={trailing}
-            label={label + ' auswählen'}
+            label={label + t('auswaehlen')}
             onPress={onTrailingPress ?? (() => {})}
             disabled={props.editable === false}
           />
@@ -568,11 +580,18 @@ export function SelectField({
 }: {
   label: string;
   value: string;
-  options: (string | { label: string; value: string })[];
+  options: (
+    | string
+    | {
+        label: string;
+        value: string;
+      }
+  )[];
   onChange(value: string): void;
   icon?: IconName;
   disabled?: boolean;
 }) {
+  useLocalization();
   const c = useTheme(),
     feedback = useFeedback();
   const anchor = useRef<View>(null);
@@ -657,9 +676,10 @@ export function Choices({
   selected?: string;
   onSelect(v: string): void;
 }) {
+  useLocalization();
   return (
     <SelectField
-      label="Auswählen"
+      label={t('auswaehlen100')}
       value={selected ?? ''}
       options={values}
       onChange={onSelect}
@@ -683,6 +703,7 @@ export function DateField({
   optional?: boolean;
   disabled?: boolean;
 }) {
+  useLocalization();
   const c = useTheme(),
     picker = useMaterialDateTime();
   const date = value ? localDate(value) : new Date();
@@ -695,7 +716,7 @@ export function DateField({
             last: new Date(2100, 11, 31),
             yearFirst: true,
             calendarOnly: true,
-            title: 'Einbau / Anschaffung wählen',
+            title: t('einbauAnschaffungWaehlen'),
           }
         : undefined,
     );
@@ -766,29 +787,29 @@ export function DateField({
         >
           {value
             ? time
-              ? date.toLocaleString('de-DE', {
+              ? date.toLocaleString(localization().formatLocale, {
                   dateStyle: 'short',
                   timeStyle: 'short',
                 })
-              : date.toLocaleDateString('de-DE', {
+              : date.toLocaleDateString(localization().formatLocale, {
                   day: '2-digit',
                   month: '2-digit',
                   year: 'numeric',
                 })
-            : 'Datum auswählen'}
+            : t('selectDate')}
         </Text>
       </Pressable>
       {!!value && optional && (
         <IconButton
           icon="close"
-          label="Datum entfernen"
+          label={t('datumEntfernen')}
           disabled={disabled}
           onPress={() => onChange('')}
         />
       )}
       <IconButton
         icon="calendar_today"
-        label="Datum auswählen"
+        label={t('selectDate')}
         disabled={disabled}
         onPress={() => void pick()}
       />
@@ -802,6 +823,7 @@ export function Notice({
   text?: string;
   error?: boolean;
 }) {
+  useLocalization();
   const c = useTheme();
   return text ? (
     <View
@@ -827,7 +849,8 @@ export function Notice({
     </View>
   ) : null;
 }
-export function Busy({ label = 'Wird verarbeitet …' }: { label?: string }) {
+export function Busy({ label = t('wirdVerarbeitet') }: { label?: string }) {
+  useLocalization();
   const c = useTheme();
   return (
     <View style={{ padding: 20, alignItems: 'center', gap: 12 }}>
@@ -843,6 +866,7 @@ export function BusyOverlay({
   visible: boolean;
   label: string;
 }) {
+  useLocalization();
   const c = useTheme();
   return (
     <Modal
@@ -890,12 +914,13 @@ export function BusyOverlay({
 }
 export function errorText(error: unknown): string {
   if (error && typeof error === 'object' && 'issues' in error)
-    return 'Bitte die Pflichtfelder und das Format deiner Angaben prüfen.';
+    return t('bitteDiePflichtfelderUndDasFormatDeinerAngabenPruefen');
   return error instanceof Error
     ? error.message
-    : 'Die Aktion konnte nicht abgeschlossen werden. Deine gespeicherten Daten bleiben erhalten.';
+    : t(
+        'dieAktionKonnteNichtAbgeschlossenWerdenDeineGespeichertenDatenBleibenErhalten',
+      );
 }
-
 export function MaterialSwitch({
   value,
   onValueChange,
@@ -907,6 +932,7 @@ export function MaterialSwitch({
   disabled?: boolean;
   label: string;
 }) {
+  useLocalization();
   const c = useTheme();
   return (
     <Pressable

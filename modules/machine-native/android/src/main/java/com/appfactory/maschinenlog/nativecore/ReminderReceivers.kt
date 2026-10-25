@@ -35,6 +35,10 @@ class MachineReminderReceiver : BroadcastReceiver() {
 
 class ReminderRescheduleReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context, intent: Intent) {
+        if (intent.action == Intent.ACTION_LOCALE_CHANGED) {
+            NativeLanguage.refreshNotifications(context)
+            return
+        }
         ReminderScheduler.rescheduleAll(
             context,
             clockChanged = intent.action == Intent.ACTION_TIME_CHANGED ||

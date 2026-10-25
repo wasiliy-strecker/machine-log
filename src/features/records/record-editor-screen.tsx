@@ -1,3 +1,6 @@
+import { presetLabel, presetValue } from '../../core/localization/presets';
+import { t } from '../../core/localization/runtime';
+import { useLocalization } from '../../core/localization/react';
 import { View } from 'react-native';
 import { Stack, useLocalSearchParams } from 'expo-router';
 import {
@@ -15,8 +18,8 @@ import { ReminderEditor } from './reminder-editor';
 import { useRecordEditor } from './use-record-editor';
 import { FormErrorTarget } from '../../core/ui/form-error-target';
 import { MachineIconPicker } from './machine-icon-picker';
-
 export function RecordEditorScreen() {
+  useLocalization();
   const { id, counterId } = useLocalSearchParams<{
     id?: string;
     counterId?: string;
@@ -48,28 +51,28 @@ export function RecordEditorScreen() {
         <>
           {!id && (
             <Body muted style={{ fontSize: 12 }}>
-              Speichere zuerst den Zähler. Anschließend kannst du den ersten
-              Stand fotografieren oder ohne Foto erfassen.
+              {t(
+                'speichereZuerstDenZaehlerAnschliessendKannstDuDenErstenStandFotografierenOderOhneFotoErfassen',
+              )}
             </Body>
           )}
           {vm.reminderNeedsRepair && (
             <Body>
-              Die Erinnerung ist nicht bestätigt. Mit Speichern wird sie erneut
-              eingerichtet.
+              {t('theReminderIsNotConfirmedWithSaveItWillBeSetUpAgain')}
             </Body>
           )}
           <Button
             icon={id && !vm.dirty ? 'check_circle_outline' : 'save_outlined'}
             title={
               vm.busy
-                ? 'Wird gespeichert …'
+                ? t('saving')
                 : id && !vm.dirty && !vm.reminderNeedsRepair
-                  ? 'Alles gespeichert'
+                  ? t('everythingSaved')
                   : vm.reminderNeedsRepair && !vm.dirty
-                    ? 'Erinnerung erneut speichern'
+                    ? t('saveReminderAgain')
                     : id
-                      ? 'Änderungen speichern'
-                      : 'Zähler speichern'
+                      ? t('saveChanges')
+                      : t('saveMeter')
             }
             disabled={vm.busy || (!vm.dirty && !vm.reminderNeedsRepair)}
             onPress={() => void vm.save()}
@@ -77,9 +80,7 @@ export function RecordEditorScreen() {
         </>
       }
     >
-      <Stack.Screen
-        options={{ title: id ? 'Zähler bearbeiten' : 'Zähler anlegen' }}
-      />
+      <Stack.Screen options={{ title: id ? t('editMeter') : t('addMeter') }} />
       <View style={{ gap: 16 }}>
         {!!vm.error && (
           <FormErrorTarget active attempt={vm.errorAttempt}>
@@ -92,11 +93,13 @@ export function RecordEditorScreen() {
           style={{ zIndex: 2 }}
         >
           <SuggestionField
-            label="Zählerart *"
-            placeholder="z. B. Stückzahl oder Chargen"
-            helper="Vorschlag auswählen oder eigene Zählerart eingeben. Die passende Einheit kannst du unten festlegen."
-            value={form.type}
-            suggestions={vm.typeSuggestions}
+            label={t('zaehlerart')}
+            placeholder={t('zBStueckzahlOderChargen')}
+            helper={t(
+              'vorschlagAuswaehlenOderEigeneZaehlerartEingebenDiePassendeEinheitKannstDuUntenFestlegen',
+            )}
+            value={counterTypeLabel(form.type)}
+            suggestions={vm.typeSuggestions.map(counterTypeLabel)}
             onChange={vm.changeType}
             disabled={vm.busy}
             showAllOnFocus
@@ -113,9 +116,9 @@ export function RecordEditorScreen() {
           attempt={vm.errorAttempt}
         >
           <Field
-            label="Bezeichnung *"
+            label={t('name')}
             error={vm.fieldErrors.name}
-            placeholder="z. B. Montagelinie 1"
+            placeholder={t('zBMontagelinie1')}
             value={form.name}
             onChangeText={(value) => vm.change('name', value)}
             editable={!vm.busy}
@@ -126,7 +129,7 @@ export function RecordEditorScreen() {
           attempt={vm.errorAttempt}
         >
           <Field
-            label="Maschinen-/Zählernummer (optional)"
+            label={t('maschinenZaehlernummerOptional')}
             error={vm.fieldErrors.number}
             value={form.number}
             onChangeText={(value) => vm.change('number', value)}
@@ -138,9 +141,9 @@ export function RecordEditorScreen() {
           attempt={vm.errorAttempt}
         >
           <Field
-            label="Produktionsbereich (optional)"
+            label={t('produktionsbereichOptional')}
             error={vm.fieldErrors.location}
-            placeholder="z. B. Halle 2"
+            placeholder={t('zBHalle2')}
             value={form.location}
             onChangeText={(value) => vm.change('location', value)}
             editable={!vm.busy}
@@ -152,14 +155,16 @@ export function RecordEditorScreen() {
           style={{ zIndex: 1 }}
         >
           <SuggestionField
-            label="Einheit *"
+            label={t('unit')}
             error={vm.fieldErrors.unit}
-            value={form.unit}
-            suggestions={units}
+            value={presetLabel(form.unit)}
+            suggestions={units.map((value) => presetLabel(value))}
             disabled={vm.busy}
             showAllOnFocus
-            helper="Vorschlag auswählen oder eigene Einheit eingeben. Frühere Ablesungen behalten ihre Einheit."
-            onChange={(value) => vm.change('unit', value)}
+            helper={t(
+              'vorschlagAuswaehlenOderEigeneEinheitEingebenFruehereAblesungenBehaltenIhreEinheit',
+            )}
+            onChange={(value) => vm.change('unit', presetValue(value))}
           />
         </FormErrorTarget>
         <FormErrorTarget

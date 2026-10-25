@@ -1,3 +1,4 @@
+import { t } from '../localization/runtime';
 import { useRef } from 'react';
 import { useNavigation, usePreventRemove } from 'expo-router/react-navigation';
 import { useFeedback } from './feedback';
@@ -6,7 +7,7 @@ export function useLeaveGuard({
   dirty,
   busy,
   discard,
-  title = 'Änderungen verwerfen?',
+  title = t('discardChanges'),
 }: {
   dirty: boolean;
   busy: boolean;
@@ -29,10 +30,12 @@ export function useLeaveGuard({
         if (
           await feedback.confirm(
             title,
-            'Nicht gespeicherte Eingaben und neu hinzugefügte Anhänge werden verworfen.',
+            t(
+              'nichtGespeicherteEingabenUndNeuHinzugefuegteAnhaengeWerdenVerworfen',
+            ),
             title.replace(/\?$/, ''),
             true,
-            'Weiter bearbeiten',
+            t('continueEditing'),
           )
         ) {
           await discard();

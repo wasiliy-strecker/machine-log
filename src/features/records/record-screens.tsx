@@ -1,3 +1,5 @@
+import { t, localization } from '../../core/localization/runtime';
+import { useLocalization } from '../../core/localization/react';
 import { FlatList, View, Text, useWindowDimensions } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { router, Stack, useLocalSearchParams } from 'expo-router';
@@ -29,6 +31,7 @@ import { HistoryTile } from './history-tile';
 import { Reports } from './reports';
 import {
   dateTime,
+  dashboardCount,
   entrySummary,
   reminderSummary,
   sortLabels,
@@ -46,6 +49,7 @@ export function ReminderInfo({
   status?: ReminderStatus;
   onEdit(): void;
 }) {
+  useLocalization();
   const c = useTheme();
   const r = record.reminder;
   const s = status?.schedules.find((s) => s.recordId === record.id);
@@ -54,7 +58,8 @@ export function ReminderInfo({
     <View style={{ gap: 6 }}>
       {r && (
         <Body strong style={{ fontSize: 12 }}>
-          Erinnern: {reminderSummary(r)}
+          {t('erinnern') + ' '}
+          {reminderSummary(r)}
         </Body>
       )}
       <ReminderScheduleStatus
@@ -76,10 +81,10 @@ export function ReminderInfo({
       >
         <Icon name="notifications_active_outlined" size={19} color={c.onSoft} />
         <Body strong style={{ fontSize: 12, color: c.onSoft, flex: 1 }}>
-          Letzte Erinnerung:{' '}
+          {t('letzteErinnerung')}{' '}
           {s?.lastTriggeredAtMillis
-            ? `${dateTime(s.lastTriggeredAtMillis)} Uhr`
-            : 'noch keine'}
+            ? t('value', { p0: dateTime(s.lastTriggeredAtMillis) })
+            : t('nochKeine')}
         </Body>
       </View>
     </View>
@@ -88,8 +93,9 @@ export function ReminderInfo({
 type DashboardHeaderProps = Pick<
   ReturnType<typeof useRecords>,
   'search' | 'setSearch' | 'sort' | 'setSort' | 'error' | 'retry'
-> & { count: number };
-
+> & {
+  count: number;
+};
 // Keep the header component type stable so typing never remounts its input.
 function DashboardHeader({
   search,
@@ -100,21 +106,26 @@ function DashboardHeader({
   error,
   retry,
 }: DashboardHeaderProps) {
+  useLocalization();
   const feedback = useFeedback();
   return (
     <View style={{ gap: 12, paddingBottom: 12 }}>
       {!!error && (
         <>
           <Notice error text={error} />
-          <Button title="Erneut laden" onPress={retry} />
+          <Button title={t('reload')} onPress={retry} />
         </>
       )}
-      <Title subtitle="Zählerstände erfassen und Produktionszuwächse nachvollziehen.">
-        Deine Produktionszähler
+      <Title
+        subtitle={t(
+          'zaehlerstaendeErfassenUndProduktionszuwaechseNachvollziehen',
+        )}
+      >
+        {t('deineProduktionszaehler')}
       </Title>
       <View style={{ marginTop: 4 }}>
         <Field
-          label="Zähler suchen"
+          label={t('searchMeters')}
           leading="search"
           value={search}
           onChangeText={setSearch}
@@ -132,9 +143,7 @@ function DashboardHeader({
           flexWrap: 'wrap',
         }}
       >
-        <Body muted>
-          {count} {search.trim() ? 'Treffer' : 'Zähler'}
-        </Body>
+        <Body muted>{dashboardCount(count, !!search.trim())}</Body>
         <Button
           secondary
           icon="sort"
@@ -143,7 +152,7 @@ function DashboardHeader({
           onPress={(anchor) =>
             void feedback
               .choose({
-                title: 'Zähler sortieren',
+                title: t('zaehlerSortieren'),
                 anchor,
                 options: (Object.keys(sortLabels) as RecordSort[]).map(
                   (value) => ({
@@ -162,7 +171,6 @@ function DashboardHeader({
     </View>
   );
 }
-
 function DashboardCard({
   item,
   hasDraft,
@@ -172,6 +180,7 @@ function DashboardCard({
   hasDraft: boolean;
   status?: ReminderStatus;
 }) {
+  useLocalization();
   const { record, counter, latest, lastEdited } = item;
   const c = useTheme();
   return (
@@ -199,7 +208,7 @@ function DashboardCard({
             {status?.schedules.find((s) => s.recordId === counter.id)
               ?.isNotificationActive && (
               <View
-                accessibilityLabel="Aktive Ableseerinnerung"
+                accessibilityLabel={t('aktiveAbleseerinnerung')}
                 style={{
                   backgroundColor: c.danger,
                   borderRadius: 10,
@@ -227,11 +236,12 @@ function DashboardCard({
             {entrySummary(latest)}
           </Text>
           <Body muted style={{ fontSize: 12, lineHeight: 16 }}>
-            Zuletzt bearbeitet: {dateTime(lastEdited)}
+            {t('zuletztBearbeitet') + ' '}
+            {dateTime(lastEdited)}
           </Body>
           {hasDraft && (
             <Body muted style={{ fontSize: 12 }}>
-              Gesicherter Formularentwurf
+              {t('gesicherterFormularentwurf')}
             </Body>
           )}
           <ReminderInfo
@@ -250,13 +260,13 @@ function DashboardCard({
     </Card>
   );
 }
-
 function CounterSeparator() {
+  useLocalization();
   return <View style={{ height: 12 }} />;
 }
 const dashboardKey = (item: DashboardItem) => item.counter.id;
-
 export function RecordsScreen() {
+  useLocalization();
   const vm = useRecords(),
     c = useTheme(),
     safe = useSafeAreaInsets(),
@@ -267,14 +277,14 @@ export function RecordsScreen() {
     <Page
       ready={!vm.loading}
       scroll={!showList}
-      fab={<Fab title="Zähler anlegen" onPress={create} />}
+      fab={<Fab title={t('addMeter')} onPress={create} />}
     >
       {vm.loading ? (
-        <Busy label="Produktionszähler werden geladen …" />
+        <Busy label={t('produktionszaehlerWerdenGeladen')} />
       ) : vm.error && vm.empty ? (
         <>
           <Notice error text={vm.error} />
-          <Button title="Erneut laden" onPress={vm.retry} />
+          <Button title={t('reload')} onPress={vm.retry} />
         </>
       ) : vm.empty ? (
         <View
@@ -287,11 +297,11 @@ export function RecordsScreen() {
           }}
         >
           <Icon name="settings_outlined" size={72} color={c.primary} />
-          <Title>Ersten Produktionszähler anlegen</Title>
+          <Title>{t('erstenProduktionszaehlerAnlegen')}</Title>
           <Body style={{ textAlign: 'center' }}>
-            Dokumentiere Produktionsstände deiner Maschinen. Erfasse
-            Stückzahlen, Zyklen, Betriebsstunden und Mengen mit Foto oder
-            manuell. Deine Daten bleiben lokal auf deinem Gerät.
+            {t(
+              'dokumentiereProduktionsstaendeDeinerMaschinenErfasseStueckzahlenZyklenBetriebsstundenUndMengenM',
+            )}
           </Body>
         </View>
       ) : (
@@ -324,7 +334,7 @@ export function RecordsScreen() {
           ListEmptyComponent={
             <Card>
               <Icon name="search" size={42} color={c.primary} />
-              <Body>Keine passenden Zähler gefunden.</Body>
+              <Body>{t('noMatchingMetersFound')}</Body>
             </Card>
           }
           ItemSeparatorComponent={CounterSeparator}
@@ -349,6 +359,7 @@ export function Pager({
   total: number;
   onChange(n: number): void;
 }) {
+  useLocalization();
   return total > PAGE_SIZE ? (
     <View
       style={{
@@ -360,17 +371,17 @@ export function Pager({
     >
       <IconButton
         icon="chevron_left"
-        label="Vorherige Seite"
+        label={t('vorherigeSeite')}
         disabled={offset === 0}
         onPress={() => onChange(Math.max(0, offset - PAGE_SIZE))}
       />
       <Body>
-        Seite {Math.floor(offset / PAGE_SIZE) + 1} von{' '}
-        {Math.ceil(total / PAGE_SIZE)}
+        {t('page') + ' '}
+        {Math.floor(offset / PAGE_SIZE) + 1} von {Math.ceil(total / PAGE_SIZE)}
       </Body>
       <IconButton
         icon="chevron_right"
-        label="Nächste Seite"
+        label={t('naechsteSeite')}
         disabled={offset + PAGE_SIZE >= total}
         onPress={() => onChange(offset + PAGE_SIZE)}
       />
@@ -378,6 +389,7 @@ export function Pager({
   ) : null;
 }
 export function RecordDetailScreen() {
+  useLocalization();
   const { id, counterId } = useLocalSearchParams<{
     id: string;
     counterId?: string;
@@ -400,7 +412,7 @@ export function RecordDetailScreen() {
     return (
       <Page ready={!vm.loading}>
         <Notice error text={vm.error} />
-        {vm.loading ? <Busy /> : <Body>Zähler nicht gefunden.</Body>}
+        {vm.loading ? <Busy /> : <Body>{t('meterNotFound')}</Body>}
       </Page>
     );
   return (
@@ -408,7 +420,7 @@ export function RecordDetailScreen() {
       ready={!vm.loading}
       fab={
         <Fab
-          title="Erfassen / Fotografieren"
+          title={t('erfassenFotografieren')}
           icon="add_a_photo_outlined"
           onPress={capture}
         />
@@ -431,7 +443,7 @@ export function RecordDetailScreen() {
           >
             {vm.counter
               ? counterTypeLabel(vm.counter.type)
-              : 'Produktionszähler'}
+              : t('produktionszaehler')}
           </Body>
           <Icon name="chevron_right" color={c.muted} />
         </View>
@@ -447,32 +459,47 @@ export function RecordDetailScreen() {
           {entrySummary(vm.entries[0] ?? null)}
         </Body>
         {!!vm.entries[0] && (
-          <Body>Zuletzt am {dateTime(vm.entries[0].occurredAt)}</Body>
+          <Body>
+            {t('zuletztAm') + ' '}
+            {dateTime(vm.entries[0].occurredAt)}
+          </Body>
         )}
         <View style={{ marginTop: 10 }}>
           {vm.counter && !!counterLocation(r, vm.counter) && (
-            <Body>Produktionsbereich: {counterLocation(r, vm.counter)}</Body>
+            <Body>
+              {t('produktionsbereich') + ' '}
+              {counterLocation(r, vm.counter)}
+            </Body>
           )}
           {!!(r.manufacturer || r.model) && (
             <Body>
-              Hersteller / Modell:{' '}
+              {t('herstellerModell')}{' '}
               {[r.manufacturer, r.model].filter(Boolean).join(' · ')}
             </Body>
           )}
           {!!(vm.counter?.number || r.number) && (
             <Body>
-              Maschinen-/Zählernummer: {vm.counter?.number || r.number}
+              {t('maschinenZaehlernummer') + ' '}
+              {vm.counter?.number || r.number}
             </Body>
           )}
-          {!!r.serial && <Body>Seriennummer: {r.serial}</Body>}
+          {!!r.serial && (
+            <Body>
+              {t('seriennummer') + ' '}
+              {r.serial}
+            </Body>
+          )}
           {!!r.installedOn && (
             <Body>
-              Inbetriebnahme:{' '}
-              {new Date(r.installedOn).toLocaleDateString('de-DE', {
-                day: '2-digit',
-                month: '2-digit',
-                year: 'numeric',
-              })}
+              {t('inbetriebnahme')}{' '}
+              {new Date(r.installedOn).toLocaleDateString(
+                localization().formatLocale,
+                {
+                  day: '2-digit',
+                  month: '2-digit',
+                  year: 'numeric',
+                },
+              )}
             </Body>
           )}
           {!!r.note && <Body>{r.note}</Body>}
@@ -489,20 +516,22 @@ export function RecordDetailScreen() {
         <Button
           secondary
           icon="edit_outlined"
-          title="Zähler bearbeiten"
+          title={t('editMeter')}
           onPress={edit}
         />
         <Button
           secondary
           danger
           icon="delete_outline"
-          title="Zähler löschen"
+          title={t('deleteMeter')}
           disabled={vm.busy}
           onPress={() =>
             void feedback
               .confirm(
-                'Zähler löschen?',
-                'Dieser Zähler, seine Ablesungen und seine Protokolle werden gelöscht. Andere Zähler und frühere gemeinsame Maschinenprotokolle bleiben erhalten. Exportierte Dateien bleiben bestehen.',
+                t('deleteMeter668'),
+                t(
+                  'dieserZaehlerSeineAblesungenUndSeineProtokolleWerdenGeloeschtAndereZaehlerUndFruehereGemeinsame',
+                ),
               )
               .then((ok) => {
                 if (ok) void vm.remove();
@@ -518,12 +547,15 @@ export function RecordDetailScreen() {
         summary={vm.counter ? counterTitle(r, vm.counter) : r.name}
       />
       <View style={{ marginTop: vm.total > 0 ? 6 : 18, gap: 8 }}>
-        <Heading>Zählerverlauf</Heading>
+        <Heading>{t('meterHistory')}</Heading>
         {vm.total > 0 && (
           <Body style={{ fontFamily: 'RobotoMedium', letterSpacing: 0.1 }}>
             {vm.total === 1
-              ? '1 Eintrag'
-              : `${vm.entries.length} von ${vm.total} Einträgen`}
+              ? t('1Entry')
+              : t('valueOfValueEntries', {
+                  p0: vm.entries.length,
+                  p1: vm.total,
+                })}
           </Body>
         )}
         {!vm.total && (
@@ -533,8 +565,9 @@ export function RecordDetailScreen() {
           >
             <Icon name="add_a_photo_outlined" size={44} color={c.primary} />
             <Body style={{ marginTop: 10, textAlign: 'center' }}>
-              Noch kein Eintrag für diesen Zähler. Erfasse den ersten Stand mit
-              Foto oder manuell.
+              {t(
+                'nochKeinEintragFuerDiesenZaehlerErfasseDenErstenStandMitFotoOderManuell',
+              )}
             </Body>
             <View
               style={{
@@ -549,7 +582,7 @@ export function RecordDetailScreen() {
                 strong
                 style={{ color: c.primary, textAlign: 'center', flexShrink: 1 }}
               >
-                Ersten Eintrag erfassen
+                {t('addFirstEntry')}
               </Body>
               <Icon name="chevron_right" color={c.primary} />
             </View>
@@ -565,7 +598,7 @@ export function RecordDetailScreen() {
         <Button
           secondary
           icon="manage_search_outlined"
-          title="Alle Einträge anzeigen"
+          title={t('showAllEntries')}
           onPress={() =>
             router.push({
               pathname: '/record/history',
@@ -578,6 +611,7 @@ export function RecordDetailScreen() {
   );
 }
 export function RecordHistoryScreen() {
+  useLocalization();
   const { id, counterId } = useLocalSearchParams<{
     id: string;
     counterId?: string;
@@ -608,7 +642,7 @@ export function RecordHistoryScreen() {
             {vm.record && vm.counter ? counterTitle(vm.record, vm.counter) : ''}
           </Body>
           <Field
-            label="Einträge suchen"
+            label={t('searchEntries')}
             leading="search"
             value={vm.search}
             onChangeText={vm.setSearch}
@@ -621,7 +655,7 @@ export function RecordHistoryScreen() {
         <Pager offset={vm.offset} total={vm.total} onChange={vm.setOffset} />
       }
     >
-      <Stack.Screen options={{ title: 'Zählerverlauf' }} />
+      <Stack.Screen options={{ title: t('meterHistory') }} />
       <Notice error text={vm.error} />
       {vm.loading ? (
         <Busy />
@@ -629,12 +663,17 @@ export function RecordHistoryScreen() {
         <View style={{ gap: 8 }}>
           <Body style={{ fontFamily: 'RobotoMedium', letterSpacing: 0.1 }}>
             {vm.total === 0
-              ? 'Keine Einträge gefunden'
+              ? t('keineEintraegeGefunden')
               : vm.total === 1
                 ? vm.search.trim()
-                  ? '1 Treffer'
-                  : '1 Eintrag'
-                : `${vm.offset + 1}–${Math.min(vm.offset + PAGE_SIZE, vm.total)} von ${vm.total} ${vm.search.trim() ? 'Treffern' : 'Einträgen'}`}
+                  ? t('1Result')
+                  : t('1Entry')
+                : t('valueValueOfValueValue', {
+                    p0: vm.offset + 1,
+                    p1: Math.min(vm.offset + PAGE_SIZE, vm.total),
+                    p2: vm.total,
+                    p3: vm.search.trim() ? t('results') : t('entries'),
+                  })}
           </Body>
           <View style={{ gap: 10 }}>
             {vm.historyItems.map((item) => (

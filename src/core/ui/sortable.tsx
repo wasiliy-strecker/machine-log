@@ -1,3 +1,4 @@
+import { useLocalization } from '../localization/react';
 /* Gesture builder callbacks run only on native touch events. The compiler lint
  * currently treats callbacks passed through this builder as render-time calls.
  * Refs below are read only in those events, layout callbacks and cleanup. */
@@ -8,7 +9,11 @@ import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import { useTheme } from './theme';
 import { useScrollHost } from './scroll-host';
 import { reorderItems } from './reorder';
-export function Sortable<T extends { id: string }>({
+export function Sortable<
+  T extends {
+    id: string;
+  },
+>({
   items,
   columns = 1,
   disabled = false,
@@ -23,6 +28,7 @@ export function Sortable<T extends { id: string }>({
   render: (item: T, index: number, canTap: () => boolean) => ReactNode;
   preview?: (item: T, index: number) => ReactNode;
 }) {
+  useLocalization();
   const c = useTheme(),
     host = useScrollHost(),
     ref = useRef<View>(null);

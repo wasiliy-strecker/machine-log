@@ -1,9 +1,9 @@
+import { t, LocalizedError } from '../localization/runtime';
 import { z } from 'zod';
 import { validateTimeline } from './counter-timeline';
 import { formatValue } from './reading-value';
 import { MAX_FILE_BYTES, MAX_PDF_PAGES } from '../files/limits';
 import { machineIconIds } from './machine-icon';
-
 const id = z.string().uuid();
 const short = z.string().max(500);
 const note = z.string().max(20000);
@@ -36,14 +36,24 @@ export const reminderSchema = z
   })
   .strict()
   .refine((r) => r.interval !== 'weekly' || r.day <= 7, {
-    message: 'Wochentag muss zwischen 1 und 7 liegen.',
+    error: () => t('wochentagMussZwischen1Und7Liegen'),
   });
 export const counterSchema = z
   .object({
     id,
-    name: short.trim().min(1, 'Bitte eine Zählerbezeichnung eingeben.'),
-    type: z.string().trim().min(1, 'Bitte eine Zählerart eingeben.').max(100),
-    unit: z.string().trim().min(1, 'Bitte eine Einheit eingeben.').max(20),
+    name: short
+      .trim()
+      .min(1, { error: () => t('bitteEineZaehlerbezeichnungEingeben') }),
+    type: z
+      .string()
+      .trim()
+      .min(1, { error: () => t('bitteEineZaehlerartEingeben') })
+      .max(100),
+    unit: z
+      .string()
+      .trim()
+      .min(1, { error: () => t('pleaseEnterAUnit') })
+      .max(20),
     number: short,
     reminder: reminderSchema.nullable(),
     location: short.optional(),
@@ -53,7 +63,7 @@ export const counterSchema = z
 export const recordSchema = z
   .object({
     id,
-    name: short.trim().min(1, 'Bitte eine Bezeichnung eingeben.'),
+    name: short.trim().min(1, { error: () => t('pleaseEnterAName') }),
     number: short,
     category: short,
     location: short,
@@ -103,7 +113,7 @@ export const eventStateSchema = z
   })
   .strict()
   .refine((e) => e.kind !== 'reading' || e.closing === null, {
-    message: 'Eine Ablesung hat keinen Wechsel-Endstand.',
+    error: () => t('eineAblesungHatKeinenWechselEndstand'),
   });
 export const revisionSchema = z
   .object({
@@ -226,14 +236,26 @@ export const defaultUnits = {
   quantity: 'kg',
 };
 export const eventLabels = {
-  reading: 'Ablesung',
-  reset: 'Rücksetzung',
-  replacement: 'Zählerwechsel',
+  get reading() {
+    return t('reading');
+  },
+  get reset() {
+    return t('ruecksetzung');
+  },
+  get replacement() {
+    return t('meterReplacement');
+  },
 };
 export const sourceLabels = {
-  manual: 'Manuell erfasst',
-  camera: 'Kameraaufnahme',
-  gallery: 'Galerieimport',
+  get manual() {
+    return t('manuallyRecorded');
+  },
+  get camera() {
+    return t('cameraPhoto');
+  },
+  get gallery() {
+    return t('galleryImport');
+  },
 };
 export const PAGE_SIZE = 10;
 export function eventState(entry: CounterEvent): EventState {
@@ -306,44 +328,44 @@ export function validateSnapshot(input: unknown): Snapshot {
   const unique = (ids: string[]) => new Set(ids).size === ids.length;
   for (const rows of [data.records, data.entries, data.reports])
     if (!unique(rows.map((r) => r.id)))
-      throw new Error('Doppelte IDs im Backup.');
+      throw new LocalizedError('doppelteIdsImBackup');
   if (!unique(data.records.flatMap((r) => r.counters.map((c) => c.id))))
-    throw new Error('Doppelte Zähler-IDs.');
+    throw new LocalizedError('doppelteZaehlerIds');
   const records = new Map(data.records.map((r) => [r.id, r]));
   const entries = new Map(data.entries.map((e) => [e.id, e]));
   for (const e of data.entries) {
     if (!records.get(e.recordId)?.counters.some((c) => c.id === e.counterId))
-      throw new Error('Ungültige Zählerzuordnung.');
+      throw new LocalizedError('ungueltigeZaehlerzuordnung');
     let before = e.original;
     let parent: string | null = null;
     if (!unique(e.revisions.map((r) => r.id)))
-      throw new Error('Doppelte Korrektur-IDs.');
+      throw new LocalizedError('doppelteKorrekturIds');
     for (const revision of e.revisions) {
       if (
         revision.parentId !== parent ||
         evidenceJson(revision.before) !== evidenceJson(before)
       )
-        throw new Error('Unterbrochene Korrekturhistorie.');
+        throw new LocalizedError('unterbrocheneKorrekturhistorie');
       before = revision.after;
       parent = revision.id;
     }
     if (evidenceJson(eventState(e)) !== evidenceJson(before))
-      throw new Error(
-        'Der aktuelle Eintrag passt nicht zur Korrekturhistorie.',
+      throw new LocalizedError(
+        'derAktuelleEintragPasstNichtZurKorrekturhistorie',
       );
     for (const version of eventVersions(e)) {
       if (!unique(version.attachments.map((a) => a.id)))
-        throw new Error('Doppelte Anhänge.');
+        throw new LocalizedError('doppelteAnhaenge');
       if (
         version.ocr &&
         !version.attachments.some(
           (a) => a.kind === 'photo' && a.id === version.ocr?.photoId,
         )
       )
-        throw new Error('OCR-Foto fehlt.');
+        throw new LocalizedError('ocrFotoFehlt');
       for (const a of version.attachments)
         if ((a.kind === 'pdf') !== a.file.endsWith('.pdf'))
-          throw new Error('Ungültiger Anhangstyp.');
+          throw new LocalizedError('ungueltigerAnhangstyp');
     }
   }
   validateTimeline(data.entries);
@@ -355,12 +377,12 @@ export function validateSnapshot(input: unknown): Snapshot {
         !records.get(r.recordId)!.counters.some((c) => c.id === r.counterId)) ||
       (r.entryId && r.counterId !== entries.get(r.entryId)?.counterId)
     )
-      throw new Error('Ungültiges Protokoll.');
+      throw new LocalizedError('ungueltigesProtokoll');
     if (
       (r.groupId || r.partIndex || r.partCount) &&
       (!r.groupId || !r.partIndex || !r.partCount || r.partIndex > r.partCount)
     )
-      throw new Error('Ungültige Protokollteile.');
+      throw new LocalizedError('ungueltigeProtokollteile');
   }
   const groups = new Map<string, SavedReport[]>();
   for (const report of data.reports)
@@ -383,7 +405,7 @@ export function validateSnapshot(input: unknown): Snapshot {
           r.partCount !== first.partCount,
       )
     )
-      throw new Error('Widersprüchliche Protokollteile.');
+      throw new LocalizedError('widerspruechlicheProtokollteile');
   }
   return data;
 }

@@ -1,0 +1,23 @@
+{
+  "locale": "fr-FR",
+  "language": "fr",
+  "name": "Journal des machines",
+  "shortDescription": "Relevez les compteurs, lisez les photos et documentez la production.",
+  "fullDescription": "Journal des machines vous aide à documenter les compteurs de production de vos machines. Enregistrez les pièces, cycles, heures de fonctionnement ou quantités et consultez vos relevés.\n\nDes compteurs adaptés à vos machines\nChoisissez un type de compteur prédéfini ou saisissez votre propre type et unité. Ajoutez un numéro de machine, une zone de production et une icône.\n\nRelevés manuels ou par photo\nSaisissez la valeur ou lisez les chiffres d’une nouvelle photo ou d’une image existante. La reconnaissance de texte traite la photo sur votre appareil. Vérifiez et confirmez la valeur reconnue avant de l’enregistrer.\n\nUn historique traçable\nL’application calcule les augmentations entre les relevés et prend en compte les saisies antérieures, remises à zéro et remplacements de compteurs. Les corrections conservent les informations d’origine et les anciennes photos. Vous pouvez ajouter un motif de correction.\n\nRappels et rapports PDF\nConfigurez des rappels réguliers. Créez des rapports individuels ou l’historique d’un compteur en PDF, en version compacte ou avec photos. Ouvrez, imprimez et partagez les rapports enregistrés.\n\nSauvegardes chiffrées\nCréez des sauvegardes protégées par mot de passe de vos données, photos et rapports. Choisissez leur emplacement et restaurez-les si nécessaire.\n\nSix langues\nAllemand, anglais, espagnol, français, italien et portugais du Brésil. Choisissez la langue dans les paramètres ou suivez celle du système. Les nombres et dates suivent la région de votre appareil.\n\nSans compte et sans publicité\nLes données des compteurs restent dans le stockage privé de l’application. Aucun serveur propre ni synchronisation dans le cloud. La version du Store ne demande pas d’autorisation internet. Consultez la politique de confidentialité pour en savoir plus sur le SDK Google ML Kit intégré.",
+  "feature": "Relevez les compteurs.\nDocumentez la production.",
+  "strap": "OCR photo · Historique · PDF",
+  "frames": [
+    "Vos compteurs\nen un coup d’œil",
+    "Lisez les compteurs\nsur vos photos",
+    "Suivez l’historique\ndes relevés",
+    "Détails et justificatifs\nau même endroit",
+    "Rapports de production\nen PDF",
+    "Choisissez la langue.\nSauvegardez vos données."
+  ],
+  "counters": ["Production", "Emballage", "Compresseur"],
+  "location": "Atelier 2",
+  "note": "Fin de poste",
+  "correction": "Note ajoutée",
+  "releaseNotes": "Disponible en allemand, anglais, espagnol, français, italien et portugais du Brésil. Choix de la langue de l’application. Nombres et dates au format régional. PDF et rappels traduits.",
+  "privacyUrl": "https://wasiliy-strecker.github.io/machine-log/privacy/"
+}

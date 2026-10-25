@@ -1,3 +1,4 @@
+import { t, LocalizedError } from '../localization/runtime';
 import * as ImagePicker from 'expo-image-picker';
 import * as DocumentPicker from 'expo-document-picker';
 import { ImageManipulator, SaveFormat } from 'expo-image-manipulator';
@@ -8,11 +9,20 @@ import type { MachineService } from '../../features/entries/entry-service';
 import { machineNative } from '../native/machine-native';
 import { verifiedFile } from '../files/integrity';
 import { MAX_BACKUP_BYTES } from '../backup/backup-service';
-
-export type PreparedBackup = { uri: string; name: string };
-export type PickResult = { attachments: Attachment[]; failures: string[] };
+export type PreparedBackup = {
+  uri: string;
+  name: string;
+};
+export type PickResult = {
+  attachments: Attachment[];
+  failures: string[];
+};
 export type PhotoSource = 'camera' | 'gallery';
-type ShareItem = { file: string; sha256: string; name?: string };
+type ShareItem = {
+  file: string;
+  sha256: string;
+  name?: string;
+};
 export interface MediaPort {
   pick(source: PhotoSource): Promise<PickResult>;
   recoverPhotos(): Promise<PickResult>;
@@ -43,7 +53,7 @@ export class ExpoMedia implements MediaPort {
       return await this.machine.importAttachment(
         await new File(result.uri).bytes(),
         'photo',
-        asset.fileName?.replace(/\.[^.]*$/, '.jpg') || 'Foto.jpg',
+        asset.fileName?.replace(/\.[^.]*$/, '.jpg') || t('photoFilename'),
       );
     } finally {
       new File(result.uri).delete();
@@ -59,8 +69,7 @@ export class ExpoMedia implements MediaPort {
     if (!result) return output;
     if ('code' in result) {
       output.failures.push(
-        result.message ||
-          'Die Fotoauswahl konnte nicht wiederhergestellt werden.',
+        result.message || t('dieFotoauswahlKonnteNichtWiederhergestelltWerden'),
       );
       return output;
     }
@@ -70,7 +79,9 @@ export class ExpoMedia implements MediaPort {
         output.attachments.push(await this.importPhoto(asset));
       } catch {
         output.failures.push(
-          `${asset.fileName || 'Foto'} konnte nicht übernommen werden.`,
+          t('valueKonnteNichtUebernommenWerden', {
+            p0: asset.fileName || t('photo'),
+          }),
         );
       }
     }
@@ -79,8 +90,8 @@ export class ExpoMedia implements MediaPort {
   async pick(source: PhotoSource): Promise<PickResult> {
     if (source === 'camera') {
       if (!(await ImagePicker.requestCameraPermissionsAsync()).granted)
-        throw new Error(
-          'Die Kamera ist nicht freigegeben. Du kannst Fotos aus der Galerie wählen.',
+        throw new LocalizedError(
+          'dieKameraIstNichtFreigegebenDuKannstFotosAusDerGalerieWaehlen',
         );
       return this.photos(
         await ImagePicker.launchCameraAsync({
@@ -99,7 +110,7 @@ export class ExpoMedia implements MediaPort {
           exif: false,
         }),
       );
-    throw new Error('Bitte Kamera oder Galerie für das Zählerfoto wählen.');
+    throw new LocalizedError('bitteKameraOderGalerieFuerDasZaehlerfotoWaehlen');
   }
   async recoverPhotos() {
     return this.photos(await ImagePicker.getPendingResultAsync());
@@ -109,8 +120,8 @@ export class ExpoMedia implements MediaPort {
     try {
       await machineNative.openPdf(this.machine.vault.uri(item.file));
     } catch {
-      throw new Error(
-        'Keine App zum Öffnen von PDFs verfügbar. Bitte eine PDF-App installieren oder „Teilen“ verwenden.',
+      throw new LocalizedError(
+        'keineAppZumOffnenVonPdfsVerfuegbarBitteEinePdfAppInstallierenOderTeilenVerwenden',
       );
     }
   }
@@ -131,7 +142,7 @@ export class ExpoMedia implements MediaPort {
   async share(item: ShareItem) {
     await verifiedFile(this.machine.vault, item);
     if (!(await Sharing.isAvailableAsync()))
-      throw new Error('Teilen ist auf diesem Gerät nicht verfügbar.');
+      throw new LocalizedError('teilenIstAufDiesemGeraetNichtVerfuegbar');
     let uri = this.machine.vault.uri(item.file);
     if (item.file.endsWith('.pdf') && item.name) {
       const directory = new Directory(
@@ -140,14 +151,14 @@ export class ExpoMedia implements MediaPort {
         `share-${this.machine.env.id()}`,
       );
       directory.create({ intermediates: true, idempotent: true });
-      uri = await this.sharedCopy(item, directory, 'Produktionsprotokoll');
+      uri = await this.sharedCopy(item, directory, t('produktionsprotokoll'));
     }
     await Sharing.shareAsync(uri, {
       mimeType: item.file.endsWith('.pdf') ? 'application/pdf' : 'image/jpeg',
     });
   }
   async shareMany(items: ShareItem[]) {
-    if (!items.length) throw new Error('Keine Protokollteile vorhanden.');
+    if (!items.length) throw new LocalizedError('keineProtokollteileVorhanden');
     for (const item of items) await verifiedFile(this.machine.vault, item);
     const directory = new Directory(
       Paths.cache,
@@ -162,10 +173,13 @@ export class ExpoMedia implements MediaPort {
           await this.sharedCopy(
             {
               ...item,
-              name: `Produktionsprotokoll_Teil_${String(i + 1).padStart(2, '0')}_von_${items.length}`,
+              name: t('produktionsprotokollTeilValueVonValue540', {
+                p0: String(i + 1).padStart(2, '0'),
+                p1: items.length,
+              }),
             },
             directory,
-            'Produktionsprotokoll',
+            t('produktionsprotokoll'),
           ),
         );
       await machineNative.sharePdfs(uris);
@@ -199,7 +213,7 @@ export class ExpoMedia implements MediaPort {
     await new File(file.uri).copy(copy);
     await Sharing.shareAsync(copy.uri, {
       mimeType: 'application/octet-stream',
-      dialogTitle: 'MaschinenLog-Backup teilen',
+      dialogTitle: t('maschinenlogBackupTeilen'),
     });
   }
   async discardBackup(file: PreparedBackup) {
@@ -208,7 +222,7 @@ export class ExpoMedia implements MediaPort {
       !file.uri.startsWith(directory.uri.replace(/\/$/, '') + '/') ||
       file.uri.slice(directory.uri.replace(/\/$/, '').length + 1).includes('/')
     )
-      throw new Error('Ungültige Backup-Referenz.');
+      throw new LocalizedError('ungueltigeBackupReferenz');
     const stored = new File(file.uri);
     if (stored.exists) stored.delete();
   }
@@ -223,10 +237,10 @@ export class ExpoMedia implements MediaPort {
     if (result.canceled) return null;
     const asset = result.assets[0];
     if (!asset?.name.toLowerCase().endsWith('.mlbackup'))
-      throw new Error('Bitte eine .mlbackup-Datei auswählen.');
+      throw new LocalizedError('bitteEineMlbackupDateiAuswaehlen');
     const file = new File(asset.uri);
     if (file.size > MAX_BACKUP_BYTES)
-      throw new Error('Das Backup ist größer als 128 MB.');
+      throw new LocalizedError('dasBackupIstGroesserAls128Mb');
     return file.bytes();
   }
 }

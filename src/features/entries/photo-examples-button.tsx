@@ -1,3 +1,5 @@
+import { t } from '../../core/localization/runtime';
+import { useLocalization } from '../../core/localization/react';
 // Adapted from ZählerstandLog's read-only example gallery (MPL-2.0).
 import { useCallback, useRef, useState } from 'react';
 import {
@@ -18,18 +20,18 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Body, Button, IconButton, useTheme } from '../../core/ui/components';
 import { useSheetDrag } from '../../core/ui/use-sheet-drag';
 import { photoExamples, type PhotoExample } from './photo-examples';
-
 export function PhotoExamplesButton({
   disabled = false,
 }: {
   disabled?: boolean;
 }) {
+  useLocalization();
   const [visible, setVisible] = useState(false);
   const close = useCallback(() => setVisible(false), []);
   return (
     <View style={{ alignItems: 'center', paddingVertical: 8 }}>
       <Button
-        title="Beispiele ansehen"
+        title={t('viewExamples')}
         icon="photo_library_outlined"
         textOnly
         disabled={disabled}
@@ -42,7 +44,6 @@ export function PhotoExamplesButton({
     </View>
   );
 }
-
 function ExampleImage({
   example,
   width,
@@ -52,6 +53,7 @@ function ExampleImage({
   width: number;
   height: number;
 }) {
+  useLocalization();
   const c = useTheme();
   const [failed, setFailed] = useState(false);
   return (
@@ -67,13 +69,13 @@ function ExampleImage({
       >
         {failed ? (
           <Body style={{ padding: 16, textAlign: 'center' }}>
-            Beispiel konnte nicht geladen werden.
+            {t('exampleCouldNotBeLoaded')}
           </Body>
         ) : (
           <Image
             source={example.source()}
             resizeMode="contain"
-            accessibilityLabel={`Beispielfoto: ${example.label}`}
+            accessibilityLabel={t('examplePhotoValue', { p0: example.label })}
             onError={() => setFailed(true)}
             style={{ width: '100%', height: '100%' }}
           />
@@ -82,8 +84,8 @@ function ExampleImage({
     </View>
   );
 }
-
 function PhotoExamplesGallery({ close }: { close(): void }) {
+  useLocalization();
   const c = useTheme(),
     safe = useSafeAreaInsets(),
     window = useWindowDimensions();
@@ -116,7 +118,7 @@ function PhotoExamplesGallery({ close }: { close(): void }) {
           }}
         >
           <Pressable
-            accessibilityLabel="Beispiele schließen"
+            accessibilityLabel={t('beispieleSchliessen')}
             onPress={close}
             style={{
               position: 'absolute',
@@ -167,9 +169,9 @@ function PhotoExamplesGallery({ close }: { close(): void }) {
                 style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}
               >
                 <Body strong style={{ fontSize: 22, lineHeight: 28, flex: 1 }}>
-                  Beispielfotos
+                  {t('examplePhotos')}
                 </Body>
-                <IconButton icon="close" label="Schließen" onPress={close} />
+                <IconButton icon="close" label={t('close')} onPress={close} />
               </View>
               <GestureDetector gesture={sheet.nativeScroll}>
                 <Animated.ScrollView
@@ -179,8 +181,9 @@ function PhotoExamplesGallery({ close }: { close(): void }) {
                   contentContainerStyle={{ gap: 12, paddingBottom: 4 }}
                 >
                   <Body>
-                    Produktionsstand und Einheit gut lesbar fotografieren.
-                    Spiegelungen vermeiden.
+                    {t(
+                      'produktionsstandUndEinheitGutLesbarFotografierenSpiegelungenVermeiden',
+                    )}
                   </Body>
                   <View
                     onLayout={(event) =>
@@ -242,7 +245,7 @@ function PhotoExamplesGallery({ close }: { close(): void }) {
                   >
                     <IconButton
                       icon="chevron_left"
-                      label="Vorheriges Beispiel"
+                      label={t('previousExample')}
                       disabled={index === 0}
                       onPress={() => goTo(index - 1)}
                     />
@@ -253,13 +256,13 @@ function PhotoExamplesGallery({ close }: { close(): void }) {
                     </View>
                     <IconButton
                       icon="chevron_right"
-                      label="Nächstes Beispiel"
+                      label={t('nextExample')}
                       disabled={index === photoExamples.length - 1}
                       onPress={() => goTo(index + 1)}
                     />
                   </View>
                   <Body muted style={{ textAlign: 'center', fontSize: 12 }}>
-                    KI-generierte Beispiele · nur zur Ansicht
+                    {t('aiGeneratedExamplesForViewingOnly')}
                   </Body>
                 </Animated.ScrollView>
               </GestureDetector>

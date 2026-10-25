@@ -9,6 +9,7 @@ const {
 const fs = require('node:fs/promises');
 const path = require('node:path');
 const os = require('node:os');
+const { execFileSync } = require('node:child_process');
 
 module.exports = function withMachineAndroid(config) {
   config = withAndroidStyles(config, (mod) => {
@@ -146,6 +147,14 @@ ${startup}`,
       } catch (error) {
         if (error.code !== 'ENOENT') throw error;
       }
+      execFileSync('python3', [
+        path.join(
+          mod.modRequest.projectRoot,
+          'scripts/generate_localizations.py',
+        ),
+        '--android-dir',
+        mod.modRequest.platformProjectRoot,
+      ]);
       const res = path.join(
         mod.modRequest.platformProjectRoot,
         'app/src/main/res',
@@ -188,6 +197,7 @@ ${startup}`,
   });
   config = withAppBuildGradle(config, (mod) => {
     let source = mod.modResults.contents;
+    source = source.replace(/^.*resValue "string", "app_name".*\n/gm, '');
     source = source.replace(
       "storeFile file('debug.keystore')",
       "storeFile file('../../.local/maschinenlog-dev.keystore')",
@@ -202,11 +212,9 @@ android {
         dev {
             dimension "distribution"
             applicationIdSuffix ".dev"
-            resValue "string", "app_name", "MaschinenLog Dev"
         }
         store {
             dimension "distribution"
-            resValue "string", "app_name", "MaschinenLog"
         }
     }
 `,
@@ -272,6 +280,20 @@ apply from: file('store-signing.gradle')
     const app = manifest.application[0];
     app.$['android:allowBackup'] = 'false';
     app.$['android:fullBackupContent'] = 'false';
+    app.$['android:localeConfig'] = '@xml/locale_config';
+    for (const activity of app.activity ?? []) {
+      if (activity.$['android:name'] === '.MainActivity') {
+        activity.$['android:configChanges'] = [
+          ...new Set([
+            ...(activity.$['android:configChanges'] ?? '').split('|'),
+            'locale',
+            'layoutDirection',
+          ]),
+        ]
+          .filter(Boolean)
+          .join('|');
+      }
+    }
     const menuDefaults = {
       EXDevMenuShowFloatingActionButton: false,
       EXDevMenuShowsAtLaunch: false,

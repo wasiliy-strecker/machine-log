@@ -1,16 +1,17 @@
 #!/usr/bin/env bash
 # Run an existing Store release only in a new disposable screenshot emulator.
 set -euo pipefail
-profile=${1:?Usage: prepare_emulator.sh phone|tablet7|tablet10 OUTPUT}
+profile=${1:?Usage: prepare_emulator.sh phone|tablet7|tablet10 OUTPUT AAB LOCALE}
 out=$(realpath -m "${2:?Output directory required}")
 case "$profile" in
-  phone) width=1080; height=1920; density=360; device=pixel_6 ;;
+  phone) width=1080; height=1920; density=300; device=pixel_6 ;;
   tablet7) width=1080; height=1920; density=240; device=Nexus\ 7\ 2013 ;;
   tablet10) width=1440; height=2560; density=240; device=Nexus\ 10 ;;
   *) echo 'Unknown capture profile' >&2; exit 2 ;;
 esac
 sdk=${ML_ANDROID_SDK:-/home/unknown/.local/android-sdk}
 adb="$sdk/platform-tools/adb"
+locale=${4:?Locale required}
 bundletool=${BUNDLETOOL_JAR:-$HOME/.local/share/app-factory/tools/bundletool-all-1.18.3.jar}
 port=${ML_EMULATOR_PORT:-5586}
 [[ "$port" =~ ^[0-9]+$ ]] && (( port >= 5554 && port <= 5682 && port % 2 == 0 ))
@@ -20,9 +21,7 @@ if "$adb" devices | awk '{print $1}' | rg -qx "$serial"; then
   exit 1
 fi
 mkdir -p "$out/raw"
-aab=$(realpath build/releases/production/maschinenlog-1.0.0-build-3-production.aab)
-expected=18551c110e7fcf8b074e3fa8fc3c70f8d285049da7704721151beae797092397
-[[ $(sha256sum "$aab" | awk '{print $1}') == "$expected" ]]
+aab=$(realpath "${3:?Explicit AAB required}")
 if [[ ! -f "$out/raw/store.apk" ]]; then
   java -jar "$bundletool" build-apks --bundle="$aab" --output="$out/raw/store.apks" --mode=universal
   unzip -p "$out/raw/store.apks" universal.apk > "$out/raw/store.apk"
@@ -42,15 +41,15 @@ path = Path(sys.argv[1])
 config = dict(line.split('=', 1) for line in path.read_text().splitlines() if '=' in line)
 config.update({'hw.lcd.width': sys.argv[2], 'hw.lcd.height': sys.argv[3],
                'hw.lcd.density': sys.argv[4], 'hw.initialOrientation': 'Portrait',
-               'hw.keyboard': 'yes', 'hw.mainKeys': 'no', 'hw.ramSize': '2048', 'vm.heapSize': '512',
+               'hw.keyboard': 'yes', 'hw.mainKeys': 'no', 'hw.ramSize': '3072', 'vm.heapSize': '512',
                'showDeviceFrame': 'no', 'disk.dataPartition.size': '2G'})
 path.write_text(''.join(f'{k}={v}\n' for k, v in config.items()))
 PY
 cp "$ANDROID_AVD_HOME/$name.avd/config.ini" "$out/raw/$profile-avd.ini"
 printf '%s\n' "$work" > "$out/raw/$profile-workspace.txt"
 "$sdk/emulator/emulator" -avd "$name" -port "$port" -no-window -no-audio \
-  -no-snapshot -no-boot-anim -gpu swiftshader -memory 2048 -cores 4 \
-  -camera-back none -camera-front none -prop persist.sys.locale=de-DE \
+  -no-snapshot -no-boot-anim -gpu swiftshader -memory 3072 -cores 4 \
+  -camera-back none -camera-front none -prop "persist.sys.locale=$locale" \
   > "$work/emulator.log" 2>&1 &
 emulator_pid=$!
 for attempt in $(seq 1 120); do
@@ -59,6 +58,25 @@ for attempt in $(seq 1 120); do
 done
 [[ $("$adb" -s "$serial" shell getprop ro.kernel.qemu | tr -d '\r') == 1 ]]
 [[ $("$adb" -s "$serial" emu avd name | head -n1 | tr -d '\r') == "$name" ]]
+# AVD first boot ignores persist.sys.locale passed as an emulator property.
+# Configure the dedicated AVD's real system region before installing the app.
+for attempt in $(seq 1 5); do
+  if "$adb" -s "$serial" root; then break; fi
+  sleep 2
+done
+"$adb" -s "$serial" wait-for-device
+[[ $("$adb" -s "$serial" shell id -u | tr -d '\r') == 0 ]]
+"$adb" -s "$serial" shell setprop persist.sys.locale "$locale"
+"$adb" -s "$serial" shell stop
+"$adb" -s "$serial" shell setprop sys.boot_completed 0
+"$adb" -s "$serial" shell start
+for attempt in $(seq 1 90); do
+  if [[ $("$adb" -s "$serial" shell getprop sys.boot_completed 2>/dev/null | tr -d '\r') == 1 ]]; then break; fi
+  sleep 1
+done
+"$adb" -s "$serial" shell cmd connectivity airplane-mode enable
+"$adb" -s "$serial" shell am get-config > "$out/raw/$profile-system-config.txt"
+[[ $("$adb" -s "$serial" shell getprop persist.sys.locale | tr -d '\r') == "$locale" ]]
 [[ -z $("$adb" -s "$serial" shell pm list packages com.appfactory.maschinenlog) ]]
 "$sdk/build-tools/35.0.0/aapt" dump badging "$out/raw/store.apk" | sed -n '1,3p'
 "$adb" -s "$serial" install -r -t --no-streaming "$out/raw/store.apk"
@@ -73,5 +91,6 @@ for setting in window_animation_scale transition_animation_scale animator_durati
 done
 "$adb" -s "$serial" shell pm grant com.appfactory.maschinenlog android.permission.POST_NOTIFICATIONS
 "$adb" -s "$serial" shell am start -n com.appfactory.maschinenlog/.MainActivity
+sleep 4
 printf 'Ready: %s, %s, workspace %s\n' "$profile" "$serial" "$work"
 wait "$emulator_pid"

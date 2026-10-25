@@ -1,3 +1,4 @@
+import { t } from '../../core/localization/runtime';
 import { useEffect, useRef, useState } from 'react';
 import type { Reminder } from '../../core/domain/models';
 import {
@@ -11,14 +12,13 @@ import type {
 } from '../../core/native/machine-native';
 import { useServices } from '../../core/composition';
 import { useFeedback } from '../../core/ui/feedback';
-import { formatValue } from '../../core/domain/reading-value';
+import { displayValue as formatValue } from '../../core/localization/numbers';
 import {
   defaultReminder,
   reminderSettingsFailure,
   reminderTestMessage,
   hourlyStart,
 } from './reminder-model';
-
 export function useReminderEditor({
   reminder,
   busy,
@@ -113,7 +113,7 @@ export function useReminderEditor({
       feedback.notify(
         error instanceof Error
           ? error.message
-          : 'Bitte eine andere Uhrzeit wählen.',
+          : t('bitteEineAndereUhrzeitWaehlen'),
       );
     }
   }
@@ -142,8 +142,7 @@ export function useReminderEditor({
     operation.current = true;
     setAction('settings');
     const settingsFailure =
-      reminderSettingsFailure('exact') +
-      ' „Pünktlich mit Ton“ bleibt ausgewählt.';
+      reminderSettingsFailure('exact') + t('puenktlichMitTonBleibtAusgewaehlt');
     try {
       const current = await refreshStatus();
       if (mode === 'punctualWithSound' && current?.exact !== true) {
@@ -158,7 +157,7 @@ export function useReminderEditor({
         feedback.notify(
           mode === 'punctualWithSound'
             ? settingsFailure
-            : 'Der Erinnerungsstatus konnte nicht bestätigt werden.',
+            : t('derErinnerungsstatusKonnteNichtBestaetigtWerden'),
         );
     } finally {
       operation.current = false;
@@ -180,7 +179,7 @@ export function useReminderEditor({
       result = await native.testReminder({
         counterId,
         icon: machineIconId(icon),
-        label: label.trim().slice(0, 500) || 'Produktionszähler',
+        label: label.trim().slice(0, 500) || t('produktionszaehler'),
         latestValue: latest ? formatValue(latest.measurement.value) : null,
         latestUnit: latest?.measurement.unit ?? null,
         deliveryMode: reminder.deliveryMode,

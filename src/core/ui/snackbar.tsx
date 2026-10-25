@@ -1,3 +1,4 @@
+import { useLocalization } from '../localization/react';
 import { useEffect } from 'react';
 import { Text } from 'react-native';
 import Animated, {
@@ -8,7 +9,6 @@ import Animated, {
 } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from './theme';
-
 // Match Fahrzeugakte's fixed Material snackbar and Flutter's default timing.
 const transitionMs = 250;
 const timing = {
@@ -31,7 +31,6 @@ function exit(values: ExitAnimationsValues) {
     },
   };
 }
-
 export function Snackbar({
   id,
   message,
@@ -43,6 +42,7 @@ export function Snackbar({
   onDismiss(id: number): void;
   durationMs?: number;
 }) {
+  useLocalization();
   const c = useTheme();
   const safe = useSafeAreaInsets();
   useEffect(() => {

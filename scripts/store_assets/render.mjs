@@ -13,10 +13,10 @@ import { resolve, join } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { setTimeout as delay } from 'node:timers/promises';
 
-const [mode, destination] = process.argv.slice(2);
-if (!['assets', 'contact'].includes(mode) || !destination) {
+const [mode, destination, locale] = process.argv.slice(2);
+if (!['assets', 'contact'].includes(mode) || !destination || !locale) {
   throw Error(
-    'Usage: node scripts/store_assets/render.mjs assets|contact OUTPUT',
+    'Usage: node scripts/store_assets/render.mjs assets|contact OUTPUT LOCALE',
   );
 }
 const out = resolve(destination);
@@ -111,12 +111,23 @@ try {
     console.log(path);
   }
 
-  const frames = [
-    ['01-uebersicht', 'Maschinenzähler\\nim Blick'],
-    ['02-foto-ocr', 'Zählerstände aus Fotos\\nübernehmen'],
-    ['03-verlauf', 'Ablesungen\\nnachvollziehen'],
-    ['04-pdf', 'Produktionsprotokolle\\nals PDF'],
+  const copy = JSON.parse(
+    readFileSync(join('store', locale, 'copy.json'), 'utf8'),
+  );
+  const escape = (text) =>
+    text
+      .replaceAll('&', '&amp;')
+      .replaceAll('<', '&lt;')
+      .replaceAll('>', '&gt;');
+  const names = [
+    '01-overview',
+    '02-ocr',
+    '03-history',
+    '04-details',
+    '05-pdf',
+    '06-settings',
   ];
+  const tabletNames = [names[0], names[2], names[4], names[5]];
   if (mode === 'assets') {
     const logo = uri('assets/icon.png');
     await render(
@@ -126,43 +137,47 @@ try {
       `<img src="${logo}" width="512" height="512">`,
       'body{background:#006B63}',
     );
-    const overview = uri(join(out, 'raw/phone/01-uebersicht.png'));
+    const overview = uri(join(out, 'raw/phone/01-overview.png'));
     await render(
       'feature/feature-graphic.png',
       1024,
       500,
-      `<main><div class="brand"><img src="${logo}">MaschinenLog</div><h1>Zähler erfassen.<br>Produktion<br>dokumentieren.</h1><p>Foto-OCR · Verlauf · PDF</p></main><img class="screen" src="${overview}"><div class="circle"></div>`,
-      'body{background:#006B63;color:#FAFDFB}main{position:absolute;left:64px;top:62px;z-index:2}.brand{display:flex;align-items:center;gap:12px;font-size:32px;font-weight:700}.brand img{width:52px;height:52px}h1{font-size:49px;line-height:1.12;letter-spacing:-1.4px;margin:30px 0 25px}p{font-size:20px;color:#BCECE2;margin:0}.screen{position:absolute;right:112px;top:36px;height:428px;width:auto;box-shadow:0 10px 35px #00373155;z-index:2}.circle{position:absolute;right:-130px;top:-80px;width:650px;height:650px;border:1px solid #87D5C655;border-radius:50%}',
+      `<main><div class="brand"><img src="${logo}">${escape(copy.name)}</div><h1>${escape(copy.feature).replaceAll('\n', '<br>')}</h1><p>${escape(copy.strap)}</p></main><img class="screen" src="${overview}"><div class="circle"></div>`,
+      'body{background:#006B63;color:#FAFDFB}main{position:absolute;left:50px;top:64px;z-index:2;width:630px}.brand{display:flex;align-items:center;gap:12px;font-size:30px;font-weight:700}.brand img{width:52px;height:52px}h1{font-size:44px;line-height:1.15;letter-spacing:-1px;margin:42px 0 32px}p{font-size:22px;color:#BCECE2;margin:0}.screen{position:absolute;right:48px;top:36px;height:428px;width:auto;box-shadow:0 10px 35px #00373155;z-index:2}.circle{position:absolute;right:-130px;top:-80px;width:650px;height:650px;border:1px solid #87D5C655;border-radius:50%}',
     );
-    for (let i = 0; i < frames.length; i++) {
-      const [name, headline] = frames[i];
-      const raw = join(out, `raw/phone/${name}.png`);
-      if (!existsSync(raw)) throw Error(`Missing real capture: ${raw}`);
-      await render(
-        `phone/${name}.png`,
-        1080,
-        1920,
-        `<header><div class="brand">MASCHINENLOG <span>· 0${i + 1}</span></div><h1>${headline.replace('\\n', '<br>')}</h1></header><img class="screen" src="${uri(raw)}">`,
-        'body{background:#F0F5F3;color:#004E46}header{height:330px;padding:45px 70px 0}.brand{font-size:22px;font-weight:700;letter-spacing:2.8px}.brand span{color:#414A46}h1{font-size:62px;line-height:1.12;letter-spacing:-1.5px;margin:25px 0 0}.screen{display:block;height:1550px;width:auto;margin:0 auto;box-shadow:0 8px 26px #004E4620}',
-      );
+    for (const [folder, width, height] of [
+      ['phone', 1080, 1920],
+      ['tablet7', 1080, 1920],
+      ['tablet10', 1440, 2560],
+    ]) {
+      for (const name of folder === 'phone' ? names : tabletNames) {
+        const index = names.indexOf(name);
+        const raw = join(out, `raw/${folder}/${name}.png`);
+        if (!existsSync(raw)) throw Error(`Missing real capture: ${raw}`);
+        const scale = width / 1080;
+        await render(
+          `${folder}/${name}.png`,
+          width,
+          height,
+          `<header><div class="brand">${escape(copy.name).toLocaleUpperCase(copy.locale)} <span>· ${String(index + 1).padStart(2, '0')}</span></div><h1>${escape(copy.frames[index]).replaceAll('\n', '<br>')}</h1></header><img class="screen" src="${uri(raw)}">`,
+          `body{background:#F0F5F3;color:#004E46}header{height:${330 * scale}px;padding:${45 * scale}px ${60 * scale}px 0}.brand{font-size:${22 * scale}px;font-weight:700;letter-spacing:${2 * scale}px}.brand span{color:#414A46}h1{font-size:${56 * scale}px;line-height:1.12;letter-spacing:${-scale}px;margin:${25 * scale}px 0 0}.screen{display:block;height:${1550 * scale}px;width:auto;margin:0 auto;box-shadow:0 8px 26px #004E4620}`,
+        );
+      }
     }
   } else {
-    let body = `<h1>MaschinenLog <span>Store-Bilder · Deutsch · 1.0.0 (3)</span></h1><section class="branding"><img src="${uri(join(out, 'icon/app-icon.png'))}"><img src="${uri(join(out, 'feature/feature-graphic.png'))}"></section>`;
-    body += '<h2>Smartphone</h2><section class="grid phones">';
-    for (const [name] of frames)
-      body += `<figure><img src="${uri(join(out, `phone/${name}.png`))}"><figcaption>phone/${name}.png</figcaption></figure>`;
-    body +=
-      '</section><h2>7-Zoll-Tablet <span>10-Zoll-Tablet</span></h2><section class="grid tablets">';
-    for (const folder of ['tablet7', 'tablet10'])
-      for (const name of ['01-uebersicht', '02-pdf'])
-        body += `<figure><img src="${uri(join(out, `${folder}/${name}.png`))}"><figcaption>${folder}/${name}.png</figcaption></figure>`;
-    body += '</section>';
+    let body = `<h1>${escape(copy.name)} <span>${locale} · 1.0.0 (6)</span></h1><section class="branding"><img src="${uri(join(out, 'icon/app-icon.png'))}"><img src="${uri(join(out, 'feature/feature-graphic.png'))}"></section>`;
+    for (const folder of ['phone', 'tablet7', 'tablet10']) {
+      body += `<h2>${folder}</h2><section class="grid">`;
+      for (const name of folder === 'phone' ? names : tabletNames)
+        body += `<figure><img src="${uri(join(out, folder, name + '.png'))}"><figcaption>${folder}/${name}.png</figcaption></figure>`;
+      body += '</section>';
+    }
     await render(
       'VORSCHAU.png',
-      1680,
-      2040,
+      1920,
+      2400,
       body,
-      'body{background:#F0F5F3;padding:40px;color:#004E46}h1{font-size:34px;margin:0 0 28px}h1 span{font-size:21px;font-weight:400;margin-left:20px}.branding{display:flex;gap:32px;height:240px}.branding img{height:100%;width:auto}h2{font-size:26px;margin:32px 0 20px}h2 span{position:absolute;left:850px}.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:24px}figure{margin:0}figure img{width:100%;display:block}.tablets img{height:690px;object-fit:contain}figcaption{font-size:15px;margin-top:12px}',
+      'body{background:#F0F5F3;padding:36px;color:#004E46}h1{font-size:32px;margin:0 0 22px}h1 span{font-size:22px;font-weight:400;margin-left:20px}.branding{display:flex;gap:28px;height:200px}.branding img{height:100%;width:auto}h2{font-size:26px;margin:26px 0 18px}.grid{display:grid;grid-template-columns:repeat(6,1fr);gap:20px}figure{margin:0}figure img{width:100%;display:block}figcaption{font-size:13px;margin-top:10px}',
     );
   }
 } finally {

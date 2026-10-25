@@ -1,3 +1,5 @@
+import { localization } from '../localization/runtime';
+import { useLocalization } from '../localization/react';
 import { useCallback, useLayoutEffect, useRef, useState } from 'react';
 import {
   Keyboard,
@@ -15,7 +17,6 @@ import { Body, Field, useTheme } from './components';
 import { useScrollHost } from './scroll-host';
 import { usePageOverlay } from './page-overlay';
 import { suggestionGap, suggestionLayout } from './suggestion-layout';
-
 export function SuggestionField({
   label,
   placeholder,
@@ -41,6 +42,7 @@ export function SuggestionField({
   showAllOnFocus?: boolean;
   error?: string;
 }) {
+  useLocalization();
   const c = useTheme();
   const host = useScrollHost();
   const overlay = usePageOverlay();
@@ -55,9 +57,9 @@ export function SuggestionField({
   const query =
     showAllOnFocus && !editedSinceFocus
       ? ''
-      : value.trim().toLocaleLowerCase('de-DE');
+      : value.trim().toLocaleLowerCase(localization().formatLocale);
   const options = suggestions.filter((s) =>
-    s.toLocaleLowerCase('de-DE').includes(query),
+    s.toLocaleLowerCase(localization().formatLocale).includes(query),
   );
   const desiredHeight = Math.min(
     220,

@@ -1,3 +1,5 @@
+import { t } from '../localization/runtime';
+import { useLocalization } from '../localization/react';
 import {
   createContext,
   useCallback,
@@ -64,6 +66,7 @@ type Feedback = {
 };
 const Context = createContext<Feedback | null>(null);
 export function FeedbackProvider({ children }: { children: ReactNode }) {
+  useLocalization();
   const c = useTheme();
   const safe = useSafeAreaInsets();
   const window = useWindowDimensions();
@@ -114,9 +117,9 @@ export function FeedbackProvider({ children }: { children: ReactNode }) {
     async (
       title: string,
       message: string,
-      accept = 'Löschen',
+      accept = t('delete'),
       danger = true,
-      cancelLabel = 'Abbrechen',
+      cancelLabel = t('cancel'),
     ) =>
       (await choose({
         title,
@@ -130,7 +133,7 @@ export function FeedbackProvider({ children }: { children: ReactNode }) {
                 label: accept,
                 danger: true,
                 filled: true,
-                icon: accept === 'Löschen' ? 'delete_outline' : undefined,
+                icon: accept === t('delete') ? 'delete_outline' : undefined,
               },
               { value: 'cancel', label: cancelLabel, outlined: true },
             ]
@@ -180,7 +183,7 @@ export function FeedbackProvider({ children }: { children: ReactNode }) {
             }}
           >
             <Pressable
-              accessibilityLabel="Abbrechen"
+              accessibilityLabel={t('cancel')}
               onPress={() => finish(null)}
               style={{
                 position: 'absolute',

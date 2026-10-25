@@ -29,6 +29,8 @@ internal data class StoredReminder(
     val deliveryMode: String,
     val startsAtMillis: Long? = null,
     val icon: String = "machine",
+    val latestDigits: String? = null,
+    val latestScale: Int? = null,
 ) {
     val isPunctual: Boolean
         get() = deliveryMode == "punctualWithSound"
@@ -48,6 +50,8 @@ internal data class StoredReminder(
         .put("deliveryMode", deliveryMode)
         .put("startsAtMillis", startsAtMillis)
         .put("icon", icon)
+        .put("latestDigits", latestDigits)
+        .put("latestScale", latestScale)
         .toString()
 
     // Content and delivery-mode changes must not skip an outstanding occurrence.
@@ -196,6 +200,8 @@ internal data class StoredReminder(
                 minute = json.getInt("minute"),
                 deliveryMode = json.optString("deliveryMode", "normal"),
                 icon = json.optString("icon", "machine"),
+                latestDigits = if (json.isNull("latestDigits")) null else json.getString("latestDigits"),
+                latestScale = if (json.isNull("latestScale")) null else json.getInt("latestScale"),
                 startsAtMillis = if (json.isNull("startsAtMillis")) null
                     else json.getLong("startsAtMillis"),
             ).takeIf { it.interval != "hourly" || it.startsAtMillis != null }

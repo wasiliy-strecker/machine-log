@@ -1,120 +1,111 @@
 # MaschinenLog Store-Bilder
 
-App-lokale Werkzeuge für zehn deutsche Play-Console-Bilder aus der vorhandenen
-Store-AAB 1.0.0 (3). Gestaltung nach den vorhandenen Log-Apps, mit MaschinenLogs
-Icon, Roboto und türkiser Farbwelt. Keine Änderungen an App-Code oder Release.
+App-lokale Werkzeuge für sechs Sprachpakete der Store-Version 1.0.0 (6).
+Jedes Paket enthält 16 Upload-Bilder. Gestaltung, Icon und Roboto bleiben an
+der bestehenden MaschinenLog-App orientiert. Die Aufnahme erfolgt aus einer
+explizit angegebenen AAB mit echtem JavaScript und nativen Funktionen.
 
-## Voraussetzungen und Quelle
+## Voraussetzungen
 
 Android SDK mit API-35-Google-APIs-x86_64, KVM, Java, Bundletool 1.18.3,
 Python mit Pillow, Node 22 oder neuer, Chrome und ImageMagick.
-Die Standardpfade stehen im Emulator-Helfer. `ML_ANDROID_SDK`, `ML_ADB`,
-`ML_EMULATOR_PORT` und `BUNDLETOOL_JAR` erlauben abweichende lokale Pfade.
+`ML_ANDROID_SDK`, `ML_ADB`, `ML_EMULATOR_PORT` und `BUNDLETOOL_JAR` können die
+lokalen Standardpfade überschreiben.
 
-Alle Befehle aus dem Projektverzeichnis ausführen. Ausgabe ist
-`build/store-assets/de-DE/build-3/`. Der gesamte Ausgabeordner ist ignoriert.
-Die vorhandene AAB unter `build/releases/production/` bleibt unverändert.
-Der Helfer prüft ihren SHA-256 und extrahiert eine universelle APK. Bundletool
-signiert diese lokale Emulator-APK mit dem lokalen Debug-Schlüssel. Die App
-bleibt ein nicht debuggbarer Store-Release mit eingebettetem JavaScript.
-
-## Isolierte Emulatoren
-
-Jeder Aufruf erzeugt ein eigenes leeres AVD unter `/dev/shm`. Bereits belegte
-Seriennummern werden abgelehnt. Das Terminal bleibt bis zum Beenden des
-jeweiligen Emulators offen. Die Helfer akzeptieren nur Emulator-Seriennummern
-und prüfen zusätzlich den Namenspräfix `ml_store_assets_`.
+Alle Befehle werden aus dem Projektverzeichnis ausgeführt.
+Ausgabe ist `releases/international/build-6/`. Dieser Ordner ist ignoriert.
+Die signierte Upload-AAB bleibt unverändert. Bundletool erzeugt ausschließlich
+für eigene Emulatoren eine lokal signierte APK. Diese bleibt eine nicht
+debuggbare Store-App mit derselben Paketkennung und denselben Inhalten.
 
 ```bash
-bash scripts/store_assets/prepare_emulator.sh phone build/store-assets/de-DE/build-3
-ML_EMULATOR_PORT=5582 bash scripts/store_assets/prepare_emulator.sh tablet7 build/store-assets/de-DE/build-3
-ML_EMULATOR_PORT=5584 bash scripts/store_assets/prepare_emulator.sh tablet10 build/store-assets/de-DE/build-3
+ML_FIXTURE_OUTPUT=releases/international/build-6/fixtures \
+  npx vitest run --config scripts/store_assets/vitest.config.ts
+
+bash scripts/store_assets/extract_apk.sh \
+  build/releases/production/maschinenlog-1.0.0-build-6-production.aab \
+  releases/international/build-6
+
+python3 scripts/store_assets/run_capture.py de-DE phone \
+  releases/international/build-6 \
+  build/releases/production/maschinenlog-1.0.0-build-6-production.aab --port 5586
 ```
+
+Den Capture-Aufruf für `de-DE`, `en-US`, `es-ES`, `fr-FR`, `it-IT`, `pt-BR`
+und jeweils `phone`, `tablet7`, `tablet10` ausführen. Parallele Sitzungen brauchen
+unterschiedliche gerade Emulator-Ports. Ein belegter Port wird abgelehnt.
+
+## Isolierte Emulatoren und Daten
+
+Jeder Aufruf erzeugt ein leeres `ml_store_assets`-AVD unter `/dev/shm`.
+`Device` lehnt physische Geräte und fremde AVDs ab. Die tatsächliche Systemregion
+wird vor der Installation gesetzt. Die App folgt ihrer Systemsprache.
+Die eigene App erhält keine Netzwerkberechtigung. Neue Capture-AVDs laufen
+zusätzlich im Flugmodus. Die synthetische Android-Statusleiste zeigt 09:41 Uhr.
 
 | Profil         | Pixel       | Dichte  | Logische Breite |
 | -------------- | ----------- | ------- | --------------- |
-| Smartphone     | 1080 × 1920 | 360 dpi | 480 dp          |
+| Smartphone     | 1080 × 1920 | 300 dpi | 576 dp          |
 | 7-Zoll-Tablet  | 1080 × 1920 | 240 dpi | 720 dp          |
 | 10-Zoll-Tablet | 1440 × 2560 | 240 dpi | 960 dp          |
 
 Tablet-Profile basieren auf Nexus 7 und Nexus 10 mit angepasstem 9:16-Display.
-Keine Tablet-Aufnahme wird aus einem Smartphone-Screenshot abgeleitet.
-Die App läuft im hellen Design mit normaler Schriftgröße.
-`device.py SERIAL status` stellt Androids Demostatusleiste auf 09:41 Uhr.
+Tablet-Aufnahmen werden separat erstellt. Sie sind keine vergrößerten
+Smartphone-Aufnahmen. Helles Design und normale Schriftgröße bleiben eingestellt.
 
-## Beispieldaten und Aufnahmeablauf
+`fixture.test.ts` erzeugt die Demo-Backups über die Produktionsservices.
+Die drei Beispielzähler haben zehn Ablesungen, ein Foto und eine nachvollziehbare
+Notizkorrektur. Namen und Notizen stammen aus `store/<Sprache>/copy.json`.
+Das öffentliche Demo-Passwort ist `Demo2026`. Es werden keine vertraulichen Daten
+verwendet. Der Import erfolgt durch die echte App und den Android-Dateidialog.
 
-Die Daten werden ausschließlich über die echte App eingegeben. `Capture` in
-`capture.py` bietet dafür kleine UI-Helfer, keinen App-Demomodus und keinen
-direkten Datenbankzugriff.
+`capture_localized.py` verwendet normale App-Routen und UI-Aktionen. Das
+vorhandene künstliche Foto wird über den Android-Fotodialog ausgewählt und von
+der tatsächlichen OCR erkannt. Der zusätzliche OCR-Entwurf wird danach verworfen.
+Jede PDF-Aufnahme folgt einer echten Protokollerstellung. Der deutsche
+Smartphone-Ablauf prüft zusätzlich die dauerhafte englische Sprachwahl, einen
+Kaltstart, weiterhin deutsche Zahlen und die Rückkehr zur Systemsprache.
 
-| Zähler       | Art und Symbol         | Nummer und Bereich | Ablesungen                          |
-| ------------ | ---------------------- | ------------------ | ----------------------------------- |
-| Fertigung 1  | Stückzahl, Fertigung   | F-001, Halle 1     | 11840, 12040, 12260 und 12480 Stück |
-| Verpackung 2 | Menge, Verpackung      | V-002, Halle 2     | 1248 Pakete                         |
-| Kompressor   | Betriebsstunden, Pumpe | K-003, Technikraum | 1856,5 h                            |
+Ein gelegentlicher System-UI-Startdialog eines neuen AVDs kann mit Warten
+fortgesetzt werden. Ein Fehlerdialog der getesteten App wird nicht unterdrückt.
+Bei fehlgeschlagenen Aufnahmen bleibt das eigene AVD zur Diagnose erhalten.
+Erfolgreiche Sitzungen beenden und entfernen ihr temporäres AVD selbst.
 
-Für Fertigung die vier Tage 13. bis 16. Oktober 2026, jeweils 08:00 Uhr,
-verwenden. Notiz ist „Schichtende“. Die ersten drei Stände manuell eingeben.
-Das bestehende künstliche Foto `assets/photo-examples/01_fertigung_012480_stueck.jpg`
-nach `/sdcard/Pictures/Fertigung.jpg` kopieren, den Android-Medienscanner anstoßen
-und über „Foto aus Galerie“ wählen. Die tatsächliche lokale OCR erkennt 12480.
-Den Vorschlag übernehmen und Datum sowie Notiz setzen. Vor dem Speichern
-die Ansicht auf die OCR-Karte und die Prüffelder scrollen und aufnehmen.
-Das Foto und die Vorschläge stehen in der unveränderten App untereinander.
-
-Nach dem Speichern den Verlauf zur Überschrift „Zählerverlauf“ scrollen.
-Ein kompaktes Zählerverlaufsprotokoll ohne Anhänge erstellen und die fertige
-native PDF-Vorschau aufnehmen. Die beiden weiteren Zähler mit je einer
-manuellen Ablesung anlegen. Für die Übersicht nach Namen sortieren.
-
-Die vier Smartphone-Rohbilder heißen unter `raw/phone/`:
-
-```text
-01-uebersicht.png
-02-foto-ocr.png
-03-verlauf.png
-04-pdf.png
-```
-
-In Einstellungen ein verschlüsseltes Backup über den normalen Android-Dialog
-speichern. Das Passwort für diese ausschließlich fiktiven Daten lautet
-`Demo2026`. Die Datei unter `raw/demo/Demo.mlbackup` sichern und in beiden
-Tablet-Emulatoren über „Backup wiederherstellen“ importieren. Übersicht sowie
-das gespeicherte PDF direkt auf jedem Tablet aufnehmen. Die Originale bleiben
-unter `raw/tablet7/` und `raw/tablet10/`, identische Upload-Kopien unter
-`tablet7/` und `tablet10/`. Namen sind jeweils `01-uebersicht.png` und `02-pdf.png`.
-`Capture.capture` speichert zusätzlich die tatsächliche AVD-Geometrie als JSON.
-
-## Gestaltung und Prüfung
+## Gestaltung und Paketprüfung
 
 ```bash
-node scripts/store_assets/render.mjs assets build/store-assets/de-DE/build-3
-node scripts/store_assets/render.mjs contact build/store-assets/de-DE/build-3
-python3 scripts/store_assets/package.py build/store-assets/de-DE/build-3
-python3 -m py_compile scripts/store_assets/device.py scripts/store_assets/capture.py scripts/store_assets/package.py
-bash -n scripts/store_assets/prepare_emulator.sh
+node scripts/store_assets/render.mjs assets releases/international/build-6/de-DE de-DE
+node scripts/store_assets/render.mjs contact releases/international/build-6/de-DE de-DE
+
+# Nach dem Rendern aller sechs Sprachen.
+python3 scripts/store_assets/package.py releases/international/build-6 \
+  --aab build/releases/production/maschinenlog-1.0.0-build-6-production.aab \
+  --apk releases/international/build-6/raw/store.apk
+
+python3 -m py_compile scripts/store_assets/*.py
+bash -n scripts/store_assets/prepare_emulator.sh scripts/store_assets/extract_apk.sh
 node --check scripts/store_assets/render.mjs
-npx prettier --check scripts/store_assets/render.mjs scripts/store_assets/README.md
 ```
 
-Smartphone-Bilder sind 1080 × 1920 mit 330 Pixeln Überschriftenbereich und
-1550 Pixeln für den proportional skalierten vollständigen Screenshot.
-Feature-Grafik und Icon verwenden vorhandene Markenressourcen. Die Oberfläche
-wird weder nachgebaut noch retuschiert. Tablet-Bilder erhalten keine Werbetexte.
+Die sechs Smartphone-Motive zeigen Übersicht, OCR, Verlauf, Details, PDF und
+Einstellungen. Die Tablets zeigen Übersicht, Verlauf, PDF und Einstellungen.
+Alle drei Gruppen erhalten lokalisierte Überschriften außerhalb des proportional
+skalierten, unveränderten App-Screenshots. Feature-Grafik und Icon verwenden
+vorhandene Markenressourcen. Die App-Oberfläche wird nicht nachgebaut oder retuschiert.
 
-Der Paketierer kontrolliert die zehn Dateinamen, vollständige PNG-Dekodierung,
-Maße, Farbmodus und Größenlimits. Er vergleicht App-Assets und native Bibliotheken
-der Emulator-APK byteweise mit der AAB und prüft Paket, Version und fehlendes
-Debug-Flag. Er erzeugt Upload-Zuordnung, deutsche Alt-Texte und Prüfsummen.
-Jede finale Datei muss zusätzlich visuell auf Lesbarkeit und unerwünschte
-Dialoge oder Hinweise geprüft werden. OCR, Verlauf, PDF und Backup-Import
-werden im Aufnahmeablauf manuell geprüft. Eine allgemeine Regressionstestreihe
-oder ein neuer App-Build ist für diese Werkzeug- und Bildänderung nicht erforderlich.
+Der Paketierer prüft 96 Upload-Dateien, PNG-Dekodierung, Pixelmaße, Farbmodus,
+Größenlimits, Textlängen und Alt-Texte. Android-DEX-Code, App-Assets und native Bibliotheken der
+Emulator-APK werden byteweise mit der AAB verglichen. Zu jeder Rohaufnahme wird
+die Prüfsumme der tatsächlich installierten APK, Sprache, AVD und Geometrie
+festgehalten. Die Paketierung weist Aufnahmen einer anderen APK zurück.
+Alle Bildübersichten werden außerdem auf Lesbarkeit und unerwünschte Dialoge geprüft.
 
-Anschließend ausschließlich die eigenen geprüften Emulatoren beenden und deren
-vom Helfer ausgegebene temporäre Arbeitsverzeichnisse entfernen. Den Ausgabeordner
-öffnen. `raw/`, `VORSCHAU.png`, `README.md` und `manifest.json` sind keine
-Play-Upload-Bilder. Das Video-Feld bleibt leer. Kein automatischer Upload.
+Sprach-ZIPs enthalten die 16 Bilder, Textfelder, Alt-Texte, Kontaktübersicht,
+Upload-Hinweise und Herkunftsmanifest. Das Gesamt-ZIP enthält zusätzlich AAB,
+Release-Titel, alle Play-Sprachtags und Prüfsummen. `raw/`, `fixtures/` und die
+Kontaktübersichten sind keine Play-Uploads. Das Video-Feld bleibt leer.
+Bereits vorhandene benannte ZIP-Lieferungen werden nicht überschrieben.
+Das Gesamt-ZIP erhält zusätzlich eine eigene SHA-256-Datei.
 
-[Offizielle Google-Play-Vorgaben](https://support.google.com/googleplay/android-developer/answer/9866151?hl=en)
+[Internationale Store-Version](../../docs/INTERNATIONAL_RELEASE.md) und
+[Google-Play-Grafikvorgaben](https://support.google.com/googleplay/android-developer/answer/9866151?hl=en).

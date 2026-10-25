@@ -1,3 +1,5 @@
+import { t } from '../../core/localization/runtime';
+import { useLocalization } from '../../core/localization/react';
 import { View, type ViewProps } from 'react-native';
 import { requireNativeView } from 'expo';
 import { Stack, useLocalSearchParams } from 'expo-router';
@@ -12,12 +14,16 @@ import {
   useTheme,
 } from '../../core/ui/components';
 import { usePdfPreview } from './use-pdf-preview';
-
-const DocumentView = requireNativeView<ViewProps & { session: string }>(
-  'MachineNative',
-);
+const DocumentView = requireNativeView<
+  ViewProps & {
+    session: string;
+  }
+>('MachineNative');
 export function PdfPreviewScreen() {
-  const { id } = useLocalSearchParams<{ id: string }>();
+  useLocalization();
+  const { id } = useLocalSearchParams<{
+    id: string;
+  }>();
   const vm = usePdfPreview(id),
     c = useTheme();
   const pdf = vm.pdf;
@@ -36,14 +42,14 @@ export function PdfPreviewScreen() {
                   key="print"
                   secondary
                   icon="print_outlined"
-                  title="Drucken"
+                  title={t('print')}
                   disabled={vm.busy}
                   onPress={() => void vm.print()}
                 />,
                 <Button
                   key="share"
                   icon="ios_share_outlined"
-                  title={multipart ? 'Diesen Teil teilen' : 'Teilen'}
+                  title={multipart ? t('shareThisPart') : t('share')}
                   disabled={vm.busy}
                   onPress={() => void vm.share()}
                 />,
@@ -51,7 +57,7 @@ export function PdfPreviewScreen() {
             </ActionRow>
             {multipart && (
               <Button
-                title="Alle teilen"
+                title={t('shareAll')}
                 icon="share_outlined"
                 disabled={vm.busy || pdf.parts.length !== partCount}
                 onPress={() => void vm.shareAll()}
@@ -67,14 +73,14 @@ export function PdfPreviewScreen() {
             pdf?.kind === 'attachment'
               ? pdf.name
               : multipart
-                ? `Produktionsprotokoll · ${partCount} Teile`
-                : 'Produktionsprotokoll',
+                ? t('produktionsprotokollValueTeile', { p0: partCount })
+                : t('produktionsprotokoll'),
           headerRight:
             pdf?.kind === 'attachment'
               ? () => (
                   <IconButton
                     icon="share_outlined"
-                    label="PDF teilen"
+                    label={t('sharePdf')}
                     onPress={() => void vm.share()}
                   />
                 )
@@ -84,17 +90,24 @@ export function PdfPreviewScreen() {
       {multipart && pdf && (
         <View style={{ padding: 12, gap: 8 }}>
           <SelectField
-            label="PDF-Teil auswählen"
+            label={t('selectPdfPart')}
             value={pdf.id}
             disabled={vm.busy || vm.loading}
             options={pdf.parts.map((part) => ({
               value: part.id,
-              label: `Teil ${part.partIndex} von ${part.partCount}`,
+              label: t('partValueOfValue', {
+                p0: part.partIndex ?? 1,
+                p1: part.partCount ?? 1,
+              }),
             }))}
             onChange={vm.selectPart}
           />
           {pdf.parts.length !== partCount && (
-            <Notice text="Ein Teil dieses Protokolls wurde gelöscht. Die vorhandenen Teile kannst du einzeln öffnen und teilen." />
+            <Notice
+              text={t(
+                'einTeilDiesesProtokollsWurdeGeloeschtDieVorhandenenTeileKannstDuEinzelnOeffnenUndTeilen',
+              )}
+            />
           )}
         </View>
       )}
@@ -102,12 +115,12 @@ export function PdfPreviewScreen() {
         <View style={{ padding: 12, gap: 8 }}>
           <Notice error text={vm.error} />
           {!pdf && (
-            <Button secondary title="Erneut versuchen" onPress={vm.retry} />
+            <Button secondary title={t('tryAgain')} onPress={vm.retry} />
           )}
         </View>
       )}
       {vm.loading ? (
-        <Busy label="PDF wird geöffnet …" />
+        <Busy label={t('pdfWirdGeoeffnet')} />
       ) : (
         pdf && (
           <DocumentView

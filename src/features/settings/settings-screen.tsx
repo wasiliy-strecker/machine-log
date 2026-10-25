@@ -1,3 +1,5 @@
+import { t, languages, languageNames } from '../../core/localization/runtime';
+import { useLocalization } from '../../core/localization/react';
 import { useEffect, useRef, useState } from 'react';
 import {
   Keyboard,
@@ -9,6 +11,7 @@ import {
   View,
 } from 'react-native';
 import {
+  SelectField,
   Body,
   Button,
   BusyOverlay,
@@ -29,6 +32,7 @@ function PasswordDialog({
   confirm: boolean;
   close: (value: string | null) => void;
 }) {
+  useLocalization();
   const c = useTheme();
   const [password, setPassword] = useState(''),
     [repeat, setRepeat] = useState(''),
@@ -43,13 +47,13 @@ function PasswordDialog({
     ) {
       setError(
         confirm
-          ? 'Bitte ein Passwort mit 6 bis 1024 Zeichen eingeben.'
-          : 'Bitte ein gültiges Passwort eingeben.',
+          ? t('bitteEinPasswortMit6Bis1024ZeichenEingeben')
+          : t('bitteEinGueltigesPasswortEingeben'),
       );
       return;
     }
     if (confirm && password !== repeat) {
-      setError('Die Passwörter stimmen nicht überein.');
+      setError(t('thePasswordsDoNotMatch'));
       return;
     }
     close(password);
@@ -95,7 +99,7 @@ function PasswordDialog({
               color: c.ink,
             }}
           >
-            {confirm ? 'Backup-Passwort festlegen' : 'Backup-Passwort eingeben'}
+            {confirm ? t('setBackupPassword') : t('backupPasswortEingeben')}
           </Text>
           <ScrollView
             style={{ flexGrow: 0, flexShrink: 1 }}
@@ -104,11 +108,13 @@ function PasswordDialog({
           >
             <Body>
               {confirm
-                ? 'Mindestens 6 Zeichen. Ohne dieses Passwort kann das Backup nicht wiederhergestellt werden.'
-                : 'Gib das Passwort dieser MaschinenLog-Sicherung ein.'}
+                ? t(
+                    'mindestens6ZeichenOhneDiesesPasswortKannDasBackupNichtWiederhergestelltWerden',
+                  )
+                : t('gibDasPasswortDieserMaschinenlogSicherungEin')}
             </Body>
             <Field
-              label="Passwort"
+              label={t('password')}
               secureTextEntry={!show}
               autoCapitalize="none"
               autoCorrect={false}
@@ -126,7 +132,7 @@ function PasswordDialog({
             />
             {confirm && (
               <Field
-                label="Passwort wiederholen"
+                label={t('repeatPassword')}
                 secureTextEntry={!show}
                 autoCapitalize="none"
                 autoCorrect={false}
@@ -143,9 +149,9 @@ function PasswordDialog({
           <Notice error text={error} />
           <DialogActions
             actions={[
-              { label: 'Abbrechen', onPress: () => close(null) },
+              { label: t('cancel'), onPress: () => close(null) },
               {
-                label: 'Weiter',
+                label: t('next'),
                 filled: true,
                 onPress: submit,
               },
@@ -157,8 +163,12 @@ function PasswordDialog({
   );
 }
 export function SettingsScreen() {
+  const locale = useLocalization();
   const c = useTheme();
-  const [prompt, setPrompt] = useState<{ confirm: boolean; id: number }>();
+  const [prompt, setPrompt] = useState<{
+    confirm: boolean;
+    id: number;
+  }>();
   const resolve = useRef<((value: string | null) => void) | null>(null);
   useEffect(() => () => resolve.current?.(null), []);
   const vm = useSettings(
@@ -177,7 +187,28 @@ export function SettingsScreen() {
     <>
       <Page>
         <Notice error text={vm.error} />
-        <Heading>Datensicherung</Heading>
+        <Heading>{t('language')}</Heading>
+        <Card>
+          <SelectField
+            label={t('language')}
+            value={locale.preference ?? 'system'}
+            disabled={vm.busy}
+            options={[
+              { value: 'system', label: t('systemLanguage') },
+              ...languages.map((language) => ({
+                value: language,
+                label: languageNames[language],
+              })),
+            ]}
+            onChange={(value) =>
+              void vm.changeLanguage(
+                value === 'system' ? null : (value as typeof locale.language),
+              )
+            }
+          />
+          <Body muted>{t('languageHelp')}</Body>
+        </Card>
+        <Heading>{t('backup')}</Heading>
         <Card style={{ padding: 0, gap: 0 }}>
           <Pressable
             accessibilityRole="button"
@@ -193,10 +224,8 @@ export function SettingsScreen() {
           >
             <Icon name="lock_outline" />
             <View style={{ flex: 1, gap: 4 }}>
-              <Body style={{ fontSize: 16 }}>
-                Verschlüsseltes Backup erstellen
-              </Body>
-              <Body muted>Maschinen, Zähler, Korrekturen, Fotos und PDFs</Body>
+              <Body style={{ fontSize: 16 }}>{t('createEncryptedBackup')}</Body>
+              <Body muted>{t('maschinenZaehlerKorrekturenFotosUndPdfs')}</Body>
             </View>
             <Icon name="chevron_right" />
           </Pressable>
@@ -215,49 +244,54 @@ export function SettingsScreen() {
           >
             <Icon name="settings_backup_restore_outlined" />
             <View style={{ flex: 1, gap: 4 }}>
-              <Body style={{ fontSize: 16 }}>Backup wiederherstellen</Body>
-              <Body muted>Korrekturhistorien werden vollständig geprüft</Body>
+              <Body style={{ fontSize: 16 }}>{t('restoreBackup')}</Body>
+              <Body muted>
+                {t('korrekturhistorienWerdenVollstaendigGeprueft')}
+              </Body>
             </View>
             <Icon name="chevron_right" />
           </Pressable>
         </Card>
         <View style={{ marginTop: 6 }}>
-          <Heading>Datenschutz</Heading>
+          <Heading>{t('privacy')}</Heading>
         </View>
         <Card style={{ padding: 18, gap: 0 }}>
           <Body>
-            Maschinendaten, Fotos, Zählerstände, OCR und PDFs werden lokal auf
-            deinem Gerät verarbeitet. Die App überträgt deine Maschinendaten
-            nicht an einen Server.
+            {t(
+              'maschinendatenFotosZaehlerstaendeOcrUndPdfsWerdenLokalAufDeinemGeraetVerarbeitetDieAppUebertrae',
+            )}
           </Body>
           <Body style={{ marginTop: 10 }}>
-            Deine Daten bleiben lokal auf deinem Gerät gespeichert, bis du sie
-            in der App löschst oder die App-Daten entfernst.
+            {t(
+              'yourDataRemainsStoredLocallyOnYourDeviceUntilYouDeleteItInTheAppOrRemoveTheAppData',
+            )}
           </Body>
           <Body muted style={{ marginTop: 10 }}>
-            Entwickler und Datenschutzkontakt{'\n'}
+            {t('entwicklerUndDatenschutzkontakt')}
+            {'\n'}
             Wasiliy Strecker · AppFabrik AI
           </Body>
           <View style={{ marginTop: 14 }}>
             <Button
               secondary
               icon="open_in_new"
-              title="Datenschutzerklärung öffnen"
+              title={t('openPrivacyPolicy')}
               disabled={vm.busy}
               onPress={() => void vm.openPrivacy()}
             />
           </View>
         </Card>
         <View style={{ marginTop: 6 }}>
-          <Heading>Über MaschinenLog</Heading>
+          <Heading>{t('uberMaschinenlog')}</Heading>
         </View>
         <Card style={{ padding: 0, gap: 0 }}>
           <View style={{ padding: 18, gap: 12 }}>
-            <Body strong>MaschinenLog 1.0.0</Body>
-            <Body muted>Kostenlos. Ohne Konto. Ohne Werbung.</Body>
+            <Body strong>{t('maschinenlog100')}</Body>
+            <Body muted>{t('kostenlosOhneKontoOhneWerbung')}</Body>
             <Body muted>
-              Eigenständige lokale Android-App. Backups bis 128 MB.
-              Formularentwürfe gehören nicht zum Backup.
+              {t(
+                'eigenstaendigeLokaleAndroidAppBackupsBis128MbFormularentwuerfeGehoerenNichtZumBackup',
+              )}
             </Body>
           </View>
           <View style={{ height: 1, backgroundColor: c.border }} />
@@ -275,8 +309,8 @@ export function SettingsScreen() {
           >
             <Icon name="code" />
             <View style={{ flex: 1, gap: 4 }}>
-              <Body style={{ fontSize: 16 }}>Quellcode auf GitHub</Body>
-              <Body muted>README und Projektinformationen</Body>
+              <Body style={{ fontSize: 16 }}>{t('sourceCodeOnGithub')}</Body>
+              <Body muted>{t('readmeUndProjektinformationen')}</Body>
             </View>
             <Icon name="open_in_new" />
           </Pressable>

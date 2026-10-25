@@ -1,3 +1,5 @@
+import { t } from '../localization/runtime';
+import { useLocalization } from '../localization/react';
 import {
   createContext,
   useCallback,
@@ -12,22 +14,19 @@ import { Image, Pressable, ScrollView, Text, View } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import * as SplashScreen from 'expo-splash-screen';
 import * as SystemUI from 'expo-system-ui';
-
 export const startupColor = '#006B63';
-
 // Run before any React rendering. Router must not dismiss the native surface
 // as soon as navigation mounts, while fonts or the first query are still pending.
 void SplashScreen.preventAutoHideAsync().catch(console.warn);
 SplashScreen.setOptions({ duration: 180, fade: true });
-
 const StartupContext = createContext({
   pending: true,
   holds: 0,
   hold: (): (() => void) => () => {},
   reveal: () => {},
 });
-
 export function StartupProvider({ children }: { children: ReactNode }) {
+  useLocalization();
   const [pending, setPending] = useState(true);
   const [holds, setHolds] = useState(0);
   const hold = useCallback(() => {
@@ -46,11 +45,9 @@ export function StartupProvider({ children }: { children: ReactNode }) {
     <StartupContext.Provider value={value}>{children}</StartupContext.Provider>
   );
 }
-
 export function useStartup() {
   return useContext(StartupContext);
 }
-
 // Nested initial content (for example saved reports) can also hold the cover.
 export function useStartupHold(loading: boolean) {
   const { pending, hold } = useStartup();
@@ -58,7 +55,6 @@ export function useStartupHold(loading: boolean) {
     if (pending && loading) return hold();
   }, [pending, loading, hold]);
 }
-
 // Called by the focused Page, or the bootstrap error view outside navigation.
 // Readiness includes query errors so the splash never covers a recoverable error.
 export function useStartupLayout(ready: boolean, background: string) {
@@ -88,12 +84,12 @@ export function useStartupLayout(ready: boolean, background: string) {
   }, [background, holds, laidOut, pending, ready, reveal]);
   return onLayout;
 }
-
 export function StartupPending() {
+  useLocalization();
   return (
     <View
       accessible
-      accessibilityLabel="MaschinenLog wird gestartet"
+      accessibilityLabel={t('maschinenlogWirdGestartet')}
       style={{
         flex: 1,
         backgroundColor: startupColor,
@@ -112,7 +108,6 @@ export function StartupPending() {
     </View>
   );
 }
-
 export function StartupError({
   message,
   retry,
@@ -120,6 +115,7 @@ export function StartupError({
   message: string;
   retry(): void;
 }) {
+  useLocalization();
   const onLayout = useStartupLayout(true, startupColor);
   return (
     <ScrollView
@@ -153,7 +149,7 @@ export function StartupError({
         <Text
           style={{ color: startupColor, fontSize: 16, textAlign: 'center' }}
         >
-          Erneut versuchen
+          {t('tryAgain')}
         </Text>
       </Pressable>
     </ScrollView>

@@ -87,7 +87,7 @@ class MachinePdfView(context: Context, appContext: AppContext) : ExpoView(contex
     init {
         setWillNotDraw(false)
         isFocusable = true
-        contentDescription = "PDF. Mit zwei Fingern vergrößern und zum Blättern wischen."
+        contentDescription = NativeLanguage.text(context, R.string.ml_pdfgestures)
     }
     fun open(previews: PdfPreviewStore, id: String) {
         if (session == id && store === previews) return
@@ -196,7 +196,7 @@ class MachinePdfView(context: Context, appContext: AppContext) : ExpoView(contex
             paint.color = Color.GRAY
             paint.textSize = 14f * resources.displayMetrics.scaledDensity
             paint.textAlign = Paint.Align.CENTER
-            canvas.drawText(if (error) "PDF nicht darstellbar. Zum Wiederholen tippen." else "PDF wird geladen …", width / 2f, height / 2f, paint)
+            canvas.drawText(if (error) NativeLanguage.text(context, R.string.ml_pdfrenderfailed) else NativeLanguage.text(context, R.string.ml_pdfloading), width / 2f, height / 2f, paint)
             return
         }
         canvas.save()

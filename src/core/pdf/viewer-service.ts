@@ -1,3 +1,4 @@
+import { LocalizedError } from '../localization/runtime';
 import type { SavedReport } from '../domain/models';
 import type { MachineService } from '../../features/entries/entry-service';
 import type { MachineNative, PdfSession } from '../native/machine-native';
@@ -28,7 +29,7 @@ export class PdfViewerService {
       ...drafts.flatMap((d) => d.form.attachments),
     ].find((a) => a.id === id && a.kind === 'pdf');
     const item = report ?? attachment;
-    if (!item) throw new Error('Diese PDF ist nicht mehr vorhanden.');
+    if (!item) throw new LocalizedError('diesePdfIstNichtMehrVorhanden');
     await verifiedFile(this.machine.vault, item);
     const uri = this.machine.vault.uri(item.file);
     return {

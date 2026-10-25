@@ -4,21 +4,20 @@ MaschinenLog ist ein eigenständiges React-Native-/Expo-Projekt. Das Verfahren
 folgt den Dev-/Store-Konventionen der Flutter-Apps dieses Workspace, verwendet
 aber den eigenen Gradle-Build. Nachbarprojekte und deren Schlüssel bleiben unverändert.
 
-## Identität und erste Version
+## Identität und aktuelle Version
 
 | Variante | Paketkennung                      | Name             | Verwendung                                   |
 | -------- | --------------------------------- | ---------------- | -------------------------------------------- |
 | Dev      | `com.appfactory.maschinenlog.dev` | MaschinenLog Dev | Lokale Tests und datenbewahrende APK-Updates |
 | Store    | `com.appfactory.maschinenlog`     | MaschinenLog     | Interne Play-Tests und Produktion            |
 
-Die zuletzt vorbereitete Store-Auslieferung verwendet Version `1.0.0`, Versionscode `5`.
+Die internationale Store-Auslieferung verwendet Version `1.0.0`, Versionscode `6`.
+Der Nutzer hat Code `5` als höchsten bisherigen Play-Code bestätigt.
 Die lokalen AAB-Dateien mit Code `2`, `3`, `4` und `5` wurden am 21.10.2026
-auf Nutzerauftrag zur Speicherbereinigung entfernt. Prüfdateien und Release-Texte
-bleiben erhalten. Code `5` enthält wie Code `4` den auf dem Smartphone bestätigten
-App-Start mit Icon. Die erneute Auslieferung erhöht nur den Versionscode.
-Die App wurde inzwischen vom Nutzer in der Play Console angelegt. Ein Upload
-oder eine Veröffentlichung durch den Agenten ist nicht erfolgt. Vor einem
-weiteren Upload den tatsächlichen Console-Stand prüfen.
+auf Nutzerauftrag entfernt. Historische Prüfdateien bleiben erhalten.
+Code `6` ergänzt sechs App-Sprachen, regionale Formate und übersetzte Store-Assets.
+Details und reproduzierbare Abläufe stehen in
+[Internationale Store-Version](INTERNATIONAL_RELEASE.md).
 
 Die zur aktuell installierten Smartphone-Version identische Dev-APK bleibt unter
 `build/dev/maschinenlog-1.0.0-dev-start-icon-2026-10-18.apk` erhalten.
@@ -104,14 +103,14 @@ Konfiguration muss 16-KB-ZIP-Ausrichtung verlangen und alle enthaltenen nativen
 Bibliotheken müssen entsprechend ausgerichtete ELF-Ladesegmente besitzen.
 Quelle: [Android 16-KB-Unterstützung](https://developer.android.com/guide/practices/page-sizes).
 
-Die Store-Source-Map wird auf die vier im Prüfstand bewerteten npm-Pakete geprüft.
+Die Store-Source-Map wird auf die im Prüfstand bewerteten Build-Werkzeuge und die CLI-Kopie von Zod geprüft.
 Dies prüft deren Abwesenheit im JavaScript-Bundle und ist keine vollständige
 Sicherheitsbewertung sämtlicher nativer Bibliotheken.
 
 Erst danach legt der Helfer die benannte Auslieferung an:
 
 ```text
-build/releases/production/maschinenlog-1.0.0-build-5-production.aab
+build/releases/production/maschinenlog-1.0.0-build-6-production.aab
 ```
 
 Daneben liegt eine JSON-Prüfdatei mit SHA-256, Upload-Zertifikat-Fingerabdruck,

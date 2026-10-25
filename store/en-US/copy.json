@@ -1,0 +1,23 @@
+{
+  "locale": "en-US",
+  "language": "en",
+  "name": "Machine Log",
+  "shortDescription": "Record machine counters, read photos and document production history.",
+  "fullDescription": "Machine Log helps you document your machines’ production counters. Record piece counts, cycles, operating hours or quantities and keep track of your readings.\n\nCounters that fit your machines\nChoose a preset counter type or enter your own type and unit. Add a machine number, production area and a matching icon.\n\nReadings by hand or photo\nEnter a value manually or read numbers from a camera photo or an existing image. Text recognition processes the photo on your device. Check and confirm the recognized value before saving.\n\nTraceable history\nThe app calculates increases between readings and handles backdated entries, resets and counter replacements. Corrections retain the original details and earlier photos. You can add a reason for each correction.\n\nReminders and PDF reports\nSet up regular reading reminders. Create individual reports or a counter history as a PDF, compact or with photos. Open, print and share saved reports.\n\nEncrypted backups\nCreate password-protected backups of your data, photos and reports. Choose where to save them and restore your backup when needed.\n\nSix languages\nGerman, English, Spanish, French, Italian and Brazilian Portuguese. Choose an app language in settings or follow your system language. Numbers and dates follow your device’s region.\n\nNo account and no ads\nYour counter data stays in private app storage. Machine Log has no server of its own and offers no cloud sync. The Store app does not require internet permission. See the privacy policy for details about the included Google ML Kit SDK.",
+  "feature": "Record counters.\nDocument production.",
+  "strap": "Photo OCR · History · PDF",
+  "frames": [
+    "Your machine\ncounters at a glance",
+    "Read counter values\nfrom photos",
+    "Follow your\nreading history",
+    "Keep details and\nevidence together",
+    "Production reports\nas PDFs",
+    "Choose a language.\nBack up your data."
+  ],
+  "counters": ["Production", "Packaging", "Compressor"],
+  "location": "Hall 2",
+  "note": "End of shift",
+  "correction": "Note added",
+  "releaseNotes": "Available in German, English, Spanish, French, Italian and Brazilian Portuguese. Choose your app language. Regional numbers and dates. Translated PDFs and reminders.",
+  "privacyUrl": "https://wasiliy-strecker.github.io/machine-log/privacy/"
+}

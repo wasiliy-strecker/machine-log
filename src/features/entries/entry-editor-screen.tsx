@@ -1,3 +1,6 @@
+import { presetLabel, presetValue } from '../../core/localization/presets';
+import { t } from '../../core/localization/runtime';
+import { useLocalization } from '../../core/localization/react';
 import { useState } from 'react';
 import { View } from 'react-native';
 import { Stack, useLocalSearchParams } from 'expo-router';
@@ -14,7 +17,10 @@ import {
 } from '../../core/ui/components';
 import { SuggestionField } from '../../core/ui/suggestion-field';
 import { units, eventLabels, type EventState } from '../../core/domain/models';
-import { formatValue } from '../../core/domain/reading-value';
+import {
+  displayValue as formatValue,
+  displayInput,
+} from '../../core/localization/numbers';
 import {
   PhotoEditor,
   Documents,
@@ -25,6 +31,7 @@ import { FormErrorTarget } from '../../core/ui/form-error-target';
 import { CaptureGuidance } from './capture-guidance';
 import { PhotoExamplesButton } from './photo-examples-button';
 export function EntryEditorScreen() {
+  useLocalization();
   const { recordId, entryId, counterId } = useLocalSearchParams<{
     recordId: string;
     entryId?: string;
@@ -64,7 +71,7 @@ export function EntryEditorScreen() {
     <Page>
       <Stack.Screen
         options={{
-          title: entryId ? 'Eintrag korrigieren' : 'Erfassen / Fotografieren',
+          title: entryId ? t('eintragKorrigieren') : t('erfassenFotografieren'),
         }}
       />
       {!!vm.error && (
@@ -79,21 +86,21 @@ export function EntryEditorScreen() {
           <PhotoExamplesButton disabled={vm.busy} />
           <Button
             icon="photo_camera_outlined"
-            title="Zähler fotografieren"
+            title={t('takeAPhotoOfTheMeter')}
             disabled={vm.busy}
             onPress={() => void vm.pick('camera')}
           />
           <Button
             secondary
             icon="photo_library_outlined"
-            title="Foto aus Galerie"
+            title={t('photoFromGallery')}
             disabled={vm.busy}
             onPress={() => void vm.pick('gallery')}
           />
           <Button
             secondary
             icon="edit_note_outlined"
-            title="Ohne Foto erfassen"
+            title={t('captureWithoutPhoto')}
             disabled={vm.busy}
             onPress={() => void vm.chooseManual()}
           />
@@ -101,7 +108,7 @@ export function EntryEditorScreen() {
       ) : (
         <View style={{ gap: 16 }}>
           <SelectField
-            label="Art des Eintrags"
+            label={t('artDesEintrags')}
             value={form.kind}
             disabled={vm.busy}
             options={Object.entries(eventLabels).map(([value, label]) => ({
@@ -115,14 +122,14 @@ export function EntryEditorScreen() {
           {photos.length > 0 &&
             (photos.length > 1 || vm.candidates.length > 0) && (
               <Card>
-                <Body strong>Zahlen im Foto erkennen</Body>
+                <Body strong>{t('zahlenImFotoErkennen')}</Body>
                 {photos.length > 1 && (
                   <SelectField
-                    label="Foto für die Zahlenerkennung"
+                    label={t('fotoFuerDieZahlenerkennung')}
                     value={form.ocr?.photoId ?? photos[0]!.id}
                     options={photos.map((p, i) => ({
                       value: p.id,
-                      label: `Foto ${i + 1} · ${p.name}`,
+                      label: t('fotoValueValue', { p0: i + 1, p1: p.name }),
                     }))}
                     disabled={vm.busy}
                     onChange={(id) => void vm.recognize(id)}
@@ -132,35 +139,39 @@ export function EntryEditorScreen() {
                   <Button
                     key={formatValue(candidate.value)}
                     secondary
-                    title={`${formatValue(candidate.value)} ${form.unit} übernehmen`}
+                    title={t('valueValueUebernehmen', {
+                      p0: formatValue(candidate.value),
+                      p1: presetLabel(form.unit),
+                    })}
                     disabled={vm.busy}
                     onPress={() => vm.selectCandidate(candidate)}
                   />
                 ))}
                 {vm.candidates.length > 0 && (
                   <Body muted>
-                    Der Vorschlag ersetzt keine Prüfung. Maßgeblich ist der von
-                    dir bestätigte Wert.
+                    {t(
+                      'derVorschlagErsetztKeinePruefungMassgeblichIstDerVonDirBestaetigteWert',
+                    )}
                   </Body>
                 )}
               </Card>
             )}
           {form.kind !== 'reading' && (
             <Card>
-              <Body strong>Alter Zählerstand</Body>
+              <Body strong>{t('alterZaehlerstand')}</Body>
               <FormErrorTarget
                 active={firstError === 'closingValue'}
                 attempt={vm.errorAttempt}
               >
                 <Field
-                  label="Endstand vor dem Wechsel (optional)"
+                  label={t('endstandVorDemWechselOptional')}
                   error={vm.fieldErrors.closingValue}
                   suffix={form.closingUnit}
                   keyboardType="decimal-pad"
                   inputMode="decimal"
                   autoCorrect={false}
                   autoCapitalize="none"
-                  value={form.closingValue}
+                  value={displayInput(form.closingValue)}
                   editable={!vm.busy}
                   onChangeText={(v) => vm.change('closingValue', v)}
                 />
@@ -171,18 +182,19 @@ export function EntryEditorScreen() {
                 style={{ zIndex: 1 }}
               >
                 <SuggestionField
-                  label="Einheit des alten Endstands"
+                  label={t('einheitDesAltenEndstands')}
                   error={vm.fieldErrors.closingUnit}
-                  helper="Einheit vor dem Wechsel."
-                  value={form.closingUnit}
-                  suggestions={units}
+                  helper={t('einheitVorDemWechsel')}
+                  value={presetLabel(form.closingUnit)}
+                  suggestions={units.map((value) => presetLabel(value))}
                   disabled={vm.busy}
-                  onChange={(v) => vm.change('closingUnit', v)}
+                  onChange={(v) => vm.change('closingUnit', presetValue(v))}
                 />
               </FormErrorTarget>
               <Body muted>
-                Ist der Endstand unbekannt, bleibt die fehlende Menge als
-                Berechnungslücke sichtbar.
+                {t(
+                  'istDerEndstandUnbekanntBleibtDieFehlendeMengeAlsBerechnungslueckeSichtbar',
+                )}
               </Body>
             </Card>
           )}
@@ -192,14 +204,14 @@ export function EntryEditorScreen() {
             style={{ zIndex: 1 }}
           >
             <SuggestionField
-              label="Einheit *"
+              label={t('unit')}
               error={vm.fieldErrors.unit}
-              helper="Vorschlag auswählen oder eigene Einheit eingeben."
-              value={form.unit}
-              suggestions={units}
+              helper={t('vorschlagAuswaehlenOderEigeneEinheitEingeben')}
+              value={presetLabel(form.unit)}
+              suggestions={units.map((value) => presetLabel(value))}
               disabled={vm.busy}
               showAllOnFocus
-              onChange={(v) => vm.change('unit', v)}
+              onChange={(v) => vm.change('unit', presetValue(v))}
             />
           </FormErrorTarget>
           <FormErrorTarget
@@ -208,27 +220,30 @@ export function EntryEditorScreen() {
           >
             <Field
               label={
-                form.kind === 'reading' ? 'Zählerstand *' : 'Neuer Startstand *'
+                form.kind === 'reading'
+                  ? t('meterReading677')
+                  : t('neuerStartstand490')
               }
-              suffix={form.unit}
+              suffix={presetLabel(form.unit)}
               error={vm.fieldErrors.value}
               keyboardType="decimal-pad"
               inputMode="decimal"
               autoCorrect={false}
               autoCapitalize="none"
-              value={form.value}
+              value={displayInput(form.value)}
               onChangeText={(v) => vm.change('value', v)}
               editable={!vm.busy}
             />
           </FormErrorTarget>
           <Body muted style={{ fontSize: 12, paddingHorizontal: 16 }}>
-            Ziffern eingeben. Für Nachkommastellen ein Komma oder einen Punkt
-            verwenden.
+            {t('numberHint', { p0: displayInput('0,1').slice(1, 2) })}
           </Body>
           {form.unit === 'h' && (
             <Body muted>
-              Betriebsstunden dezimal eingeben, zum Beispiel 12,5 für 12 Stunden
-              und 30 Minuten.
+              {t(
+                'betriebsstundenDezimalEingebenZumBeispiel125Fuer12StundenUnd30Minuten',
+                { p0: displayInput('12,5') },
+              )}
             </Body>
           )}
           {form.kind === 'replacement' && (
@@ -237,7 +252,7 @@ export function EntryEditorScreen() {
               attempt={vm.errorAttempt}
             >
               <Field
-                label="Neue Zählernummer (optional)"
+                label={t('neueZaehlernummerOptional')}
                 error={vm.fieldErrors.newCounterNumber}
                 value={form.newCounterNumber}
                 editable={!vm.busy}
@@ -250,10 +265,10 @@ export function EntryEditorScreen() {
             attempt={vm.errorAttempt}
           >
             <Card>
-              <Body strong>Datum und Uhrzeit</Body>
-              <Body muted>Zeitpunkt der Ablesung oder des Wechsels</Body>
+              <Body strong>{t('datumUndUhrzeit')}</Body>
+              <Body muted>{t('zeitpunktDerAblesungOderDesWechsels')}</Body>
               <DateField
-                label="Datum und Uhrzeit"
+                label={t('datumUndUhrzeit')}
                 showLabel={false}
                 time
                 value={form.occurredAt}
@@ -264,14 +279,18 @@ export function EntryEditorScreen() {
             </Card>
           </FormErrorTarget>
           {Date.parse(form.occurredAt) > openedAt && (
-            <Notice text="Dieser Zeitpunkt liegt in der Zukunft und wird im Protokoll entsprechend gekennzeichnet." />
+            <Notice
+              text={t(
+                'dieserZeitpunktLiegtInDerZukunftUndWirdImProtokollEntsprechendGekennzeichnet',
+              )}
+            />
           )}
           <FormErrorTarget
             active={firstError === 'note'}
             attempt={vm.errorAttempt}
           >
             <Field
-              label="Notiz (optional)"
+              label={t('notizOptional')}
               error={vm.fieldErrors.note}
               multiline
               value={form.note}
@@ -282,17 +301,18 @@ export function EntryEditorScreen() {
           <Documents documents={documents} />
           {entryId && (
             <Card>
-              <Body strong>Nachvollziehbare Korrektur</Body>
+              <Body strong>{t('nachvollziehbareKorrektur')}</Body>
               <Body muted>
-                Die ursprünglichen Angaben und Fotos bleiben in der
-                Korrekturhistorie erhalten.
+                {t(
+                  'dieUrspruenglichenAngabenUndFotosBleibenInDerKorrekturhistorieErhalten',
+                )}
               </Body>
               <FormErrorTarget
                 active={firstError === 'reason'}
                 attempt={vm.errorAttempt}
               >
                 <Field
-                  label="Änderungsgrund (optional)"
+                  label={t('anderungsgrundOptional')}
                   error={vm.fieldErrors.reason}
                   multiline
                   value={form.reason}
@@ -306,17 +326,17 @@ export function EntryEditorScreen() {
             icon="verified_outlined"
             title={
               vm.busy
-                ? 'Wird gespeichert …'
+                ? t('saving')
                 : entryId
-                  ? 'Korrektur bestätigen und speichern'
-                  : 'Bestätigen und speichern'
+                  ? t('korrekturBestaetigenUndSpeichern')
+                  : t('bestaetigenUndSpeichern')
             }
             disabled={vm.busy}
             onPress={() => void vm.save()}
           />
         </View>
       )}
-      {vm.busy && <Busy label="Fotos und Zählerstand werden verarbeitet …" />}
+      {vm.busy && <Busy label={t('fotosUndZaehlerstandWerdenVerarbeitet')} />}
     </Page>
   );
 }

@@ -26,3 +26,5 @@ modules/**/.gradle/
 modules/**/.cxx/
 
 .local/
+
+releases/

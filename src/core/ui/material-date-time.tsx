@@ -1,3 +1,5 @@
+import { t, localization } from '../localization/runtime';
+import { useLocalization } from '../localization/react';
 import { useEffect, useRef, useState, type ReactNode } from 'react';
 import {
   Keyboard,
@@ -14,9 +16,13 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from './theme';
 import { Icon, type IconName } from './icon';
-import { calendarCells, parseDateInput } from './date-time-model';
+import {
+  calendarCells,
+  parseDateInput,
+  datePlaceholder,
+  weekdayLabels,
+} from './date-time-model';
 import { DialogActions } from './dialog-actions';
-
 type Request = {
   mode: 'date' | 'time';
   value: Date;
@@ -27,7 +33,7 @@ type Request = {
   title?: string;
 };
 const dateText = (date: Date) =>
-  date.toLocaleDateString('de-DE', {
+  date.toLocaleDateString(localization().formatLocale, {
     day: '2-digit',
     month: '2-digit',
     year: 'numeric',
@@ -76,6 +82,7 @@ function Picker({
   request: Request;
   close(date: Date | null): void;
 }) {
+  useLocalization();
   const c = useTheme(),
     safe = useSafeAreaInsets(),
     window = useWindowDimensions();
@@ -138,7 +145,7 @@ function Picker({
     if (r.mode === 'date') {
       const result = input ? parseDateInput(dateInput, r.first, r.last) : date;
       if (!result) {
-        setError('Bitte ein gültiges Datum im erlaubten Zeitraum eingeben.');
+        setError(t('bitteEinGueltigesDatumImErlaubtenZeitraumEingeben'));
         return;
       }
       close(result);
@@ -151,7 +158,7 @@ function Picker({
         h > 23 ||
         m > 59
       ) {
-        setError('Bitte eine gültige Uhrzeit eingeben.');
+        setError(t('bitteEineGueltigeUhrzeitEingeben'));
         return;
       }
       const result = new Date(r.value);
@@ -184,9 +191,9 @@ function Picker({
           keyboardType={
             r.mode === 'time' ? 'number-pad' : 'numbers-and-punctuation'
           }
-          placeholder={r.mode === 'date' ? 'TT.MM.JJJJ' : undefined}
+          placeholder={r.mode === 'date' ? datePlaceholder() : undefined}
           placeholderTextColor={c.muted}
-          maxLength={r.mode === 'time' ? 2 : 10}
+          maxLength={r.mode === 'time' ? 2 : 16}
           style={{
             ...text,
             fontSize: r.mode === 'time' ? 48 : 16,
@@ -215,11 +222,11 @@ function Picker({
           }}
         >
           <Text style={{ ...text, fontSize: 14 }}>
-            {r.title ?? 'Datum auswählen'}
+            {r.title ?? t('selectDate')}
           </Text>
           <View style={{ flexDirection: 'row', alignItems: 'center' }}>
             <Text style={{ ...text, fontSize: 32, flex: 1 }}>
-              {date.toLocaleDateString('de-DE', {
+              {date.toLocaleDateString(localization().formatLocale, {
                 weekday: 'short',
                 day: 'numeric',
                 month: 'short',
@@ -228,7 +235,7 @@ function Picker({
             {!r.calendarOnly &&
               icon(
                 input ? 'calendar_today' : 'edit_outlined',
-                input ? 'Zum Kalender wechseln' : 'Datum eingeben',
+                input ? t('zumKalenderWechseln') : t('datumEingeben'),
                 toggleInput,
               )}
           </View>
@@ -236,7 +243,7 @@ function Picker({
         <View style={{ height: 1, backgroundColor: c.border }} />
         {input ? (
           <View style={{ padding: 24 }}>
-            {field(dateInput, setDateInput, 'Datum')}
+            {field(dateInput, setDateInput, t('datum'))}
           </View>
         ) : (
           <View style={{ paddingHorizontal: 12 }}>
@@ -245,7 +252,7 @@ function Picker({
             >
               <Pressable
                 accessibilityRole="button"
-                accessibilityLabel="Jahr auswählen"
+                accessibilityLabel={t('jahrAuswaehlen')}
                 onPress={() => setYears(!years)}
                 style={{
                   flex: 1,
@@ -256,7 +263,7 @@ function Picker({
                 }}
               >
                 <Text style={{ ...text, fontSize: 14 }}>
-                  {month.toLocaleDateString('de-DE', {
+                  {month.toLocaleDateString(localization().formatLocale, {
                     month: 'long',
                     year: 'numeric',
                   })}
@@ -267,7 +274,7 @@ function Picker({
                 <>
                   {icon(
                     'chevron_left',
-                    'Vorheriger Monat',
+                    t('vorherigerMonat'),
                     () =>
                       setMonth(
                         new Date(month.getFullYear(), month.getMonth() - 1, 1),
@@ -276,7 +283,7 @@ function Picker({
                   )}
                   {icon(
                     'chevron_right',
-                    'Nächster Monat',
+                    t('naechsterMonat'),
                     () =>
                       setMonth(
                         new Date(month.getFullYear(), month.getMonth() + 1, 1),
@@ -345,7 +352,7 @@ function Picker({
             ) : (
               <>
                 <View style={{ flexDirection: 'row' }}>
-                  {['M', 'D', 'M', 'D', 'F', 'S', 'S'].map((day, i) => (
+                  {weekdayLabels().map((day, i) => (
                     <Text
                       key={i}
                       style={{
@@ -431,14 +438,14 @@ function Picker({
   } else {
     content = (
       <View style={{ padding: 24, gap: 24 }}>
-        <Text style={{ ...text, fontSize: 14 }}>Uhrzeit auswählen</Text>
+        <Text style={{ ...text, fontSize: 14 }}>{t('uhrzeitAuswaehlen')}</Text>
         {input ? (
           <View
             style={{ flexDirection: 'row', justifyContent: 'center', gap: 12 }}
           >
-            {field(hourInput, setHourInput, 'Stunde', 96)}
+            {field(hourInput, setHourInput, t('stunde'), 96)}
             <Text style={{ ...text, fontSize: 48 }}>:</Text>
-            {field(minuteInput, setMinuteInput, 'Minute', 96)}
+            {field(minuteInput, setMinuteInput, t('minute'), 96)}
           </View>
         ) : (
           <>
@@ -459,7 +466,9 @@ function Picker({
                   <Pressable
                     accessibilityRole="button"
                     accessibilityLabel={
-                      part === 'hour' ? 'Stunde auswählen' : 'Minute auswählen'
+                      part === 'hour'
+                        ? t('stundeAuswaehlen')
+                        : t('minuteAuswaehlen')
                     }
                     onPress={() => setSelectHour(part === 'hour')}
                     style={{
@@ -518,7 +527,7 @@ function Picker({
         }}
       >
         <Pressable
-          accessibilityLabel="Abbrechen"
+          accessibilityLabel={t('cancel')}
           onPress={() => close(null)}
           style={{ position: 'absolute', top: 0, right: 0, bottom: 0, left: 0 }}
         />
@@ -567,15 +576,15 @@ function Picker({
             {r.mode === 'time' &&
               icon(
                 input ? 'schedule' : 'keyboard_outlined',
-                input ? 'Zur Uhr wechseln' : 'Uhrzeit eingeben',
+                input ? t('zurUhrWechseln') : t('uhrzeitEingeben'),
                 toggleInput,
               )}
             <View style={{ flex: 1 }}>
               <DialogActions
                 actions={[
-                  { label: 'Abbrechen', onPress: () => close(null) },
+                  { label: t('cancel'), onPress: () => close(null) },
                   {
-                    label: r.calendarOnly ? 'Übernehmen' : 'OK',
+                    label: r.calendarOnly ? t('apply') : 'OK',
                     onPress: confirm,
                   },
                 ]}
@@ -600,6 +609,7 @@ function ClockDial({
   change(value: number): void;
   complete(): void;
 }) {
+  useLocalization();
   const c = useTheme(),
     { width } = useWindowDimensions();
   const size = Math.min(256, width - 96),
@@ -709,7 +719,7 @@ function ClockDial({
           <Pressable
             key={n}
             accessibilityRole="button"
-            accessibilityLabel={`${n} ${selectHour ? 'Uhr' : 'Minuten'}`}
+            accessibilityLabel={`${n} ${selectHour ? t('uhr603') : t('minuten')}`}
             accessibilityState={{ selected: n === value }}
             onPress={() => {
               change(n);

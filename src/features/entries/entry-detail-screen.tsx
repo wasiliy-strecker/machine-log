@@ -1,3 +1,5 @@
+import { t } from '../../core/localization/runtime';
+import { useLocalization } from '../../core/localization/react';
 import { View, Text } from 'react-native';
 import { Stack, router, useLocalSearchParams } from 'expo-router';
 import {
@@ -17,7 +19,10 @@ import { useEntryDetail } from './use-entry-detail';
 import { MachineIcon } from '../../core/ui/machine-icon';
 import { CorrectionHistory, EntryInformation } from './entry-detail-sections';
 export function EntryDetailScreen() {
-  const { id } = useLocalSearchParams<{ id: string }>();
+  useLocalization();
+  const { id } = useLocalSearchParams<{
+    id: string;
+  }>();
   const vm = useEntryDetail(id),
     c = useTheme();
   const e = vm.entry;
@@ -25,7 +30,7 @@ export function EntryDetailScreen() {
     return (
       <Page ready={!vm.loading}>
         <Notice error text={vm.error} />
-        {vm.loading ? <Busy /> : <Body>Eintrag nicht gefunden.</Body>}
+        {vm.loading ? <Busy /> : <Body>{t('entryNotFound')}</Body>}
       </Page>
     );
   const photos = e.attachments.filter((a) => a.kind === 'photo');
@@ -34,13 +39,13 @@ export function EntryDetailScreen() {
   );
   return (
     <Page ready={!vm.loading}>
-      <Stack.Screen options={{ title: 'Eintrag' }} />
+      <Stack.Screen options={{ title: t('entry') }} />
       {!!photos.length && (
         <View style={{ gap: 8 }}>
           <Body strong style={{ fontSize: 16 }}>
             {photos.length === 1
-              ? 'Aktuelles Foto'
-              : `Fotos aus dem Altbestand (${photos.length})`}
+              ? t('aktuellesFoto')
+              : t('fotosAusDemAltbestandValue', { p0: photos.length })}
           </Body>
           <PhotoGallery photos={photos} />
         </View>
@@ -64,13 +69,17 @@ export function EntryDetailScreen() {
         </Body>
       </View>
       {Date.parse(e.occurredAt) > Date.parse(e.updatedAt) && (
-        <Notice text="Beim Speichern lag der angegebene Ablesezeitpunkt in der Zukunft. Der tatsächliche Speicherzeitpunkt bleibt separat erhalten." />
+        <Notice
+          text={t(
+            'whenSavingTheSpecifiedReadingTimeWasInTheFutureTheActualStorageTimeIsRetainedSeparately',
+          )}
+        />
       )}
       <View style={{ gap: 12, marginTop: 4, marginBottom: 6 }}>
         <Button
           secondary
           icon="edit_outlined"
-          title="Korrigieren"
+          title={t('correct')}
           onPress={() =>
             router.push({
               pathname: '/entry/edit',
@@ -86,7 +95,7 @@ export function EntryDetailScreen() {
           secondary
           danger
           icon="delete_outline"
-          title="Eintrag löschen"
+          title={t('deleteEntry')}
           disabled={vm.busy}
           onPress={() => void vm.remove()}
         />

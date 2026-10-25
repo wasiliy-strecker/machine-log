@@ -1,5 +1,34 @@
 # Technischer Prüfstand
 
+## Internationalisierung am 25. Oktober 2026
+
+Code 6 ergänzt sechs Sprachen und die regional unabhängige Formatierung.
+Der höchste durch den Nutzer bestätigte Play-Code ist 5.
+Expo 57.0.31, Router 57.0.29 und Sharing 57.0.24 entsprechen den aktuellen
+SDK-57-Vorgaben. Expo Doctor besteht 20 von 20 Prüfungen.
+Die App verwendet Zod 4.6.7. Vitest 5.0.5 und Vite 8.3.5 beheben die aktuell
+gemeldeten und kompatibel behebbaren Einträge der Testwerkzeuge.
+
+`npm audit` und `npm audit --omit=dev` melden weiterhin fünf hoch eingestufte
+Paketeinträge, ohne kritische Meldung. Dahinter stehen node-forge 1.4.0 und
+die Zod-3-Kopie der Expo CLI mit ihren übergeordneten Abhängigkeiten.
+Die Runtime-Kopie von Zod wurde auf 4.6.7 aktualisiert. Der
+[Zod-Hinweis](https://github.com/advisories/GHSA-mrhx-c7xc-m3w5) nennt 4.6.6
+als reparierte Version. Die CLI erwartet Zod 3. Eine erzwungene Ersetzung durch
+eine andere Hauptversion oder ein Expo-Downgrade wird nicht vorgenommen.
+Für [node-forge](https://github.com/advisories/GHSA-86w9-cpqp-85rv) ist weiterhin
+keine reparierte Version veröffentlicht. Der Audit endet deshalb mit Code 1.
+Die AAB-Prüfung kontrolliert zusätzlich anhand der Source Map, dass diese
+CLI-Bibliotheken nicht im Store-JavaScript enthalten sind.
+
+Native Tests und Android Lint sind erfolgreich. Der vollständige App-Testlauf
+ist in den Release-Nachweisen dokumentiert. Die 16-KB-Ausrichtung, Upload-Signatur,
+Store-Identität, Sprachressourcen und fehlenden Netzwerkberechtigungen werden
+an der konkreten AAB geprüft. Die persönliche Dev-Installation bleibt unverändert.
+Weitere Abläufe stehen in [Internationale Store-Version](INTERNATIONAL_RELEASE.md).
+
+## Historischer Prüfstand vom 19. Oktober 2026
+
 Stand: 19. Oktober 2026. Die Store-AAB für `com.appfactory.maschinenlog`,
 Version `1.0.0`, Code `5`, ist lokal gebaut, signiert und geprüft.
 Die Nutzerabnahme der zuletzt installierten Dev-Version ist bestätigt.

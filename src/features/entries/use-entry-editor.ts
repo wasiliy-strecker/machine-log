@@ -1,3 +1,4 @@
+import { t, LocalizedError } from '../../core/localization/runtime';
 import {
   extractCandidates,
   type OcrCandidate,
@@ -47,7 +48,7 @@ export function useEntryEditor(
         !record ||
         (entryId && (!savedEntry || savedEntry.recordId !== recordId))
       )
-        throw new Error('Maschine oder Eintrag nicht gefunden.');
+        throw new LocalizedError('maschineOderEintragNichtGefunden');
       const saved = await machine.draft(
         recordId,
         savedEntry ?? undefined,
@@ -79,7 +80,9 @@ export function useEntryEditor(
           saved.external = null;
           await machine.persistDraft(saved);
           setNotice(
-            'Dein Entwurf wurde wiederhergestellt. Neue Ablesungen verwenden Fotos oder manuelle Eingaben. Vorhandene Anhänge bleiben erhalten.',
+            t(
+              'deinEntwurfWurdeWiederhergestelltNeueAblesungenVerwendenFotosOderManuelleEingabenVorhandeneAnha',
+            ),
           );
         }
       }
@@ -95,7 +98,7 @@ export function useEntryEditor(
   const leave = useLeaveGuard({
     dirty,
     busy: task.busy,
-    title: entryId ? 'Änderungen verwerfen?' : 'Eintrag verwerfen?',
+    title: entryId ? t('discardChanges') : t('discardEntry'),
     discard: async () => {
       if (current.current) await machine.discard(current.current);
       committed.current = true;
@@ -133,7 +136,9 @@ export function useEntryEditor(
       ...current.current,
       form: { ...current.current.form, [key]: value },
     }).catch((e) =>
-      setError(`Entwurf konnte nicht gesichert werden: ${errorText(e)}`),
+      setError(
+        t('entwurfKonnteNichtGesichertWerdenValue', { p0: errorText(e) }),
+      ),
     );
   }
   function setAttachments(items: Attachment[]) {
@@ -180,12 +185,16 @@ export function useEntryEditor(
       });
       setNotice(
         first
-          ? 'Zahlenvorschläge erkannt. Bitte Wert, Einheit und Zeitpunkt vor dem Speichern prüfen.'
-          : 'Keine Zahlen erkannt.',
+          ? t(
+              'zahlenvorschlaegeErkanntBitteWertEinheitUndZeitpunktVorDemSpeichernPruefen',
+            )
+          : t('keineZahlenErkannt'),
       );
     } catch {
       setNotice(
-        'Die Zahlenerkennung ist fehlgeschlagen. Bitte den Stand manuell eingeben. Das Foto bleibt erhalten.',
+        t(
+          'dieZahlenerkennungIstFehlgeschlagenBitteDenStandManuellEingebenDasFotoBleibtErhalten',
+        ),
       );
     }
   }
@@ -316,7 +325,7 @@ export function useEntryEditor(
         });
         feedback.notify(
           result.warnings.join('\n') ||
-            (entryId ? 'Änderungen gespeichert.' : 'Eintrag gespeichert.'),
+            (entryId ? t('changesSaved') : t('eintragGespeichert')),
         );
       }),
   };

@@ -1,3 +1,11 @@
+import {
+  localization,
+  translate,
+  type Localization,
+} from '../localization/runtime';
+import { displayValue } from '../localization/numbers';
+import { presetLabel } from '../localization/presets';
+import { LocalizedError } from '../localization/runtime';
 import { formatValue } from '../domain/reading-value';
 import { counterTitle } from '../domain/production-counter';
 import {
@@ -19,8 +27,31 @@ import {
   reportSchema,
   validateSnapshot,
   evidenceJson,
-  eventLabels,
 } from '../domain/models';
+export function entrySearchText(
+  e: CounterEvent,
+  locale: Localization = localization(),
+): string {
+  const kind = {
+    reading: 'reading',
+    reset: 'ruecksetzung',
+    replacement: 'meterReplacement',
+  } as const;
+  return [
+    translate(locale, kind[e.kind]),
+    e.counterName,
+    formatValue(e.measurement.value),
+    displayValue(e.measurement.value, locale.formatLocale),
+    e.measurement.unit,
+    presetLabel(e.measurement.unit, locale),
+    e.occurredAt,
+    new Date(e.occurredAt).toLocaleDateString(locale.formatLocale),
+    e.note,
+    ...e.attachments.map((a) => a.name),
+  ]
+    .join(' ')
+    .toLowerCase();
+}
 
 export const schemaV1 = `
 CREATE TABLE records (id TEXT PRIMARY KEY, body TEXT NOT NULL CHECK(json_valid(body)));
@@ -36,11 +67,14 @@ export async function migrate(db: SqlConnection): Promise<void> {
     'PRAGMA foreign_keys=ON; PRAGMA journal_mode=WAL; PRAGMA busy_timeout=5000;',
   );
   const version =
-    (await db.all<{ user_version: number }>('PRAGMA user_version'))[0]
-      ?.user_version ?? 0;
+    (
+      await db.all<{
+        user_version: number;
+      }>('PRAGMA user_version')
+    )[0]?.user_version ?? 0;
   if (version > 1)
-    throw new Error(
-      'Die Datenbank stammt aus einer neueren MaschinenLog-Version.',
+    throw new LocalizedError(
+      'dieDatenbankStammtAusEinerNeuerenMaschinenlogVersion',
     );
   if (version === 1) return;
   await db.exec('BEGIN IMMEDIATE');
@@ -61,10 +95,9 @@ export class SqlRepository implements Repository {
     params: (string | number | null)[] = [],
   ): Promise<T[]> {
     return (
-      await this.db.all<{ body: string }>(
-        `SELECT body FROM ${table} ${where}`,
-        ...params,
-      )
+      await this.db.all<{
+        body: string;
+      }>(`SELECT body FROM ${table} ${where}`, ...params)
     ).map((r) => JSON.parse(r.body) as T);
   }
   private write<T>(work: () => Promise<T>): Promise<T> {
@@ -78,6 +111,17 @@ export class SqlRepository implements Repository {
         await this.db.exec('ROLLBACK');
         throw error;
       }
+    });
+  }
+  reindexSearch(locale: Localization = localization()) {
+    return this.write(async () => {
+      const entries = await this.bodies<CounterEvent>('entries');
+      for (const entry of entries)
+        await this.db.run(
+          'UPDATE entries SET search=? WHERE id=?',
+          entrySearchText(entry, locale),
+          entry.id,
+        );
     });
   }
   records() {
@@ -123,7 +167,7 @@ export class SqlRepository implements Repository {
     counterId?: string,
   ) {
     return this.queue.run(async () => {
-      const pattern = `%${search.toLocaleLowerCase('de-DE').replace(/[\\%_]/g, '\\$&')}%`;
+      const pattern = `%${search.toLowerCase().replace(/[\\%_]/g, '\\$&')}%`;
       const clause =
         "WHERE record_id=? AND search LIKE ? ESCAPE '\\'" +
         (counterId ? ' AND counter_id=?' : '');
@@ -137,12 +181,13 @@ export class SqlRepository implements Repository {
       );
       const total =
         (
-          await this.db.all<{ n: number }>(
-            `SELECT count(*) n FROM entries ${clause}`,
-            ...params,
-          )
+          await this.db.all<{
+            n: number;
+          }>(`SELECT count(*) n FROM entries ${clause}`, ...params)
         )[0]?.n ?? 0;
-      const any = await this.db.all<{ found: number }>(
+      const any = await this.db.all<{
+        found: number;
+      }>(
         `SELECT EXISTS(SELECT 1 FROM entries WHERE record_id=? ${counterId ? 'AND counter_id=?' : ''} AND (
           json_array_length(body,'$.attachments')>0
           OR EXISTS(SELECT 1 FROM json_each(body,'$.original.attachments') WHERE json_extract(value,'$.kind')='pdf')
@@ -188,10 +233,9 @@ export class SqlRepository implements Repository {
       }
       const total =
         (
-          await this.db.all<{ n: number }>(
-            `SELECT count(*) n FROM reports ${clause}`,
-            ...params,
-          )
+          await this.db.all<{
+            n: number;
+          }>(`SELECT count(*) n FROM reports ${clause}`, ...params)
         )[0]?.n ?? 0;
       const lastOffset = Math.max(
         0,
@@ -268,8 +312,8 @@ export class SqlRepository implements Repository {
           (e) => !record.counters.some((c) => c.id === e.counterId),
         )
       )
-        throw new Error(
-          'Ein Zähler mit Einträgen oder Entwürfen kann nicht entfernt werden.',
+        throw new LocalizedError(
+          'einZaehlerMitEintraegenOderEntwuerfenKannNichtEntferntWerden',
         );
       const reports = await this.bodies<SavedReport>(
         'reports',
@@ -283,8 +327,8 @@ export class SqlRepository implements Repository {
             !record.counters.some((c) => c.id === report.counterId),
         )
       )
-        throw new Error(
-          'Ein Zähler mit gespeicherten Protokollen kann nicht entfernt werden.',
+        throw new LocalizedError(
+          'einZaehlerMitGespeichertenProtokollenKannNichtEntferntWerden',
         );
       await this.putRecord(record);
     });
@@ -295,16 +339,14 @@ export class SqlRepository implements Repository {
       await this.bodies<Machine>('records', 'WHERE id=?', [e.recordId])
     )[0];
     if (!record?.counters.some((c) => c.id === e.counterId))
-      throw new Error('Zähler nicht gefunden.');
+      throw new LocalizedError('meterNotFound');
     await this.db.run(
       'INSERT INTO entries VALUES (?,?,?,?,?,?) ON CONFLICT(id) DO UPDATE SET occurred_at=excluded.occurred_at,search=excluded.search,body=excluded.body',
       e.id,
       e.recordId,
       e.counterId,
       e.occurredAt,
-      `${eventLabels[e.kind]} ${e.counterName} ${formatValue(e.measurement.value)} ${e.measurement.unit} ${e.occurredAt} ${new Date(e.occurredAt).toLocaleDateString('de-DE')} ${e.note} ${e.attachments.map((a) => a.name).join(' ')}`.toLocaleLowerCase(
-        'de-DE',
-      ),
+      entrySearchText(e),
       JSON.stringify(e),
     );
   }
@@ -322,8 +364,8 @@ export class SqlRepository implements Repository {
           evidenceJson(existing.revisions) !==
             evidenceJson(entry.revisions.slice(0, -1)))
       )
-        throw new Error(
-          'Der Eintrag wurde zwischenzeitlich geändert. Bitte erneut öffnen.',
+        throw new LocalizedError(
+          'derEintragWurdeZwischenzeitlichGeaendertBitteErneutOeffnen',
         );
       await this.putEntry(entry);
       await this.db.run('DELETE FROM drafts WHERE id=?', draftId);
@@ -355,7 +397,7 @@ export class SqlRepository implements Repository {
         await this.bodies<Machine>('records', 'WHERE id=?', [recordId])
       )[0];
       if (!record?.counters.some((counter) => counter.id === counterId))
-        throw new Error('Der Zähler wurde nicht gefunden.');
+        throw new LocalizedError('derZaehlerWurdeNichtGefunden');
       if (record.counters.length === 1) {
         await this.db.run('DELETE FROM records WHERE id=?', recordId);
         return;

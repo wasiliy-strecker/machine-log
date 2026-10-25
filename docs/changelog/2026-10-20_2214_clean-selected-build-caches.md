@@ -6,12 +6,12 @@ Appfabrik-Website und genau vier ältere SQL-Backups entfernt.
 
 ## Umfang und Ergebnis
 
-| Bereich | Entfernt | Freigegebene Bytes |
-| --- | --- | ---: |
-| MaschinenLog | 30 Ziele mit Android-, Gradle- und CMake-Build-Zwischenständen | 4838498304 |
-| Contest Gallery App | 18 Ziele mit Flutter-, Test- und Android-Build-Zwischenständen | 2401165312 |
-| Appfabrik-Website | Vier Verzeichnisse mit erzeugten Prüfkopien | 3902177280 |
-| SQL-Backups | Vier Dumps vom 10. bis 13.10.2026 | 377339904 |
+| Bereich             | Entfernt                                                       | Freigegebene Bytes |
+| ------------------- | -------------------------------------------------------------- | -----------------: |
+| MaschinenLog        | 30 Ziele mit Android-, Gradle- und CMake-Build-Zwischenständen |         4838498304 |
+| Contest Gallery App | 18 Ziele mit Flutter-, Test- und Android-Build-Zwischenständen |         2401165312 |
+| Appfabrik-Website   | Vier Verzeichnisse mit erzeugten Prüfkopien                    |         3902177280 |
+| SQL-Backups         | Vier Dumps vom 10. bis 13.10.2026                              |          377339904 |
 
 Zusammen sind das 11519180800 Bytes, rund 11,52 GB. Die Bilanz berücksichtigt
 Hardlinks und verbleibende externe Verknüpfungen. Nach der Bereinigung wurden

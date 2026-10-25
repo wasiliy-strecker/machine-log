@@ -10,12 +10,12 @@ import java.io.File
 
 internal fun localOcrFile(context: Context, uri: String): File {
     val parsed = Uri.parse(uri)
-    require(parsed.scheme == "file") { "OCR benötigt ein lokal gespeichertes Foto." }
+    require(parsed.scheme == "file") { NativeLanguage.text(context, R.string.ml_ocrlocalphoto) }
     val file = File(requireNotNull(parsed.path)).canonicalFile
     require(listOf(context.filesDir, context.cacheDir).any {
         file.path.startsWith(it.canonicalPath + File.separator)
-    }) { "Das Foto liegt außerhalb der privaten App-Ablage." }
-    require(file.isFile && file.length() in 1..(50L * 1024 * 1024)) { "Das Foto fehlt oder ist zu groß." }
+    }) { NativeLanguage.text(context, R.string.ml_photooutsidevault) }
+    require(file.isFile && file.length() in 1..(50L * 1024 * 1024)) { NativeLanguage.text(context, R.string.ml_photomissinglarge) }
     return file
 }
 
@@ -44,15 +44,15 @@ internal fun recognizeCounter(context: Context, uri: String, promise: Promise) {
                     }
                     promise.resolve(mapOf("rawText" to text.text, "lines" to lines))
                 } catch (error: Exception) {
-                    promise.reject("OCR_FAILED", "Die Zahlen konnten nicht gelesen werden. Bitte den Stand manuell eingeben.", error)
+                    promise.reject("OCR_FAILED", NativeLanguage.text(context, R.string.ml_ocrunreadable), error)
                 } finally { recognizer.close() }
             }
             .addOnFailureListener { error ->
                 recognizer.close()
-                promise.reject("OCR_FAILED", "Die Zahlen konnten nicht gelesen werden. Bitte den Stand manuell eingeben.", error)
+                promise.reject("OCR_FAILED", NativeLanguage.text(context, R.string.ml_ocrunreadable), error)
             }
     } catch (error: Exception) {
         recognizer.close()
-        promise.reject("OCR_FAILED", "Das Foto konnte nicht erkannt werden. Bitte den Stand manuell eingeben.", error)
+        promise.reject("OCR_FAILED", NativeLanguage.text(context, R.string.ml_ocrfailed), error)
     }
 }

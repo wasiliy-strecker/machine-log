@@ -258,10 +258,11 @@ Er installiert nichts. Anleitung und Schlüsselablage:
 [Android Store-Auslieferung](docs/ANDROID_RELEASES.md). Vorbereitete kopierbare
 Feldinhalte: [Store-Texte Deutsch](docs/store-listing-de.md).
 
-Die [Store-Bilder-Werkzeuge](scripts/store_assets/README.md) erzeugen das deutsche
-Paket mit Icon, Feature-Grafik, vier Smartphone-Bildern und jeweils zwei echten
-Tablet-Aufnahmen. Die Lieferung für Version 1.0.0 (3) liegt unter
-`build/store-assets/de-DE/build-3/` mit Vorschau und Upload-Zuordnung.
+Die [Store-Bilder-Werkzeuge](scripts/store_assets/README.md) erzeugen sechs
+Sprachpakete mit jeweils 16 Upload-Bildern aus der geprüften Store-AAB.
+Die aktuelle Lieferung mit Textfeldern, Vorschauen und Herkunftsnachweisen liegt
+unter `releases/international/build-6/`. Die ältere deutsche Bildlieferung
+für Code 3 bleibt als historischer Stand unter `build/store-assets/` erhalten.
 
 Für optionales Fast Refresh stehen `npm run build:dev`, `npm start` auf Port 8084
 und `bash scripts/install-dev.sh DEVICE` zur Verfügung. Dev-Debug und Dev-Preview
@@ -317,9 +318,9 @@ anschließend beauftragte, signierte und geprüfte Store-Auslieferung liegt unte
 
 Am 19. Oktober 2026 wurde auf erneuten Auftrag die Store-Auslieferung mit
 Versionscode 5 gebaut und geprüft. Sie enthält denselben Funktionsstand wie
-Code 4. Aktuelle Datei:
-`build/releases/production/maschinenlog-1.0.0-build-5-production.aab`.
-Frühere Auslieferungen bleiben unter ihren bisherigen Dateinamen erhalten.
+Code 4. Diese AAB und die älteren Codes 2 bis 4 wurden am 21. Oktober
+auf Nutzerauftrag entfernt. Die historischen Prüfdateien bleiben erhalten.
+Die aktuelle internationale Version ist Code 6.
 
 Die kurze automatisierte Suite prüft exakte Zahlen, OCR-Kandidaten, getrennte Altzähler,
 Nachträge, Rücksetzungen, Wechsel, Korrekturen, SQLite-Neuöffnung und einen vollständigen
@@ -423,3 +424,12 @@ Tastatur und die Auswahl einer weiter unten liegenden Einheit bestätigt.
 Das Formular blieb beim Scrollen der Liste stehen. Es wurde kein Testzähler
 gespeichert. Die datenbewahrend installierte Dev-Version liegt unter
 `build/dev/maschinenlog-1.0.0-dev-keyboard-suggestions-2026-10-17-final.apk`.
+
+## Internationale Store-Version
+
+Version 1.0.0 (6) unterstützt Deutsch, Englisch, Spanisch, Französisch, Italienisch
+und Portugiesisch (Brasilien). Die App-Sprache ist in den Einstellungen wählbar.
+Regionale Zahlen und Datumsangaben folgen den Systemeinstellungen.
+Code, Texte, Prüfungen und Asset-Erstellung sind in
+[Internationale Store-Version](docs/INTERNATIONAL_RELEASE.md) dokumentiert.
+Die ignorierte Auslieferung liegt unter `releases/international/build-6/`.

@@ -1,7 +1,7 @@
+import { useLocalization } from '../localization/react';
 import { useEffect, useRef, type ReactNode } from 'react';
 import { Keyboard, View, type StyleProp, type ViewStyle } from 'react-native';
 import { useScrollHost } from './scroll-host';
-
 /** Reveal the first invalid field, including repeated failed save attempts. */
 export function FormErrorTarget({
   active,
@@ -14,6 +14,7 @@ export function FormErrorTarget({
   style?: StyleProp<ViewStyle>;
   children: ReactNode;
 }) {
+  useLocalization();
   const host = useScrollHost();
   const ref = useRef<View>(null);
   const lastAttempt = useRef(0);

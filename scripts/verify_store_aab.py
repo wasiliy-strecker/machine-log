@@ -17,7 +17,7 @@ import zipfile
 
 ANDROID = "{http://schemas.android.com/apk/res/android}"
 PACKAGE = "com.appfactory.maschinenlog"
-TOOL_PACKAGES = ("shell-quote", "source-map-js", "node-forge", "braces")
+TOOL_PACKAGES = ("shell-quote", "source-map-js", "node-forge", "braces", "vite", "@vitest/mocker")
 
 
 def require(condition, message):
@@ -113,6 +113,12 @@ def verify(bundle, version_name, version_code, certificate):
         )
     else:
         require(label == "MaschinenLog", "Wrong Store label")
+    if version_code >= 6:
+        labels = bt("dump", "resources", "--resource=string/app_name", "--values")
+        for translated in ("Machine Log", "MaschinenLog", "Registro de máquinas", "Journal des machines", "Registro macchine"):
+            require(f'"{translated}"' in labels, f"Missing localized app name: {translated}")
+        require(' Dev"' not in labels, "Dev label in Store resources")
+        require(app.get(ANDROID + "localeConfig") is not None, "Android app language configuration missing")
     permissions = verify_network_permissions(manifest)
     require(
         not permissions & {
@@ -182,7 +188,12 @@ def verify(bundle, version_name, version_code, certificate):
             not any(f"node_modules/{package}/" in source for source in sources),
             f"Build tool bundled: {package}",
         )
+    require(
+        not any("node_modules/expo/node_modules/zod/" in source for source in sources),
+        "Expo CLI's Zod 3 must not be bundled",
+    )
     return {
+        "excludedExpoCliZod3": True,
         "package": PACKAGE,
         "label": "MaschinenLog",
         "versionName": version_name,

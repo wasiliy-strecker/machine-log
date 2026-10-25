@@ -8,11 +8,16 @@ import {
 } from 'react-test-renderer';
 import { SettingsScreen } from '../src/features/settings/settings-screen';
 import { fixture, record } from './support';
+import {
+  localization,
+  type LanguagePreference,
+} from '../src/core/localization/runtime';
 
 const ports = vi.hoisted(() => ({
   dismissKeyboard: vi.fn(),
   refresh: vi.fn(),
   openLink: vi.fn(),
+  setLanguage: vi.fn(),
   media: {
     prepareBackup: vi.fn(),
     saveBackup: vi.fn(),
@@ -41,6 +46,7 @@ vi.mock('../src/core/ui/components', () => ({
   BusyOverlay: 'BusyOverlay',
   Card: 'Card',
   Field: 'Field',
+  SelectField: 'SelectField',
   Heading: 'Heading',
   Page: 'Page',
   Notice: (props: { text: string }) =>
@@ -60,6 +66,7 @@ vi.mock('../src/core/composition', () => ({
     media: ports.media,
     refresh: ports.refresh,
     links: { open: ports.openLink },
+    native: { setLanguage: ports.setLanguage },
   }),
 }));
 Object.assign(globalThis, { IS_REACT_ACT_ENVIRONMENT: true });
@@ -411,4 +418,32 @@ it('shows decryption and restore progress and clears the overlay before restore 
     confirm.resolve(false);
     restoring.resolve();
   }
+});
+
+it('changes the persistent native language and rerenders settings without modifying stored data', async () => {
+  const snapshot = await active.repo.snapshot();
+  ports.setLanguage.mockImplementation(
+    async (preference: LanguagePreference) => ({
+      language: preference ?? 'fr',
+      preference,
+      formatLocale: 'de-DE',
+    }),
+  );
+  await act(async () =>
+    root().findByProps({ label: 'Sprache' }).props.onChange('en'),
+  );
+  expect(ports.setLanguage).toHaveBeenCalledWith('en');
+  expect(localization()).toEqual({
+    language: 'en',
+    preference: 'en',
+    formatLocale: 'de-DE',
+  });
+  expect(root().findByProps({ label: 'Language' }).props.value).toBe('en');
+  await act(async () =>
+    root().findByProps({ label: 'Language' }).props.onChange('system'),
+  );
+  expect(ports.setLanguage).toHaveBeenLastCalledWith(null);
+  expect(localization().language).toBe('fr');
+  expect(localization().formatLocale).toBe('de-DE');
+  expect(await active.repo.snapshot()).toEqual(snapshot);
 });

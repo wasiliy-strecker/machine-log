@@ -1,8 +1,7 @@
 # Store-Texte Deutsch
 
-Vorbereitet für den Store-Upload von MaschinenLog 1.0.0, Versionscode 5.
-Diese Texte sind noch keine Veröffentlichung oder abgeschlossene Play-Freigabe.
-Die Feldinhalte können direkt kopiert werden.
+MaschinenLog 1.0.0 (6). Die Textdateien und Bilder aller sechs Sprachen liegen unter
+`releases/international/build-6/`. Quelle der Feldinhalte ist `store/de-DE/copy.json`.
 
 ## App-Name
 
@@ -13,40 +12,34 @@ MaschinenLog
 ## Kurze Beschreibung
 
 ```text
-Maschinenzähler erfassen, Fotos auslesen und Zählerverläufe dokumentieren.
+Maschinenzähler erfassen, Fotos auslesen und Produktionsverläufe dokumentieren.
 ```
 
 ## Vollständige Beschreibung
 
 ```text
-MaschinenLog hilft dir, Produktionszähler deiner Maschinen übersichtlich zu dokumentieren. Erfasse Stückzahlen, Zyklen, Betriebsstunden oder Mengen und behalte den Verlauf deiner Ablesungen im Blick.
+MaschinenLog hilft dir, Produktionszähler deiner Maschinen übersichtlich zu dokumentieren. Erfasse Stückzahlen, Zyklen, Betriebsstunden oder Mengen und behalte deine Ablesungen im Blick.
 
 Zähler passend zu deiner Maschine
-Wähle eine vorgegebene Zählerart oder verwende eine eigene Bezeichnung und Einheit. Ergänze bei Bedarf eine Maschinennummer und einen Bereich. Passende Symbole erleichtern die Zuordnung.
+Wähle eine vorgegebene Zählerart oder verwende eine eigene Bezeichnung und Einheit. Ergänze Maschinennummer, Produktionsbereich und ein passendes Symbol.
 
 Ablesen per Eingabe oder Foto
-Trage den Wert manuell ein oder übernimm Zahlen aus einem Kamerafoto beziehungsweise einem vorhandenen Bild. Die Zeichenerkennung verarbeitet das Foto auf deinem Gerät. Prüfe und bestätige den erkannten Wert vor dem Speichern.
+Trage den Wert manuell ein oder übernimm Zahlen aus einem Kamerafoto oder vorhandenen Bild. Die Zeichenerkennung verarbeitet das Foto auf deinem Gerät. Prüfe und bestätige den erkannten Wert vor dem Speichern.
 
 Verläufe nachvollziehbar führen
-MaschinenLog berechnet die Zuwächse zwischen Ablesungen und berücksichtigt nachträgliche Einträge, Rücksetzungen und Zählerwechsel. Bei Korrekturen bleiben der ursprüngliche Eintrag und frühere Fotos erhalten. Einen Änderungsgrund kannst du ergänzen.
+Die App berechnet Zuwächse zwischen Ablesungen und berücksichtigt nachträgliche Einträge, Rücksetzungen und Zählerwechsel. Bei Korrekturen bleiben ursprüngliche Angaben und frühere Fotos erhalten. Einen Änderungsgrund kannst du ergänzen.
 
-Erinnerungen einrichten
-Lass dich regelmäßig an die nächste Ablesung erinnern. Die Einstellungen bieten eine Testbenachrichtigung und Hinweise zu benötigten Android-Freigaben.
-
-PDF-Protokolle erstellen
-Erstelle Einzelprotokolle oder einen Zählerverlauf als PDF. Aktuelle Fotos können im Protokoll enthalten sein. Gespeicherte Protokolle lassen sich erneut öffnen und über die Android-Teilen-Funktion weitergeben.
+Erinnerungen und PDF-Protokolle
+Richte regelmäßige Ableseerinnerungen ein. Erstelle Einzelprotokolle oder einen Zählerverlauf als PDF, kompakt oder mit Fotos. Öffne, drucke und teile gespeicherte Protokolle.
 
 Verschlüsselt sichern
-Erstelle passwortgeschützte Backups deiner Daten, Fotos und gespeicherten Protokolle. Wähle den Speicherort selbst und stelle deine Sicherung bei Bedarf wieder her.
+Erstelle passwortgeschützte Backups deiner Daten, Fotos und Protokolle. Wähle den Speicherort und stelle die Sicherung bei Bedarf wieder her.
+
+In sechs Sprachen
+Deutsch, Englisch, Spanisch, Französisch, Italienisch und Portugiesisch (Brasilien). Wähle die App-Sprache in den Einstellungen oder folge der Systemsprache. Zahlen und Datumsangaben richten sich nach der Region deines Geräts.
 
 Ohne Konto und ohne Werbung
-Deine Zählerdaten liegen im privaten App-Speicher. MaschinenLog verwendet keinen eigenen Server und bietet keine Cloud-Synchronisation. Das enthaltene Google-ML-Kit-SDK kann technische Diagnose- und Nutzungsdaten verarbeiten. Einzelheiten findest du in der Datenschutzerklärung.
-```
-
-## Paketkennung
-
-```text
-com.appfactory.maschinenlog
+Deine Zählerdaten liegen im privaten App-Speicher. MaschinenLog verwendet keinen eigenen Server und bietet keine Cloud-Synchronisation. Die Store-App benötigt keine Internetberechtigung. Weitere Angaben zum enthaltenen Google-ML-Kit-SDK findest du in der Datenschutzerklärung.
 ```
 
 ## Datenschutzerklärung
@@ -58,26 +51,16 @@ https://wasiliy-strecker.github.io/machine-log/datenschutz/
 ## Interner Release-Titel
 
 ```text
-1.0.0 (5) – MaschinenLog
+1.0.0 (6) – MaschinenLog in sechs Sprachen
 ```
 
 ## Versionshinweise
 
 ```text
 <de-DE>
-Produktionszähler manuell oder per Foto erfassen. Zählerverläufe und PDF-Protokolle erstellen. Mit Ableseerinnerungen, passwortgeschützten Backups und Startbildschirm mit MaschinenLog-Icon.
+Deutsch, Englisch, Spanisch, Französisch, Italienisch und Portugiesisch (Brasilien). App-Sprache auswählbar. Regionale Zahlen und Datumsangaben. Übersetzte PDFs und Erinnerungen.
 </de-DE>
 ```
 
-## Nächster Console-Schritt
-
-Die App ist in der Play Console angelegt. Für den nächsten Upload die geprüfte
-AAB mit Code 5 verwenden. Die Store-Grafiken liegen unter
-`build/store-assets/de-DE/build-3/` und zeigen die weiterhin gültigen App-Ansichten.
-Danach die noch offenen Console-Aufgaben anhand des tatsächlichen Console-Stands
-abarbeiten. Rechtliche Erklärungen und Veröffentlichung bleiben beim Kontoinhaber.
-
-Die Textgrenzen betragen 30 Zeichen für den Namen, 80 für die kurze und 4000 für
-die vollständige Beschreibung. Quelle:
-[Play Console-Hilfe](https://support.google.com/googleplay/android-developer/answer/9859152?hl=de),
-geprüft am 18. Oktober 2026.
+Es wurde nichts hochgeladen oder veröffentlicht. Weitere Sprachen und
+Herkunftsnachweise stehen in [Internationale Store-Version](INTERNATIONAL_RELEASE.md).

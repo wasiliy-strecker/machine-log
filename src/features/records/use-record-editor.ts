@@ -1,3 +1,4 @@
+import { t, LocalizedError } from '../../core/localization/runtime';
 import { useEffect, useRef, useState } from 'react';
 import { router } from 'expo-router';
 import { PermissionsAndroid, Platform } from 'react-native';
@@ -23,7 +24,6 @@ import {
   reminderSchedule,
   reminderSaveWarning,
 } from './reminder-model';
-
 export function useRecordEditor(id?: string, counterId?: string) {
   const { machine, refresh, native } = useServices();
   const reminderState = useReminderStatusSnapshot();
@@ -82,7 +82,7 @@ export function useRecordEditor(id?: string, counterId?: string) {
           ? found?.counters.find((c) => c.id === counterId)
           : found?.counters[0];
         if (!found || !counter)
-          throw new Error('Der Zähler wurde nicht gefunden.');
+          throw new LocalizedError('derZaehlerWurdeNichtGefunden');
         const details = counterDetails(found, counter);
         automaticUnit.current =
           unitForCounterType(details.type, '', true) === details.unit;
@@ -113,7 +113,7 @@ export function useRecordEditor(id?: string, counterId?: string) {
     dirty,
     busy: task.busy,
     discard: async () => {},
-    title: id ? 'Änderungen verwerfen?' : 'Eingaben verwerfen?',
+    title: id ? t('discardChanges') : t('discardEntries'),
   });
   function change<K extends keyof CounterDetails>(
     key: K,
@@ -185,14 +185,17 @@ export function useRecordEditor(id?: string, counterId?: string) {
         }
         if (
           !reminderWarning &&
-          warnings.some((warning) =>
-            warning.startsWith(
-              'Gespeichert. Erinnerungen konnten nicht aktualisiert',
-            ),
+          warnings.some(
+            (warning) =>
+              warning ===
+              t(
+                'gespeichertErinnerungenKonntenNichtAktualisiertWerdenBitteDieBerechtigungenInDenEinstellungenPr',
+              ),
           )
         )
-          reminderWarning =
-            'Daten gespeichert. Die Erinnerung konnte nicht bestätigt werden. Öffne die Erinnerung und speichere erneut.';
+          reminderWarning = t(
+            'dataSavedTheReminderCouldNotBeConfirmedOpenTheReminderAndSaveAgain',
+          );
         leave(() => {
           const target = {
             pathname: '/record/[id]' as const,
@@ -204,8 +207,10 @@ export function useRecordEditor(id?: string, counterId?: string) {
         feedback.notify(
           reminderWarning ||
             (id
-              ? 'Änderungen gespeichert.'
-              : 'Zähler gespeichert. Als Nächstes kannst du den ersten Stand erfassen.'),
+              ? t('changesSaved')
+              : t(
+                  'zaehlerGespeichertAlsNaechstesKannstDuDenErstenStandErfassen',
+                )),
         );
       }),
   };
