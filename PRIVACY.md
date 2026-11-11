@@ -1,6 +1,6 @@
 # Datenschutz für MaschinenLog
 
-Stand: 16. Oktober 2026
+Stand: 11. November 2026
 
 Die vollständige Datenschutzerklärung ist wie bei ZählerstandLog in deutscher
 und englischer Sprache auf GitHub Pages veröffentlicht.

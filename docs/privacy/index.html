@@ -40,7 +40,7 @@
       <header class="page-title">
         <p class="eyebrow">Stored on your device. Under your control.</p>
         <h1>Privacy Policy</h1>
-        <p class="meta">Last updated: October 18, 2026</p>
+        <p class="meta">Last updated: November 11, 2026</p>
       </header>
       <aside class="notice" aria-label="Summary">
         Machine Log processes and stores your machine and counter data on your
@@ -49,9 +49,9 @@
       </aside>
       <article>
         <p>
-          This Privacy Policy applies to the Machine Log mobile app, called
-          MaschinenLog in German. It explains which data the app handles on your
-          device and when data can leave your device.
+          This Privacy Policy applies to the Machine Log mobile app for Android,
+          iOS and iPadOS, called MaschinenLog in German. It explains which data
+          the app handles on your device and when data can leave your device.
         </p>
         <p>
           “Locally” means processing and storage directly on your own device,
@@ -116,14 +116,14 @@
           legacy reports are retained.
         </p>
         <p>
-          Starting with version 1.0.0, version code 3, the Store variant has
-          neither the internet permission nor the permission to access network
-          state. Its own network connections are therefore blocked. The OCR
-          model is bundled and requires no download. The standalone Dev preview
-          uses the same restriction. Dev Debug retains internet permission for a
-          local connection to the Metro development tool. The app does not
-          require an AppFabrik server. Websites opened deliberately are handled
-          by the external browser.
+          Starting with version 1.0.0, version code 3, the Android Store variant
+          has neither the internet permission nor the permission to access
+          network state. Its own network connections are therefore blocked. The
+          OCR model is bundled and requires no download. The standalone Android
+          Dev preview uses the same restriction. Android Dev Debug retains
+          internet permission for a local connection to the Metro development
+          tool. The app does not require an AppFabrik server. Websites opened
+          deliberately are handled by the external browser.
         </p>
 
         <h2>Camera, photos and text recognition</h2>
@@ -131,10 +131,23 @@
           The camera opens only after a corresponding user action. Gallery
           content is selected through the system photo picker. The app receives
           access to the selected file. New readings may be entered without a
-          photo or with one current counter photo. Number and text recognition
-          uses a bundled Latin ML Kit model that runs directly on your device. A
-          model download is not required for this recognition. The user must
-          confirm recognized values.
+          photo or with one current counter photo. Recognized values must be
+          confirmed before saving.
+        </p>
+        <p>
+          On iOS and iPadOS, number and text recognition uses Apple's Vision
+          framework entirely on your device. The photos used for recognition and
+          the recognized text are not transmitted to Apple, Google or AppFabrik
+          AI for this purpose. Further information is available in
+          <a
+            href="https://developer.apple.com/documentation/vision/recognizing-text-in-images"
+            >Apple's text recognition documentation</a
+          >.
+        </p>
+        <p>
+          On Android, number and text recognition uses a bundled Latin ML Kit
+          model that runs directly on your device. A model download is not
+          required for this recognition.
         </p>
         <p>
           After capture or selection, the app creates a JPEG photo for private
@@ -146,10 +159,11 @@
           history.
         </p>
         <p>
-          According to the general vendor documentation, Google ML Kit libraries
-          may contact Google servers for updates and compatibility information
-          and send technical performance and utilization metrics to Google.
-          These include device make and model, operating system and app
+          The following information about Google ML Kit applies exclusively to
+          Android. According to the general vendor documentation, Google ML Kit
+          libraries may contact Google servers for updates and compatibility
+          information and send technical performance and utilization metrics to
+          Google. These include device make and model, operating system and app
           versions, per-installation identifiers, latency, image format and
           resolution, input and output sizes, feature versions, event types and
           error codes. The identifiers are not intended to uniquely identify a
@@ -168,10 +182,11 @@
           >.
         </p>
         <p>
-          Removing these permissions limits the Store variant's own network
-          connections. It is not a Google-provided switch for disabling all SDK
-          telemetry. This restriction alone does not establish a guarantee about
-          every internal SDK transmission path through Google Play services.
+          Removing these permissions limits the Android Store variant's own
+          network connections. It is not a Google-provided switch for disabling
+          all SDK telemetry. This restriction alone does not establish a
+          guarantee about every internal SDK transmission path through Google
+          Play services.
         </p>
         <p>
           SHA-256 integrity hashes refer to the files stored by the app. They
@@ -182,8 +197,8 @@
         <h2>Device features and permissions</h2>
         <p>
           Depending on the features used, the app accesses the camera, photo
-          picker or file picker for backups. Notifications, alarms and
-          system-start events are used only to schedule reading reminders
+          picker or file picker for backups. On Android, notifications, alarms
+          and system-start events are used only to schedule reading reminders
           selected by the user and restore them after the device restarts.
           Android permissions determine whether these features are available.
         </p>
@@ -204,8 +219,9 @@
         </p>
         <p>
           Machine Log does not sell data or share app content for advertising,
-          analytics or profiling. Technical processing by Google libraries is
-          described in the camera, photos and text recognition section.
+          analytics or profiling. Technical processing by Google libraries on
+          Android is described in the camera, photos and text recognition
+          section.
         </p>
 
         <h2>Security</h2>

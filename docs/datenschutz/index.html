@@ -42,7 +42,7 @@
           Auf Ihrem Gerät gespeichert. Unter Ihrer Kontrolle.
         </p>
         <h1>Datenschutzerklärung</h1>
-        <p class="meta">Stand: 18. Oktober 2026</p>
+        <p class="meta">Stand: 11. November 2026</p>
       </header>
       <aside class="notice" aria-label="Kurzfassung">
         MaschinenLog verarbeitet und speichert Ihre Maschinen- und Zählerdaten
@@ -51,9 +51,9 @@
       </aside>
       <article>
         <p>
-          Diese Datenschutzerklärung gilt für die mobile App MaschinenLog. Sie
-          beschreibt, welche Daten die App auf Ihrem Gerät verarbeitet und wann
-          Daten Ihr Gerät verlassen können.
+          Diese Datenschutzerklärung gilt für die mobile App MaschinenLog für
+          Android sowie iOS und iPadOS. Sie beschreibt, welche Daten die App auf
+          Ihrem Gerät verarbeitet und wann Daten Ihr Gerät verlassen können.
         </p>
         <p>
           Mit „lokal“ ist die Verarbeitung und Speicherung direkt auf Ihrem
@@ -119,14 +119,14 @@
           gemeinsamen Altprotokolle bleiben erhalten.
         </p>
         <p>
-          Die Store-Version besitzt ab Version 1.0.0 mit Versionscode 3 weder
-          eine Internetberechtigung noch die Berechtigung zum Abfragen des
-          Netzwerkstatus. Eigene Netzwerkverbindungen der Store-App sind damit
-          gesperrt. Das OCR-Modell ist mitgeliefert und benötigt keinen
-          Download. Die eigenständige Dev-Preview verwendet dieselbe Sperre.
-          Dev-Debug behält die Internetberechtigung für eine lokale Verbindung
-          zum Entwicklungswerkzeug Metro. Die App benötigt keinen
-          AppFabrik-Server. Bewusst geöffnete Webseiten werden durch den
+          Die Android-Store-Version besitzt ab Version 1.0.0 mit Versionscode 3
+          weder eine Internetberechtigung noch die Berechtigung zum Abfragen des
+          Netzwerkstatus. Eigene Netzwerkverbindungen der Android-Store-App sind
+          damit gesperrt. Das OCR-Modell ist mitgeliefert und benötigt keinen
+          Download. Die eigenständige Android-Dev-Preview verwendet dieselbe
+          Sperre. Android-Dev-Debug behält die Internetberechtigung für eine
+          lokale Verbindung zum Entwicklungswerkzeug Metro. Die App benötigt
+          keinen AppFabrik-Server. Bewusst geöffnete Webseiten werden durch den
           externen Browser aufgerufen.
         </p>
 
@@ -135,11 +135,24 @@
           Die Kamera wird nur nach einer entsprechenden Nutzeraktion geöffnet.
           Galerieinhalte werden über die systemeigene Fotoauswahl gewählt. Die
           App erhält Zugriff auf die ausgewählte Datei. Neue Ablesungen können
-          ohne Foto oder mit einem aktuellen Zählerfoto erfasst werden. Die
-          Zahlen- und Texterkennung erfolgt direkt auf Ihrem Gerät mit einem
-          mitgelieferten lateinischen ML-Kit-Modell. Ein Modelldownload ist
-          dafür nicht erforderlich. Erkannte Werte müssen vom Nutzer bestätigt
-          werden.
+          ohne Foto oder mit einem aktuellen Zählerfoto erfasst werden. Erkannte
+          Werte müssen vor dem Speichern bestätigt werden.
+        </p>
+        <p>
+          Unter iOS und iPadOS erfolgt die Zahlen- und Texterkennung mit dem
+          Vision-Framework von Apple vollständig auf Ihrem Gerät. Die zur
+          Erkennung verwendeten Fotos und die erkannten Texte werden hierfür
+          nicht an Apple, Google oder AppFabrik AI übertragen. Weitere
+          Informationen finden Sie in der
+          <a
+            href="https://developer.apple.com/documentation/vision/recognizing-text-in-images"
+            >Apple-Dokumentation zur Texterkennung</a
+          >.
+        </p>
+        <p>
+          Unter Android erfolgt die Zahlen- und Texterkennung direkt auf Ihrem
+          Gerät mit einem mitgelieferten lateinischen ML-Kit-Modell. Ein
+          Modelldownload ist dafür nicht erforderlich.
         </p>
         <p>
           Nach der Aufnahme oder Auswahl erzeugt die App für die private
@@ -151,7 +164,8 @@
           die frühere Fotoversion in der Korrekturhistorie erhalten.
         </p>
         <p>
-          Nach den allgemeinen Herstellerangaben können
+          Die folgenden Angaben zu Google ML Kit betreffen ausschließlich
+          Android. Nach den allgemeinen Herstellerangaben können
           Google-ML-Kit-Bibliotheken Google-Server für Aktualisierungen und
           Kompatibilitätsinformationen kontaktieren und technische Leistungs-
           und Nutzungsmetriken an Google senden. Dazu gehören Gerätehersteller
@@ -175,8 +189,8 @@
           >.
         </p>
         <p>
-          Die Berechtigungssperre der Store-Version beschränkt deren eigene
-          Netzwerkverbindungen. Sie ist kein von Google bereitgestellter
+          Die Berechtigungssperre der Android-Store-Version beschränkt deren
+          eigene Netzwerkverbindungen. Sie ist kein von Google bereitgestellter
           Schalter zum vollständigen Abschalten der SDK-Telemetrie. Aus ihr
           allein lässt sich keine Zusage über sämtliche internen
           Übertragungswege des SDKs über Google Play-Dienste ableiten.
@@ -191,8 +205,8 @@
         <h2>Gerätefunktionen und Berechtigungen</h2>
         <p>
           Je nach Nutzung greift die App auf Kamera, Fotoauswahl und
-          Dateiauswahl für Backups zu. Benachrichtigungen, Alarme und der
-          Systemstart werden ausschließlich verwendet, um vom Nutzer
+          Dateiauswahl für Backups zu. Unter Android werden Benachrichtigungen,
+          Alarme und der Systemstart ausschließlich verwendet, um vom Nutzer
           eingerichtete Ableseerinnerungen auf Ihrem Gerät zu planen und nach
           einem Neustart wiederherzustellen. Android-Berechtigungen bestimmen,
           ob diese Funktionen verfügbar sind.
@@ -216,8 +230,8 @@
         <p>
           MaschinenLog verkauft keine Daten und gibt App-Inhalte nicht zu
           Werbe-, Analyse- oder Profilbildungszwecken weiter. Die technische
-          Verarbeitung durch Google-Bibliotheken ist im Abschnitt zu Kamera,
-          Fotos und Texterkennung beschrieben.
+          Verarbeitung durch Google-Bibliotheken unter Android ist im Abschnitt
+          zu Kamera, Fotos und Texterkennung beschrieben.
         </p>
 
         <h2>Sicherheit</h2>
